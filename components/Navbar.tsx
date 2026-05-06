@@ -7,7 +7,7 @@ export default function Navbar() {
 		<nav className={styles.navbar}>
 			<div className={styles.logo}>
 				<Link href="/">
-					<Image src="/images/logo.png" alt="Het Mandje logo" width={200} height={60} />
+					<Image src="/images/logo.png" alt="Het Mandje logo" width={200} height={150} />
 				</Link>
 			</div>
 
