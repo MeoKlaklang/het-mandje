@@ -1,0 +1,398 @@
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+/* HERO */
+.heroSection {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 80px;
+	align-items: center;
+}
+
+.heroContent h1 {
+	margin-bottom: 30px;
+}
+
+.heroContent p {
+	max-width: 500px;
+	line-height: 1.6;
+	margin-bottom: 30px;
+}
+
+.heroContent button {
+	background: #e9952f;
+	color: white;
+
+	border: none;
+	border-radius: 6px;
+
+	padding: 14px 46px;
+
+	font-weight: 700;
+	cursor: pointer;
+
+	font-size: 12px;
+}
+
+.heroImage {
+	height: 420px;
+
+	border-radius: 12px;
+
+	background: #d6cfa3;
+}
+
+/* INFO SECTION */
+.infoSection {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+
+	gap: 28px;
+
+	margin-top: 80px;
+}
+
+.infoCard h2 {
+	font-size: 30px;
+	line-height: 1.2;
+
+	margin: 24px 0;
+}
+
+.infoCard p,
+.infoCard li {
+	line-height: 1.6;
+}
+
+.infoCard ul {
+	padding-left: 18px;
+}
+
+/* IMAGES */
+.smallImage,
+.middleImage,
+.bottomImage {
+	background: #d6cfa3;
+	border-radius: 10px;
+}
+
+.smallImage {
+	height: 180px;
+}
+
+.middleImage {
+	height: 100%;
+	min-height: 420px;
+}
+
+.bottomImage {
+	height: 170px;
+	margin-top: 24px;
+}
+
+/* STEPS SECTION */
+.stepsSection {
+	margin-top: 140px;
+	text-align: center;
+}
+
+.stepsSection h2 {
+	font-size: 30px;
+	margin-bottom: 40px;
+}
+
+/* GRID */
+.stepsGrid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+
+	gap: 40px;
+
+	max-width: 1100px;
+	margin: 0 auto;
+}
+
+/* CARD */
+.stepCard {
+	position: relative;
+
+	background: #d6cfa3;
+
+	border-radius: 10px;
+
+	min-height: 150px;
+
+	padding: 34px;
+
+	text-align: left;
+
+	overflow: visible;
+}
+
+/* CONTENT */
+.stepContent h3 {
+	font-family: "Inter", sans-serif;
+	font-size: 20px;
+	font-weight: 700;
+
+	margin-bottom: 18px;
+}
+
+.stepContent p {
+	line-height: 1.6;
+	margin-bottom: 14px;
+font-weight: 700;
+	max-width: 90%;
+    font-size: 12px;
+}
+
+/* NUMBERS */
+.stepNumber {
+	position: absolute;
+
+	right: -14px;
+	bottom: -42px;
+
+	font-size: 40px;
+	font-family: borel, cursive;
+	color: black;
+}
+
+/* BUTTON */
+.ctaButton {
+	margin-top: 70px;
+
+	background: #e9952f;
+	color: white;
+
+	border: none;
+	border-radius: 6px;
+
+	padding: 18px 42px;
+
+	font-weight: 700;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+
+/* BENEFITS */
+.benefitsSection {
+  margin-top: 140px;
+}
+
+.benefitsSection h2 {
+  font-size: 30px;
+  margin-bottom: 40px;
+}
+
+/* GRID */
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 26px;
+}
+
+/* CARD */
+.benefitCard {
+  position: relative;
+
+  background: #d6cfa3;
+
+  border-radius: 10px;
+
+  min-height: 320px;
+
+  padding: 34px 26px;
+
+  text-align: center;
+}
+
+/* CONTENT */
+.benefitContent h3 {
+  font-family: "Inter", sans-serif;
+
+  font-size: 20px;
+  font-weight: 700;
+
+  line-height: 1.3;
+
+  margin-bottom: 24px;
+}
+
+.benefitContent p {
+  font-size: 14px;
+  line-height: 1.5;
+
+  margin-bottom: 14px;
+}
+
+/* NUMBERS */
+.benefitNumber {
+  position: absolute;
+font-family: borel;
+  bottom: -68px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  font-size: 64px;
+  font-weight: 400;
+
+  color: black;
+}
+
+/* DURATION */
+.durationSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 70px;
+  align-items: center;
+
+  margin-top: 150px;
+}
+
+.durationContent h2 {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+.durationContent > p {
+  max-width: 620px;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.durationTextBlock {
+  margin-bottom: 20px;
+}
+
+.durationTextBlock h3 {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #e9952f;
+  margin-bottom: -16px;
+}
+
+.durationTextBlock p {
+  line-height: 1.6;
+}
+
+.durationImage {
+  position: relative;
+
+  height: 470px;
+  border-radius: 12px;
+
+  background: #d6cfa3;
+}
+
+.durationImage span {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+
+  background: #d6cfa3;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+
+  padding: 14px 28px;
+  border-radius: 8px;
+
+  font-family: "Borel", cursive;
+  font-size: 20px;
+}
+
+/* COST SECTION */
+.costSection {
+  margin-top: 160px;
+  text-align: center;
+}
+
+.costSection h2 {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+/* INTRO */
+.costIntro {
+  margin-bottom: 60px;
+  font-size: 16px;
+}
+
+.costIntro span {
+  color: #e9952f;
+  font-weight: 600;
+}
+
+/* GRID */
+.costGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 28px;
+
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* CARD */
+.costCard {
+  border-radius: 10px;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* IMAGE */
+.costImage {
+  height: 320px;
+  background: #d9d9d9;
+}
+
+/* CONTENT */
+.costContent {
+  background: #d6cfa3;
+
+  padding: 24px;
+
+  height: 160px;
+}
+
+.costContent h3 {
+  font-family: "Inter", sans-serif;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  line-height: 1.3;
+
+  margin-bottom: 22px;
+}
+
+.costContent p {
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+/* BUTTON */
+.costButton {
+  margin-top: 70px;
+
+  background: #e9952f;
+  color: white;
+
+  border: none;
+  border-radius: 6px;
+
+  padding: 18px 42px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+  margin-bottom: 100px;
+}

@@ -14,7 +14,7 @@ export default function Navbar() {
 			<div className={styles.links}>
 				<Link href="/hoe-werkt-opvang">Hoe werkt opvang?</Link>
 				<Link href="/dieren">Dieren zoeken</Link>
-				<Link href="/pleeggezin">Pleeggezin worden</Link>
+				<Link href="/pleeggezin">Voor pleeggezinnen</Link>
 
 				<div className={styles.dropdown}>
 					<span>Voor partners ▾</span>
