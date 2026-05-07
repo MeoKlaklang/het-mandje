@@ -75,3 +75,61 @@
 	flex-direction: column;
 	gap: 10px;
 }
+
+.userMenu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e1e1e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.userName {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.userDropdown {
+  display: none;
+  position: absolute;
+  top: 45px;
+  left: 52px;
+  flex-direction: column;
+  gap: 6px;
+  background: #fff7ee;
+  padding: 8px 0;
+  min-width: 120px;
+  z-index: 50;
+}
+
+.userDropdown a {
+  color: #000;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.userMenu:hover .userDropdown {
+  display: flex;
+}
+
+.logoutLink {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  color: #000;
+}

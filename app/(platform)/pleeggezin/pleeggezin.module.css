@@ -1,0 +1,229 @@
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.heroSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+}
+
+.heroText h1 {
+  font-size: 30px;
+  line-height: 1.25;
+  margin-bottom: 28px;
+}
+
+.heroText p {
+  max-width: 520px;
+  line-height: 1.6;
+}
+
+.heroText span {
+  color: #e9952f;
+  font-weight: 700;
+}
+
+.heroImage {
+  position: relative;
+  height: 420px;
+  border-radius: 12px;
+  background: #d6cfa3;
+}
+
+.heroImage span {
+  position: absolute;
+  right: 28px;
+  bottom: 28px;
+  background: #d6cfa3;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  padding: 14px 52px;
+  border-radius: 8px;
+  font-family: "Borel", cursive;
+}
+
+.importanceSection {
+  margin-top: 120px;
+}
+
+.importanceSection h2 {
+  font-size: 30px;
+  margin-bottom: 45px;
+  text-align: center;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 34px;
+  width: 1000px;
+
+    margin: 0 auto;
+}
+
+.card {
+  position: relative;
+  background: #d6cfa3;
+  border-radius: 10px;
+  min-height: 230px;
+  padding: 50px 40px;
+}
+
+.card h3 {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 20px;
+}
+
+.card p {
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.card span {
+  position: absolute;
+  left: 50%;
+  bottom: -64px;
+  transform: translateX(-50%);
+  font-size: 70px;
+  line-height: 1;
+  font-family: borel;
+}
+
+/* TASKS SECTION */
+.tasksSection {
+  margin-top: 140px;
+  text-align: center;
+}
+
+.tasksSection h2 {
+  font-size: 30px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+/* GRID */
+.tasksGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 32px;
+
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+/* CARD */
+.taskCard {
+  background: #d6cfa3;
+
+  border-radius: 10px;
+
+  padding: 35px;
+
+  min-height: 130px;
+
+  text-align: left;
+}
+
+/* TITLES */
+.taskCard h3 {
+  font-family: "Inter", sans-serif;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  line-height: 1.3;
+
+  margin-bottom: 10px;
+}
+
+/* TEXT */
+.taskCard p {
+  line-height: 1.7;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+/* BUTTON */
+.tasksButton {
+  margin-top: 50px;
+
+  background: #e9952f;
+  color: white;
+
+  border: none;
+  border-radius: 6px;
+
+  padding: 18px 42px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* FAQ */
+.faqSection {
+  margin-top: 150px;
+  padding-bottom: 120px;
+}
+
+.faqSection h2 {
+  font-size: 52px;
+  margin-bottom: 40px;
+}
+
+/* LIST */
+.faqList {
+  width: 100%;
+}
+
+/* ITEM */
+.faqItem {
+  border-bottom: 1px solid rgba(0,0,0,0.35);
+  padding: 22px 0;
+}
+
+/* QUESTION */
+.faqItem summary {
+  list-style: none;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  cursor: pointer;
+
+  font-family: "Inter", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* REMOVE DEFAULT ARROW */
+.faqItem summary::-webkit-details-marker {
+  display: none;
+}
+
+/* CUSTOM ARROW */
+.faqItem summary::after {
+  content: "⌄";
+  font-size: 22px;
+  transition: transform 0.3s ease;
+}
+
+/* ROTATE */
+.faqItem[open] summary::after {
+  transform: rotate(180deg);
+}
+
+/* ANSWER */
+.faqItem p {
+  margin-top: 18px;
+  max-width: 900px;
+
+  line-height: 1.7;
+}
