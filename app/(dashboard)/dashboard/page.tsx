@@ -1,15 +1,11 @@
 import Link from "next/link";
 import styles from "./dashboard.module.css";
+import DashboardNavbar from "@/components/DashboardNavbar";
 
 export default function DashboardPage() {
   return (
-    <main className={styles.dashboard}>
-      <nav className={styles.tabs}>
-        <Link href="/dashboard" className={styles.active}>Dashboard</Link>
-        <Link href="/mijn-dieren">Mijn dieren</Link>
-        <Link href="/kalender">Mijn kalender</Link>
-        <Link href="/profiel">Profiel</Link>
-      </nav>
+    <main className={styles.dashboard}>  <DashboardNavbar />
+
 
       <section className={styles.statusBox}>
         <h1>Je aanmelding wordt nagekeken.</h1>
