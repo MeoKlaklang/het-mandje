@@ -1,0 +1,145 @@
+.dashboard {
+  min-height: 100vh;
+  background: #fff7ee;
+  padding: 55px 75px;
+}
+
+.tabs {
+  display: flex;
+  gap: 78px;
+  margin-bottom: 38px;
+}
+
+.tabs a {
+  color: #000;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.tabs .active {
+  text-decoration: underline;
+}
+
+.statusBox,
+.card {
+  background: #d7d1a6;
+  border-radius: 4px;
+}
+
+.statusBox {
+  min-height: 240px;
+  padding: 38px 46px;
+  margin-bottom: 38px;
+}
+
+.statusBox h1 {
+  font-size: 26px;
+  font-weight: 400;
+  margin-bottom: 8px;
+}
+
+.statusBox p {
+  font-size: 13px;
+}
+
+.statusBox p a,
+.outlineBox a {
+  color: #d9963d;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.steps {
+  margin-top: 55px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.stepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.circle {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+}
+
+.stepItem span {
+  font-size: 13px;
+}
+
+.line {
+  width: 150px;
+  height: 1px;
+  background: #fff;
+  margin-bottom: 34px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.card {
+  min-height: 160px;
+  padding: 28px 42px;
+}
+
+.card h2 {
+  font-size: 25px;
+  font-weight: 400;
+  margin-bottom: 22px;
+}
+
+.whiteBox,
+.outlineBox {
+  border-radius: 4px;
+  padding: 16px 24px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.whiteBox {
+  background: #fff;
+}
+
+.outlineBox {
+  border: 1px solid #fff;
+}
+
+@media (max-width: 900px) {
+  .dashboard {
+    padding: 35px 24px;
+  }
+
+  .tabs {
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .steps {
+    flex-direction: column;
+  }
+
+  .line {
+    width: 1px;
+    height: 40px;
+    margin: 0;
+  }
+}

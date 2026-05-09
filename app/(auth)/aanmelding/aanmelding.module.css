@@ -1,0 +1,184 @@
+.page {
+  min-height: 100vh;
+  background: #fff7ee;
+  padding: 60px 80px;
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.pageTitle {
+  font-size: 28px;
+  margin-bottom: 32px;
+}
+
+.progressBar {
+  height: 56px;
+  background: #e8eef7;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 10px;
+  margin-bottom: 90px;
+  font-size: 13px;
+}
+
+.progressStep {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #111;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  font-size: 13px;
+}
+
+.activeStep {
+  background: #111;
+  color: #fff;
+}
+
+.progressLine {
+  flex: 1;
+  height: 2px;
+  background: #9f9f9f;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dot,
+.activeDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #9f9f9f;
+}
+
+.activeDot {
+  background: #111;
+}
+
+.questionBlock {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.step {
+  color: #d9963d;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 26px;
+  margin-bottom: 48px;
+}
+
+.optionsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 26px 34px;
+  margin-bottom: 48px;
+}
+
+.optionCard {
+  height: 112px;
+  border: 2px solid transparent;
+  background: #d7d1a6;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.selected {
+  border-color: #d9963d;
+  background: #ece4b9;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.nextButton,
+.backButton {
+  min-width: 220px;
+  height: 42px;
+  border: none;
+  border-radius: 5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.nextButton {
+  background: #d9963d;
+  color: white;
+}
+
+.backButton {
+  background: #ddd;
+}
+
+.thankYou {
+  text-align: center;
+  max-width: 620px;
+  margin: 110px auto 0;
+}
+
+.thankYou h2 {
+  font-size: 30px;
+  margin-bottom: 40px;
+}
+
+.thankYou p {
+  font-size: 14px;
+  line-height: 1.45;
+  margin-bottom: 55px;
+}
+
+.checkCircle {
+  width: 160px;
+  height: 160px;
+  background: #d7d1a6;
+  border-radius: 50%;
+  margin: 0 auto;
+  position: relative;
+}
+
+.checkCircle span {
+  font-size: 110px;
+  font-weight: 300;
+  position: absolute;
+  top: 5px;
+  left: 38px;
+  transform: rotate(-8deg);
+}
+
+
+.thankYou .nextButton {
+  margin-top: 40px;
+}
+
+
+@media (max-width: 900px) {
+  .page {
+    padding: 40px 24px;
+  }
+
+  .progressBar {
+    overflow-x: auto;
+  }
+
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+}

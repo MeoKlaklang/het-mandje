@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,93 +10,89 @@ import InputField from "@/components/InputField";
 import { registerUser } from "@/lib/auth/register";
 
 export default function RegisterPage() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+	const [firstName, setFirstName] = useState("");
+	const [lastName, setLastName] = useState("");
+	const [birthDate, setBirthDate] = useState("");
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 
-  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+	const router = useRouter();
 
-    const { error } = await registerUser({
-      email,
-      password,
-      firstName,
-      lastName,
-      birthDate,
-    });
+	const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
+		const { error } = await registerUser({
+			email,
+			password,
+			firstName,
+			lastName,
+			birthDate,
+		});
 
-    alert("Account aangemaakt!");
-  };
+		if (error) {
+			alert(error.message);
+			return;
+		}
 
-  return (
-    <main className={styles.registerPage}>
-      <section className={styles.leftSide}>
-        <Link href="/">
-          <Image
-            src="/images/LOGO.png"
-            alt="Het mandje logo"
-            width={95}
-            height={70}
-            className={styles.logo}
-          />
-        </Link>
+		router.push("/aanmelding");
+	};
 
-        <div className={styles.formWrapper}>
-          <h2 className={styles.title}>
-            Voor we starten:
-            <br />
-            wie mogen we verwelkomen?
-          </h2>
+	return (
+		<main className={styles.registerPage}>
+			<section className={styles.leftSide}>
+				<Link href="/">
+					<Image src="/images/LOGO.png" alt="Het mandje logo" width={95} height={70} className={styles.logo} />
+				</Link>
 
-          <div className={styles.avatarWrapper}>
-            <div className={styles.avatar}>
-              <div className={styles.avatarHead}></div>
-              <div className={styles.avatarBody}></div>
-            </div>
+				<div className={styles.formWrapper}>
+					<h2 className={styles.title}>
+						Voor we starten:
+						<br />
+						wie mogen we verwelkomen?
+					</h2>
 
-            <button type="button" className={styles.editAvatar}>
-              ✎
-            </button>
-          </div>
+					<div className={styles.avatarWrapper}>
+						<div className={styles.avatar}>
+							<div className={styles.avatarHead}></div>
+							<div className={styles.avatarBody}></div>
+						</div>
 
-          <form className={styles.form} onSubmit={handleRegister}>
-            <InputField label="Voornaam" id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+						<button type="button" className={styles.editAvatar}>
+							✎
+						</button>
+					</div>
 
-            <InputField label="Achternaam" id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+					<form className={styles.form} onSubmit={handleRegister}>
+						<InputField label="Voornaam" id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
 
-            <InputField label="Geboortedatum" id="birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+						<InputField label="Achternaam" id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
 
-            <InputField label="E-mail" id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+						<InputField label="Geboortedatum" id="birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
 
-            <InputField label="Wachtwoord" id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+						<InputField label="E-mail" id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
 
-            <button type="submit" className={styles.saveButton}>
-              Account opslaan
-            </button>
-          </form>
+						<InputField label="Wachtwoord" id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
 
-          <p className={styles.loginText}>
-            Al een account? <Link href="/login">Log je hier aan</Link>
-          </p>
-        </div>
-      </section>
+						<button type="submit" className={styles.saveButton}>
+							Account opslaan
+						</button>
+					</form>
 
-      <section className={styles.rightSide}>
-        <div className={styles.imagePlaceholder}>
-          <span className={styles.sun}></span>
+					<p className={styles.loginText}>
+						Al een account? <Link href="/login">Log je hier aan</Link>
+					</p>
+				</div>
+			</section>
 
-          <svg viewBox="0 0 160 120" className={styles.placeholderIcon}>
-            <path d="M0 80 L42 38 L78 92 L126 54 L160 88" />
-          </svg>
-        </div>
-      </section>
-    </main>
-  );
+			<section className={styles.rightSide}>
+				<div className={styles.imagePlaceholder}>
+					<span className={styles.sun}></span>
+
+					<svg viewBox="0 0 160 120" className={styles.placeholderIcon}>
+						<path d="M0 80 L42 38 L78 92 L126 54 L160 88" />
+					</svg>
+				</div>
+			</section>
+		</main>
+	);
 }
