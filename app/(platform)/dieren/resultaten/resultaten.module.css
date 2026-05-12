@@ -53,9 +53,16 @@
   color: #111111;
 }
 
+.dateGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
 .filters input,
 .filters select {
   height: 38px;
+  width: 100%;
   border: 1px solid #d6d6d6;
   border-radius: 4px;
   background: white;
@@ -63,6 +70,12 @@
   font-size: 12px;
   color: #555555;
   font-family: "Inter", sans-serif;
+  outline: none;
+}
+
+.filters input:focus,
+.filters select:focus {
+  border-color: #df963f;
 }
 
 .resultsHeader {
@@ -87,12 +100,18 @@
   position: relative;
   min-height: 132px;
   display: grid;
-  grid-template-columns: 125px 1fr 40px;
+  grid-template-columns: 125px 1fr 92px;
   gap: 20px;
   background: #fffaf4;
   border: 1px solid #dfd4c7;
   border-radius: 12px;
   padding: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.card:hover {
+  border-color: #df963f;
 }
 
 .animalImage {
@@ -141,6 +160,9 @@
 }
 
 .heartButton {
+  position: absolute;
+  top: 14px;
+  right: 14px;
   width: 34px;
   height: 34px;
   border: none;
@@ -148,7 +170,20 @@
   background: white;
   color: #d94f92;
   font-size: 22px;
+  line-height: 1;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heartButton:hover {
+  transform: scale(1.05);
+}
+
+.liked {
+  background: #d94f92;
+  color: white;
 }
 
 .tags {
@@ -174,12 +209,26 @@
   color: #315b88;
 }
 
-.cardIcons {
+.cardInfo {
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  gap: 8px;
-  font-size: 15px;
+  gap: 7px;
+  padding-right: 2px;
+}
+
+.infoBadge {
+  min-width: 30px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #f9df82;
+  color: #2d1b12;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .emptyText {
@@ -194,6 +243,10 @@
     grid-template-columns: 1fr;
   }
 
+  .dateGroup {
+    grid-template-columns: 1fr;
+  }
+
   .card {
     grid-template-columns: 100px 1fr;
   }
@@ -203,7 +256,8 @@
     height: 100px;
   }
 
-  .cardIcons {
-    display: none;
+  .cardInfo {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
   }
 }

@@ -1,24 +1,66 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { getAnimals, Animal } from "@/lib/animals/getAnimals";
 import styles from "./resultaten.module.css";
+
+function getAgeCategory(age: string | null) {
+  if (!age) return "";
+
+  const lowerAge = age.toLowerCase();
+
+  if (
+    lowerAge.includes("maand") ||
+    lowerAge.includes("puppy") ||
+    lowerAge.includes("kitten")
+  ) {
+    return "jong";
+  }
+
+  const numberMatch = lowerAge.match(/\d+/);
+  const number = numberMatch ? Number(numberMatch[0]) : null;
+
+  if (number !== null && number <= 1) {
+    return "jong";
+  }
+
+  if (number !== null && number >= 8) {
+    return "senior";
+  }
+
+  return "volwassen";
+}
+
+function getGenderIcon(gender: string | null) {
+  if (!gender) return "Onbekend";
+
+  if (gender.toLowerCase() === "mannelijk") return "♂";
+  if (gender.toLowerCase() === "vrouwelijk") return "♀";
+
+  return gender;
+}
 
 export default function DierenResultatenPage() {
   const searchParams = useSearchParams();
 
-  const soort = searchParams.get("soort") || "";
-  const locatie = searchParams.get("locatie") || "";
-  const datum = searchParams.get("datum") || "";
+  const initialSoort = searchParams.get("soort") || "";
+  const initialLocatie = searchParams.get("locatie") || "";
+  const initialDatum = searchParams.get("datum") || "";
 
   const [animals, setAnimals] = useState<Animal[]>([]);
-  const [filteredAnimals, setFilteredAnimals] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [locationFilter, setLocationFilter] = useState(initialLocatie);
+  const [startDateFilter, setStartDateFilter] = useState(initialDatum);
+  const [endDateFilter, setEndDateFilter] = useState("");
+  const [speciesFilter, setSpeciesFilter] = useState(initialSoort);
   const [genderFilter, setGenderFilter] = useState("");
   const [ageFilter, setAgeFilter] = useState("");
   const [sizeFilter, setSizeFilter] = useState("");
+
+  const [likedAnimals, setLikedAnimals] = useState<string[]>([]);
 
   useEffect(() => {
     async function loadAnimals() {
@@ -32,17 +74,47 @@ export default function DierenResultatenPage() {
   }, []);
 
   useEffect(() => {
+    const savedLikes = localStorage.getItem("likedAnimals");
+
+    if (savedLikes) {
+      setLikedAnimals(JSON.parse(savedLikes));
+    }
+  }, []);
+
+  const toggleLike = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    animalId: string
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setLikedAnimals((currentLikes) => {
+      let updatedLikes: string[];
+
+      if (currentLikes.includes(animalId)) {
+        updatedLikes = currentLikes.filter((id) => id !== animalId);
+      } else {
+        updatedLikes = [...currentLikes, animalId];
+      }
+
+      localStorage.setItem("likedAnimals", JSON.stringify(updatedLikes));
+
+      return updatedLikes;
+    });
+  };
+
+  const filteredAnimals = useMemo(() => {
     let result = [...animals];
 
-    if (soort) {
-      result = result.filter((animal) => animal.species === soort);
+    if (speciesFilter && speciesFilter !== "allebei") {
+      result = result.filter((animal) => animal.species === speciesFilter);
     }
 
-    if (locatie) {
+    if (locationFilter) {
       result = result.filter((animal) => {
         const city = animal.city?.toLowerCase() || "";
         const postalCode = animal.postal_code || "";
-        const search = locatie.toLowerCase();
+        const search = locationFilter.toLowerCase();
 
         return city.includes(search) || postalCode.includes(search);
       });
@@ -53,15 +125,43 @@ export default function DierenResultatenPage() {
     }
 
     if (ageFilter) {
-      result = result.filter((animal) => animal.age === ageFilter);
+      result = result.filter(
+        (animal) => getAgeCategory(animal.age) === ageFilter
+      );
     }
 
     if (sizeFilter) {
       result = result.filter((animal) => animal.size === sizeFilter);
     }
 
-    setFilteredAnimals(result);
-  }, [animals, soort, locatie, genderFilter, ageFilter, sizeFilter]);
+    result.sort((a, b) => {
+      const aLiked = likedAnimals.includes(a.id);
+      const bLiked = likedAnimals.includes(b.id);
+
+      if (aLiked && !bLiked) return -1;
+      if (!aLiked && bLiked) return 1;
+
+      if (a.care_level === "dringend" && b.care_level !== "dringend") {
+        return -1;
+      }
+
+      if (a.care_level !== "dringend" && b.care_level === "dringend") {
+        return 1;
+      }
+
+      return 0;
+    });
+
+    return result;
+  }, [
+    animals,
+    speciesFilter,
+    locationFilter,
+    genderFilter,
+    ageFilter,
+    sizeFilter,
+    likedAnimals,
+  ]);
 
   return (
     <main className={styles.page}>
@@ -75,23 +175,43 @@ export default function DierenResultatenPage() {
             Locatie
             <input
               type="text"
-              value={locatie || "3190 Boortmeerbeek, Belgium"}
-              readOnly
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              placeholder="Postcode of stad"
             />
           </label>
 
-          <label>
-            Datum
-            <input type="date" value={datum} readOnly />
-          </label>
+          <div className={styles.dateGroup}>
+            <label>
+              Startdatum
+              <input
+                type="date"
+                value={startDateFilter}
+                onChange={(e) => setStartDateFilter(e.target.value)}
+              />
+            </label>
+
+            <label>
+              Einddatum
+              <input
+                type="date"
+                value={endDateFilter}
+                onChange={(e) => setEndDateFilter(e.target.value)}
+              />
+            </label>
+          </div>
 
           <label>
             Ik zoek een
-            <input
-              type="text"
-              value={soort || "Maakt niet uit"}
-              readOnly
-            />
+            <select
+              value={speciesFilter}
+              onChange={(e) => setSpeciesFilter(e.target.value)}
+            >
+              <option value="">Maakt niet uit</option>
+              <option value="hond">Hond</option>
+              <option value="kat">Kat</option>
+              <option value="allebei">Hond en kat</option>
+            </select>
           </label>
 
           <label>
@@ -113,10 +233,9 @@ export default function DierenResultatenPage() {
               onChange={(e) => setAgeFilter(e.target.value)}
             >
               <option value="">Maakt niet uit</option>
-              <option value="1 jaar">1 jaar</option>
-              <option value="2 jaar">2 jaar</option>
-              <option value="4 jaar">4 jaar</option>
-              <option value="7 jaar">7 jaar</option>
+              <option value="jong">Puppy / kitten</option>
+              <option value="volwassen">Volwassen</option>
+              <option value="senior">Senior</option>
             </select>
           </label>
 
@@ -147,53 +266,82 @@ export default function DierenResultatenPage() {
             </p>
           ) : (
             <div className={styles.cards}>
-              {filteredAnimals.map((animal, index) => (
-                <article key={animal.id} className={styles.card}>
-                  <img
-                    src={animal.image_url || "/images/dog3.jpg"}
-                    alt={animal.name}
-                    className={styles.animalImage}
-                  />
+              {filteredAnimals.map((animal, index) => {
+                const isLiked = likedAnimals.includes(animal.id);
 
-                  <div className={styles.cardContent}>
-                    <div className={styles.cardTop}>
-                      <div>
-                        <h2>
-                          {index + 1}. {animal.name}
-                        </h2>
-                        <p className={styles.breed}>{animal.breed}</p>
+                return (
+                  <Link
+                    key={animal.id}
+                    href={`/dieren/${animal.id}`}
+                    className={styles.card}
+                  >
+                    <img
+                      src={animal.image_url || "/images/dog3.jpg"}
+                      alt={animal.name}
+                      className={styles.animalImage}
+                    />
+
+                    <div className={styles.cardContent}>
+                      <div className={styles.cardTop}>
+                        <div>
+                          <h2>
+                            {index + 1}. {animal.name}
+                          </h2>
+
+                          <p className={styles.breed}>
+                            {animal.breed || animal.species}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          className={
+                            isLiked
+                              ? `${styles.heartButton} ${styles.liked}`
+                              : styles.heartButton
+                          }
+                          onClick={(e) => toggleLike(e, animal.id)}
+                          aria-label="Dier opslaan"
+                        >
+                          ♥
+                        </button>
                       </div>
 
-                      <button type="button" className={styles.heartButton}>
-                        ♥
-                      </button>
+                      <p className={styles.description}>
+                        {animal.short_description || animal.description}
+                      </p>
+
+                      <div className={styles.tags}>
+                        {animal.expected_duration && (
+                          <span className={styles.greenTag}>
+                            {animal.expected_duration}
+                          </span>
+                        )}
+
+                        {animal.care_level && (
+                          <span className={styles.blueTag}>
+                            {animal.care_level}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    <p className={styles.description}>
-                      {animal.short_description || animal.description}
-                    </p>
-
-                    <div className={styles.tags}>
-                      {animal.expected_duration && (
-                        <span className={styles.greenTag}>
-                          {animal.expected_duration}
+                    <div className={styles.cardInfo}>
+                      {animal.age && (
+                        <span title="Leeftijd" className={styles.infoBadge}>
+                          {animal.age}
                         </span>
                       )}
 
-                      {animal.care_level && (
-                        <span className={styles.blueTag}>
-                          {animal.care_level}
+                      {animal.gender && (
+                        <span title="Geslacht" className={styles.infoBadge}>
+                          {getGenderIcon(animal.gender)}
                         </span>
                       )}
                     </div>
-                  </div>
-
-                  <div className={styles.cardIcons}>
-                    <span>↗</span>
-                    <span>📍</span>
-                  </div>
-                </article>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           )}
         </section>
