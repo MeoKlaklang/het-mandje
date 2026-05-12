@@ -1,0 +1,153 @@
+.page {
+  min-height: calc(100vh - 100px);
+  background-color: #fef5eb;
+  padding: 35px 0 120px;
+  font-family: "Inter", sans-serif;
+}
+
+.hero {
+  position: relative;
+  width: min(1120px, calc(100% - 180px));
+  min-height: 650px;
+  margin: 0 auto;
+  border-radius: 8px;
+  overflow: hidden;
+  background-image: url("/images/dog3.jpg");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.36);
+  z-index: 1;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding-top: 125px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.content h1 {
+  margin: 0;
+  font-size: 52px;
+  line-height: 1.25;
+  font-weight: 400;
+  color: #2d1b12;
+}
+
+.content p {
+  margin-top: 32px;
+  margin-bottom: 70px;
+  font-size: 14px;
+  color: #181818;
+}
+
+.searchBox {
+  width: min(850px, calc(100% - 120px));
+  min-height: 90px;
+  background: #eeeeee;
+  border: 1px solid #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+  display: grid;
+  grid-template-columns: 1fr 1.25fr 1fr 170px;
+  align-items: center;
+  padding: 0 26px;
+}
+
+.searchItem {
+  height: 54px;
+  padding: 0 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: left;
+  border-right: 1px solid #cfcfcf;
+}
+
+.searchItem:first-child {
+  padding-left: 0;
+}
+
+.searchItem span {
+  font-size: 13px;
+  font-weight: 800;
+  color: #111111;
+  margin-bottom: 8px;
+}
+
+.searchItem input,
+.searchItem select {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #555555;
+}
+
+.searchItem select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.searchItem input::placeholder {
+  color: #777777;
+}
+
+.searchButton {
+  justify-self: end;
+  width: 150px;
+  height: 46px;
+  border: none;
+  border-radius: 4px;
+  background: #df963f;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.searchButton:hover {
+  background: #cf842d;
+}
+
+@media (max-width: 1000px) {
+  .hero {
+    width: calc(100% - 40px);
+  }
+
+  .content h1 {
+    font-size: 38px;
+  }
+
+  .searchBox {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 24px;
+  }
+
+  .searchItem {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #cfcfcf;
+    padding: 0 0 14px;
+  }
+
+  .searchButton {
+    justify-self: stretch;
+    width: 100%;
+  }
+}
