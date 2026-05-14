@@ -1,0 +1,226 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  background: #fef5eb;
+  font-family: "Inter", sans-serif;
+}
+
+.leftSide {
+  position: relative;
+  padding: 42px 70px;
+  display: flex;
+  flex-direction: column;
+}
+
+.logoLink {
+  display: inline-flex;
+  width: fit-content;
+  text-decoration: none;
+}
+
+.logo {
+  object-fit: contain;
+}
+
+.backButton {
+  width: fit-content;
+  margin-top: 78px;
+  border: none;
+  background: transparent;
+  color: #8f8a84;
+  font-size: 13px;
+  font-family: "Inter", sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+
+.backButton span {
+  width: 17px;
+  height: 17px;
+  border: 1px solid #8f8a84;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.formWrapper {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 70px;
+}
+
+.formWrapper h1 {
+  font-size: 38px;
+  color: #1f130d;
+  margin-bottom: 8px;
+}
+
+.intro {
+  margin: 0 0 58px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #111111;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 13px;
+  color: #111111;
+  font-weight: 500;
+}
+
+.form input {
+  height: 41px;
+  border: 1px solid #bfb8b1;
+  border-radius: 6px;
+  background: transparent;
+  padding: 0 12px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  outline: none;
+}
+
+.form input:focus {
+  border-color: #df963f;
+}
+
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordWrapper input {
+  width: 100%;
+  padding-right: 70px;
+}
+
+.passwordWrapper button {
+  position: absolute;
+  right: 9px;
+  border: none;
+  background: transparent;
+  color: #777777;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: "Inter", sans-serif;
+}
+
+.forgotLink {
+  margin-top: -24px;
+  align-self: flex-end;
+  font-size: 12px;
+  color: #9b958f;
+  text-decoration: none;
+}
+
+.forgotLink:hover {
+  color: #df963f;
+}
+
+.loginButton {
+  height: 48px;
+  margin-top: 28px;
+  border: none;
+  border-radius: 5px;
+  background: #df963f;
+  color: white;
+  font-size: 15px;
+  font-weight: 800;
+  font-family: "Inter", sans-serif;
+  cursor: pointer;
+}
+
+.loginButton:hover {
+  background: #cf842d;
+}
+
+.loginButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.registerText {
+  margin-top: 36px;
+  text-align: center;
+  font-size: 13px;
+  color: #111111;
+}
+
+.registerText a {
+  color: #111111;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.registerText a:hover {
+  color: #df963f;
+}
+
+.rightSide {
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imagePlaceholder {
+  width: 170px;
+  height: 170px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholderIcon {
+  width: 155px;
+  height: 125px;
+  fill: none;
+  stroke: #111111;
+  stroke-width: 1.2;
+}
+
+.sun {
+  position: absolute;
+  top: 36px;
+  right: 36px;
+  width: 22px;
+  height: 22px;
+  background: #222222;
+  border-radius: 50%;
+}
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .rightSide {
+    display: none;
+  }
+
+  .leftSide {
+    padding: 32px 28px;
+  }
+
+  .formWrapper {
+    margin-top: 50px;
+    max-width: none;
+  }
+}

@@ -7,8 +7,9 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getAnimalById } from "@/lib/animals/getAnimalById";
 import type { AnimalDetail } from "@/lib/animals/getAnimalById";
-import { createAnimalApplication } from "@/lib/animals/createAnimalApplication";
 import styles from "./dier-detail.module.css";
+import { createAnimalApplication } from "@/lib/animals/createAnimalApplication";
+
 
 function formatAddress(animal: AnimalDetail) {
 	const shelter = animal.shelters;
