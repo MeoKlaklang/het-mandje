@@ -153,6 +153,32 @@
   border-radius: 5px;
 }
 
+.statusTag {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statusPending {
+  background: #fff1d8;
+  color: #8b5b1f;
+}
+
+.statusApproved {
+  background: #e6f5e8;
+  color: #1f4d2b;
+}
+
+.statusRejected {
+  background: #fbe4e4;
+  color: #8a2d2d;
+}
+
 @media (max-width: 900px) {
   .page {
     padding: 40px 24px 90px;
