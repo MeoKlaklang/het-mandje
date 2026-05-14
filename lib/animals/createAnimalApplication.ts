@@ -38,4 +38,13 @@ export async function createAnimalApplication(
     console.error("Fout bij maken aanvraag:", error);
 
     return {
-     
+      success: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    success: true,
+    error: null,
+  };
+}

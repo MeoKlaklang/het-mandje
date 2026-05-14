@@ -1,10 +1,14 @@
 "use client";
 
+
+
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getAnimalById } from "@/lib/animals/getAnimalById";
-import type { AnimalDetail } from "@/lib/animals/getAnimalById";import styles from "./dier-detail.module.css";
+import type { AnimalDetail } from "@/lib/animals/getAnimalById";
+import { createAnimalApplication } from "@/lib/animals/createAnimalApplication";
+import styles from "./dier-detail.module.css";
 
 function formatAddress(animal: AnimalDetail) {
 	const shelter = animal.shelters;
@@ -84,6 +88,7 @@ export default function DierDetailPage() {
 
 	const [animal, setAnimal] = useState<AnimalDetail | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [applicationLoading, setApplicationLoading] = useState(false);
 
 	useEffect(() => {
 		async function loadAnimal() {
@@ -109,6 +114,29 @@ export default function DierDetailPage() {
 
 		return allImages;
 	}, [animal]);
+
+	const handleApply = async () => {
+		if (!animal) return;
+
+		setApplicationLoading(true);
+
+		const result = await createAnimalApplication({
+			animalId: animal.id,
+			shelterId: animal.shelters?.id || null,
+			message: `Ik heb interesse om ${animal.name} tijdelijk op te vangen.`,
+			startDate: animal.available_from,
+			endDate: animal.available_until,
+		});
+
+		setApplicationLoading(false);
+
+		if (!result.success) {
+			alert(result.error);
+			return;
+		}
+
+		alert("Je interesse werd doorgestuurd naar het dierenasiel!");
+	};
 
 	if (loading) {
 		return (
@@ -233,8 +261,8 @@ export default function DierDetailPage() {
 							</p>
 						)}
 
-						<button type="button" className={styles.interestButton}>
-							Interesse
+						<button type="button" className={styles.interestButton} onClick={handleApply} disabled={applicationLoading}>
+							{applicationLoading ? "Aanvraag verzenden..." : "Interesse"}
 						</button>
 					</section>
 				</section>
@@ -284,8 +312,8 @@ export default function DierDetailPage() {
 
 						<div className={styles.stayInfo}>{nights ? `${nights} nachten verblijf` : animal.expected_duration}</div>
 
-						<button type="button" className={styles.offerButton}>
-							Bied een warm thuis
+						<button type="button" className={styles.offerButton} onClick={handleApply} disabled={applicationLoading}>
+							{applicationLoading ? "Aanvraag verzenden..." : "Bied een warm thuis"}
 						</button>
 					</div>
 
