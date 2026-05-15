@@ -1,0 +1,254 @@
+.page {
+  min-height: 100vh;
+  background: #fef5eb;
+  padding: 38px 44px 80px;
+  font-family: "Inter", sans-serif;
+  color: #1f130d;
+}
+
+.wrapper {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.topBar {
+  margin-bottom: 22px;
+}
+
+.backLink {
+  display: inline-flex;
+  margin-bottom: 18px;
+  color: #8f8a84;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.topBar h1 {
+  margin: 0;
+  font-size: 38px;
+  line-height: 1.1;
+  color: #1f130d;
+}
+
+.topBar p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #8a7a69;
+}
+
+.formLayout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 34px;
+  align-items: start;
+}
+
+.leftColumn,
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.card {
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 12px;
+  padding: 26px 30px;
+}
+
+.card h2 {
+  margin: 0 0 24px;
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.card label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #1f130d;
+}
+
+.card input,
+.card select,
+.card textarea {
+  width: 100%;
+  border: 1px solid #d7cbbf;
+  border-radius: 6px;
+  background: white;
+  padding: 0 12px;
+  height: 38px;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  color: #1f130d;
+  outline: none;
+}
+
+.card textarea {
+  min-height: 78px;
+  height: auto;
+  padding-top: 10px;
+  resize: vertical;
+}
+
+.card input:focus,
+.card select:focus,
+.card textarea:focus {
+  border-color: #df963f;
+}
+
+.gridTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.gridThree {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.speciesToggle {
+  display: flex;
+  gap: 12px;
+}
+
+.speciesToggle button {
+  width: 95px;
+  height: 38px;
+  border: 1px solid #eadfd4;
+  border-radius: 6px;
+  background: white;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.speciesToggle .activeSpecies {
+  background: #df963f;
+  color: white;
+  border-color: #df963f;
+}
+
+.uploadBox {
+  height: 190px;
+  border: 1px solid #d7cbbf;
+  border-radius: 8px;
+  background: #fef5eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.uploadBox p {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f130d;
+}
+
+.uploadBox img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hint {
+  margin: 12px 0 0;
+  font-size: 11px;
+  color: #8a7a69;
+}
+
+.checkGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 18px;
+}
+
+.checkGrid label {
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5f5247;
+}
+
+.checkGrid input {
+  width: 15px;
+  height: 15px;
+  padding: 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-width: 170px;
+  height: 46px;
+  border-radius: 6px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.primaryButton {
+  border: none;
+  background: #df963f;
+  color: white;
+}
+
+.secondaryButton {
+  border: 1px solid #dfd4c7;
+  background: #fffaf4;
+  color: #1f130d;
+}
+
+.primaryButton:hover {
+  background: #cf842d;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 950px) {
+  .page {
+    padding: 28px 22px 70px;
+  }
+
+  .formLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .gridTwo,
+  .gridThree {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+  }
+}
