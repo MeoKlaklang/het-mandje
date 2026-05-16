@@ -488,6 +488,244 @@
   color: #8a7a69;
 }
 
+.overviewHeader {
+  padding: 22px 24px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.overviewHeader h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+  color: #1f130d;
+}
+
+.overviewHeader p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #8a7a69;
+}
+
+.overviewHeader > a {
+  min-width: 112px;
+  height: 34px;
+  border-radius: 6px;
+  background: #df963f;
+  color: white;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  padding: 10px 24px 18px;
+  overflow-x: auto;
+}
+
+.tabs button {
+  border: 1px solid #eadfd4;
+  background: white;
+  color: #7a6d5f;
+  border-radius: 999px;
+  padding: 8px 13px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tabs .activeTab {
+  background: #1f130d;
+  border-color: #1f130d;
+  color: white;
+}
+
+.animalCardsList {
+  padding: 0 24px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.animalCard {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 16px;
+  padding: 14px;
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 12px;
+}
+
+.animalCardImage {
+  width: 92px;
+  height: 82px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #e6ded4;
+}
+
+.animalCardInfo {
+  min-width: 0;
+}
+
+.animalCardTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.animalCardTitle h3 {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.animalMeta {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #6d6258;
+}
+
+.animalDate {
+  margin: 6px 0 12px;
+  font-size: 11px;
+  color: #a09284;
+}
+
+.statusBadge {
+  flex-shrink: 0;
+  min-height: 26px;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statusAvailable {
+  background: #e6f5e8;
+  color: #1f4d2b;
+}
+
+.statusReserved {
+  background: #fff1d8;
+  color: #8b5b1f;
+}
+
+.statusFoster {
+  background: #e7f0fb;
+  color: #254866;
+}
+
+.statusUnavailable {
+  background: #eeeeee;
+  color: #5e5e5e;
+}
+
+.statusConcept {
+  background: #f1ebe4;
+  color: #7a6d5f;
+}
+
+.animalCardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.applicationBadge,
+.noApplicationBadge {
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+}
+
+.applicationBadge {
+  background: #fff1d8;
+  color: #8b5b1f;
+}
+
+.noApplicationBadge {
+  background: #f4eee8;
+  color: #8a7a69;
+}
+
+.viewAnimalLink {
+  color: #df963f;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.emptyAnimals {
+  min-height: 270px;
+  padding: 48px 24px;
+  text-align: center;
+  border-top: 1px solid #f0e5da;
+}
+
+.emptyIcon {
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  background: #fff1d8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+  font-size: 24px;
+}
+
+.emptyAnimals h3 {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.emptyAnimals p {
+  max-width: 380px;
+  margin: 10px auto 24px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8a7a69;
+}
+
+.emptyAnimals a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 22px;
+  border-radius: 6px;
+  background: #df963f;
+  color: white;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 @media (max-width: 1050px) {
   .page {
     grid-template-columns: 1fr;

@@ -1,14 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import AsielLayout from "@/components/asiel/AsielLayout";
-import { createAnimal } from "@/lib/asiel/createAnimal";
-import styles from "./nieuw-dier.module.css";
+import styles from "../../nieuw/nieuw-dier.module.css";
+import { updateAnimal } from "@/lib/asiel/updateAnimal";
+import { getAnimalForEdit } from "@/lib/asiel/getAnimalForEdit";
 
-export default function NieuwDierPage() {
+type AnimalStatus = "concept" | "beschikbaar" | "gereserveerd" | "in_opvang" | "niet_beschikbaar";
+
+export default function BewerkDierPage() {
 	const router = useRouter();
+	const params = useParams<{ id: string }>();
+	const animalId = params.id;
 
 	const [species, setSpecies] = useState<"hond" | "kat">("hond");
 	const [name, setName] = useState("");
@@ -42,6 +47,7 @@ export default function NieuwDierPage() {
 	const [availableUntil, setAvailableUntil] = useState("");
 	const [expectedDuration, setExpectedDuration] = useState("");
 	const [careLevel, setCareLevel] = useState("normaal");
+	const [status, setStatus] = useState<AnimalStatus>("concept");
 
 	const [vaccinated, setVaccinated] = useState(false);
 	const [neutered, setNeutered] = useState(false);
@@ -52,17 +58,78 @@ export default function NieuwDierPage() {
 	const [houseTrained, setHouseTrained] = useState(false);
 	const [needsMedication, setNeedsMedication] = useState(false);
 
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(true);
+	const [saving, setSaving] = useState(false);
 
-	const handleSubmit = async (status: "concept" | "beschikbaar") => {
+	useEffect(() => {
+		async function loadAnimal() {
+			const { animal, error } = await getAnimalForEdit(animalId);
+
+			if (error || !animal) {
+				alert(error || "Dier kon niet geladen worden.");
+				router.push("/asiel/dashboard");
+				return;
+			}
+
+			setSpecies(animal.species || "hond");
+			setName(animal.name || "");
+			setBreed(animal.breed || "");
+			setGender(animal.gender || "");
+			setBirthDate(animal.birth_date || "");
+			setAge(animal.age || "");
+			setSize(animal.size || "");
+			setWeight(animal.weight || "");
+			setCoatColor(animal.coat_color || "");
+			setSpecialNeeds(animal.special_needs || "");
+
+			setOrigin(animal.origin || "");
+			setIntakeDate(animal.intake_date || "");
+			setIntakeReason(animal.intake_reason || "");
+			setIntakeNotes(animal.intake_notes || "");
+			setAdmittedBy(animal.admitted_by || "");
+
+			setChipNumber(animal.chip_number || "");
+			setPassportNumber(animal.passport_number || "");
+
+			setImageUrl(animal.image_url || "");
+
+			setShortDescription(animal.short_description || "");
+			setDescription(animal.description || "");
+			setBehaviorNotes(animal.behavior_notes || "");
+			setMedicalNotes(animal.medical_notes || "");
+			setTemperament(animal.temperament || "");
+
+			setAvailableFrom(animal.available_from || "");
+			setAvailableUntil(animal.available_until || "");
+			setExpectedDuration(animal.expected_duration || "");
+			setCareLevel(animal.care_level || "normaal");
+			setStatus(animal.status || "concept");
+
+			setVaccinated(Boolean(animal.vaccinated));
+			setNeutered(Boolean(animal.neutered));
+			setCanLiveWithCats(Boolean(animal.can_live_with_cats));
+			setCanLiveWithDogs(Boolean(animal.can_live_with_dogs));
+			setCanLiveWithChildren(Boolean(animal.can_live_with_children));
+			setCanBeHomeAlone(Boolean(animal.can_be_home_alone));
+			setHouseTrained(Boolean(animal.house_trained));
+			setNeedsMedication(Boolean(animal.needs_medication));
+
+			setLoading(false);
+		}
+
+		loadAnimal();
+	}, [animalId, router]);
+
+	const handleSave = async () => {
 		if (!name || !species || !breed || !gender || !age || !size) {
 			alert("Vul minstens naam, soort, ras, geslacht, leeftijd en grootte in.");
 			return;
 		}
 
-		setLoading(true);
+		setSaving(true);
 
-		const result = await createAnimal({
+		const result = await updateAnimal({
+			animalId,
 			species,
 			name,
 			breed,
@@ -101,17 +168,28 @@ export default function NieuwDierPage() {
 			needsMedication,
 		});
 
-		setLoading(false);
+		setSaving(false);
 
 		if (!result.success) {
 			alert(result.error);
 			return;
 		}
 
-		alert(status === "beschikbaar" ? "Dier werd gepubliceerd!" : "Dier werd opgeslagen als concept!");
-
+		alert("Diergegevens werden opgeslagen.");
 		router.push("/asiel/dashboard");
 	};
+
+	if (loading) {
+		return (
+			<AsielLayout>
+				<main className={styles.page}>
+					<div className={styles.wrapper}>
+						<p>Dier wordt geladen...</p>
+					</div>
+				</main>
+			</AsielLayout>
+		);
+	}
 
 	return (
 		<AsielLayout>
@@ -123,8 +201,8 @@ export default function NieuwDierPage() {
 								← Terug naar dashboard
 							</Link>
 
-							<h1>Nieuw dier toevoegen</h1>
-							<p>Vul de gegevens in van het dier dat je wilt toevoegen aan het asiel.</p>
+							<h1>{name ? `${name} bewerken` : "Dier bewerken"}</h1>
+							<p>Pas de gegevens van dit dier aan en sla je wijzigingen op.</p>
 						</div>
 					</div>
 
@@ -283,6 +361,21 @@ export default function NieuwDierPage() {
 
 						<section className={styles.rightColumn}>
 							<div className={styles.card}>
+								<h2>Status & publicatie</h2>
+
+								<label>
+									Status
+									<select value={status} onChange={(e) => setStatus(e.target.value as AnimalStatus)}>
+										<option value="concept">Concept</option>
+										<option value="beschikbaar">Beschikbaar</option>
+										<option value="gereserveerd">Gereserveerd</option>
+										<option value="in_opvang">In opvang</option>
+										<option value="niet_beschikbaar">Niet beschikbaar</option>
+									</select>
+								</label>
+							</div>
+
+							<div className={styles.card}>
 								<h2>Identificatie</h2>
 
 								<label>
@@ -297,7 +390,7 @@ export default function NieuwDierPage() {
 							</div>
 
 							<div className={styles.card}>
-								<h2>Foto toevoegen</h2>
+								<h2>Foto</h2>
 
 								<label>
 									Afbeelding URL
@@ -305,8 +398,6 @@ export default function NieuwDierPage() {
 								</label>
 
 								<div className={styles.uploadBox}>{imageUrl ? <img src={imageUrl} alt="Preview" /> : <p>Klik om foto’s te uploaden</p>}</div>
-
-								<p className={styles.hint}>Voor nu gebruiken we een image URL. Later kunnen we Supabase Storage toevoegen.</p>
 							</div>
 
 							<div className={styles.card}>
@@ -384,12 +475,12 @@ export default function NieuwDierPage() {
 							</div>
 
 							<div className={styles.actions}>
-								<button type="button" className={styles.secondaryButton} disabled={loading} onClick={() => handleSubmit("concept")}>
-									Opslaan als concept
+								<button type="button" className={styles.secondaryButton} disabled={saving} onClick={() => router.push("/asiel/dashboard")}>
+									Annuleren
 								</button>
 
-								<button type="button" className={styles.primaryButton} disabled={loading} onClick={() => handleSubmit("beschikbaar")}>
-									{loading ? "Opslaan..." : "Dier publiceren"}
+								<button type="button" className={styles.primaryButton} disabled={saving} onClick={handleSave}>
+									{saving ? "Opslaan..." : "Wijzigingen opslaan"}
 								</button>
 							</div>
 						</section>
