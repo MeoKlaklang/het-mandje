@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import AsielLayout from "@/components/asiel/AsielLayout";
-import styles from "../../nieuw/nieuw-dier.module.css";
-import { updateAnimal } from "@/lib/asiel/updateAnimal";
 import { getAnimalForEdit } from "@/lib/asiel/getAnimalForEdit";
+import { updateAnimal } from "@/lib/asiel/updateAnimal";
+import { getApprovedFosterForAnimal, ApprovedFosterForAnimal } from "@/lib/asiel/getApprovedFosterForAnimal";
+import styles from "../../nieuw/nieuw-dier.module.css";
 
 type AnimalStatus = "concept" | "beschikbaar" | "gereserveerd" | "in_opvang" | "niet_beschikbaar";
 
@@ -37,6 +38,8 @@ export default function BewerkDierPage() {
 
 	const [imageUrl, setImageUrl] = useState("");
 
+	const [approvedFoster, setApprovedFoster] = useState<ApprovedFosterForAnimal | null>(null);
+
 	const [shortDescription, setShortDescription] = useState("");
 	const [description, setDescription] = useState("");
 	const [behaviorNotes, setBehaviorNotes] = useState("");
@@ -61,9 +64,21 @@ export default function BewerkDierPage() {
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 
+	function formatNormalDate(date: string | null) {
+		if (!date) return "Onbekend";
+
+		return new Date(date).toLocaleDateString("nl-BE", {
+			day: "2-digit",
+			month: "long",
+			year: "numeric",
+		});
+	}
+
 	useEffect(() => {
 		async function loadAnimal() {
 			const { animal, error } = await getAnimalForEdit(animalId);
+			const { foster } = await getApprovedFosterForAnimal(animalId);
+			setApprovedFoster(foster);
 
 			if (error || !animal) {
 				alert(error || "Dier kon niet geladen worden.");
@@ -360,6 +375,44 @@ export default function BewerkDierPage() {
 						</section>
 
 						<section className={styles.rightColumn}>
+							{approvedFoster && (
+								<div className={styles.card}>
+									<h2>Huidig pleeggezin</h2>
+
+									<div className={styles.fosterBox}>
+										<div className={styles.fosterAvatar}>👤</div>
+
+										<div>
+											<h3>
+												{approvedFoster.profile?.first_name || "Onbekend"} {approvedFoster.profile?.last_name || ""}
+											</h3>
+
+											<p>{[approvedFoster.profile?.postal_code, approvedFoster.profile?.city].filter(Boolean).join(" ") || "Adres niet ingevuld"}</p>
+										</div>
+									</div>
+
+									<div className={styles.fosterInfo}>
+										<p>
+											<strong>Opvangperiode</strong>
+											<span>
+												{formatNormalDate(approvedFoster.startDate)} - {formatNormalDate(approvedFoster.endDate)}
+											</span>
+										</p>
+
+										<p>
+											<strong>Status</strong>
+											<span>Goedgekeurd</span>
+										</p>
+
+										{approvedFoster.message && (
+											<p>
+												<strong>Bericht</strong>
+												<span>{approvedFoster.message}</span>
+											</p>
+										)}
+									</div>
+								</div>
+							)}
 							<div className={styles.card}>
 								<h2>Status & publicatie</h2>
 
