@@ -726,6 +726,234 @@
   font-weight: 900;
 }
 
+
+.applicationButton {
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: none;
+  background: #fff1d8;
+  color: #8b5b1f;
+  font-size: 10.5px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.applicationButton:hover {
+  background: #ffe4ad;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(31, 19, 13, 0.35);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 55px 20px;
+  overflow-y: auto;
+}
+
+.applicationModal {
+  position: relative;
+  width: min(780px, 100%);
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 18px;
+  padding: 30px;
+  box-shadow: 0 18px 55px rgba(31, 19, 13, 0.2);
+}
+
+.closeModal {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  border: none;
+  background: transparent;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  color: #1f130d;
+}
+
+.modalHeader {
+  margin-bottom: 24px;
+}
+
+.modalHeader p {
+  margin: 0 0 6px;
+  color: #df963f;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 28px;
+  color: #1f130d;
+}
+
+.modalGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.modalCard {
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.modalCard h3 {
+  margin: 0 0 14px;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.modalCard p {
+  margin: 8px 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #62564b;
+}
+
+.modalAnimal {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.modalAnimal img {
+  width: 88px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #e6ded4;
+}
+
+.modalAnimal h4 {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.modalAnimal span {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #8a7a69;
+}
+
+.personName {
+  color: #1f130d !important;
+  font-weight: 900;
+  font-size: 15px !important;
+}
+
+.infoRows strong {
+  color: #1f130d;
+}
+
+.answersList {
+  display: grid;
+  gap: 10px;
+}
+
+.answerItem {
+  border-bottom: 1px solid #f0e5da;
+  padding-bottom: 10px;
+}
+
+.answerItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.answerItem span {
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  color: #1f130d;
+  margin-bottom: 3px;
+}
+
+.answerItem p {
+  margin: 0;
+  font-size: 13px;
+  color: #62564b;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.rejectButton,
+.approveButton {
+  min-width: 135px;
+  height: 44px;
+  border-radius: 7px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.rejectButton {
+  border: 1px solid #e5b8b8;
+  background: #fbe4e4;
+  color: #8a2d2d;
+}
+
+.approveButton {
+  border: none;
+  background: #df963f;
+  color: white;
+}
+
+.approveButton:hover {
+  background: #cf842d;
+}
+
+.rejectButton:disabled,
+.approveButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .modalGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .applicationModal {
+    padding: 24px 18px;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+
+  .rejectButton,
+  .approveButton {
+    width: 100%;
+  }
+}
 @media (max-width: 1050px) {
   .page {
     grid-template-columns: 1fr;
