@@ -6,6 +6,10 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { logoutUser } from "@/lib/auth/logout";
+import {
+  searchAsielRecords,
+  AsielSearchResult,
+} from "@/lib/asiel/searchAsielRecords";
 import styles from "./AsielLayout.module.css";
 
 type Shelter = {
@@ -23,6 +27,11 @@ export default function AsielLayout({
   const supabase = createClient();
 
   const [shelter, setShelter] = useState<Shelter | null>(null);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<AsielSearchResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     async function loadShelter() {
@@ -49,6 +58,32 @@ export default function AsielLayout({
     loadShelter();
   }, [router, supabase]);
 
+  useEffect(() => {
+    const timeout = setTimeout(async () => {
+      if (searchTerm.trim().length < 2) {
+        setSearchResults([]);
+        setSearchOpen(false);
+        return;
+      }
+
+      setSearchLoading(true);
+
+      const { results, error } = await searchAsielRecords(searchTerm);
+
+      if (error) {
+        console.error("Fout bij zoeken:", error);
+        setSearchResults([]);
+      } else {
+        setSearchResults(results);
+        setSearchOpen(true);
+      }
+
+      setSearchLoading(false);
+    }, 250);
+
+    return () => clearTimeout(timeout);
+  }, [searchTerm]);
+
   const handleLogout = async () => {
     await logoutUser();
     router.push("/asielen/login");
@@ -56,6 +91,17 @@ export default function AsielLayout({
   };
 
   const isActive = (href: string) => pathname === href;
+
+  const handleGoToResult = (result: AsielSearchResult) => {
+    setSearchTerm(
+      result.fosterName
+        ? `${result.animalName} - ${result.fosterName}`
+        : result.animalName
+    );
+
+    setSearchOpen(false);
+    router.push(result.href);
+  };
 
   return (
     <main className={styles.layout}>
@@ -125,12 +171,63 @@ export default function AsielLayout({
 
       <section className={styles.content}>
         <header className={styles.topbar}>
-          <div className={styles.searchBar}>
-            <input
-              type="text"
-              placeholder="Zoek een dier, chipnummer, adoptant"
-            />
-            <span>⌕</span>
+          <div className={styles.searchWrapper}>
+            <div className={styles.searchBar}>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                onFocus={() => {
+                  if (searchResults.length > 0) setSearchOpen(true);
+                }}
+                placeholder="Zoek een dier, eigenaar of chipnummer"
+              />
+              <span>⌕</span>
+            </div>
+
+            {searchOpen && (
+              <div className={styles.searchDropdown}>
+                {searchLoading ? (
+                  <div className={styles.searchEmpty}>Zoeken...</div>
+                ) : searchResults.length === 0 ? (
+                  <div className={styles.searchEmpty}>
+                    Geen resultaten gevonden.
+                  </div>
+                ) : (
+                  searchResults.map((result) => (
+                    <button
+                      key={result.animalId}
+                      type="button"
+                      className={styles.searchResult}
+                      onClick={() => handleGoToResult(result)}
+                    >
+                      <img
+                        src={result.imageUrl || "/images/dog3.jpg"}
+                        alt={result.animalName}
+                      />
+
+                      <div>
+                        <h3>
+                          {result.animalName}
+                          {result.fosterName
+                            ? ` - ${result.fosterName}`
+                            : ""}
+                        </h3>
+
+                        <p>
+                          {result.breed || result.species}
+                          {result.city ? ` · ${result.city}` : ""}
+                        </p>
+
+                        <span>
+                          {result.status || "status onbekend"}
+                        </span>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           <div className={styles.topActions}>

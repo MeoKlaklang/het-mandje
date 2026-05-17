@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import AsielLayout from "@/components/asiel/AsielLayout";
 import {
   getAsielDashboardData,
   AsielDashboardAnimal,
@@ -183,326 +183,267 @@ export default function AsielDashboardPage() {
   };
 
   return (
-    <main className={styles.page}>
-      <aside className={styles.sidebar}>
-        <Link href="/home" className={styles.logoLink}>
-          <Image
-            src="/images/logo.png"
-            alt="Het Mandje logo"
-            width={90}
-            height={65}
-            className={styles.logo}
-          />
-        </Link>
-
-        <nav className={styles.nav}>
-          <p>MENU</p>
-
-          <Link href="/asiel/dashboard" className={styles.active}>
-            Dashboard
-          </Link>
-
-          <Link href="/asiel/agenda">Agenda</Link>
-          <Link href="/asiel/taken">Task</Link>
-          <Link href="/asiel/dieren/nieuw">+ Nieuw dier</Link>
-
-          <p>GENERAL</p>
-
-          <Link href="/asiel/settings">Settings</Link>
-          <Link href="/asiel/help">Help</Link>
-          <Link href="/asielen/login">Logout</Link>
-        </nav>
-      </aside>
-
-      <section className={styles.content}>
-        <header className={styles.topbar}>
-          <div className={styles.searchBar}>
-            <input
-              type="text"
-              placeholder="Zoek een dier, chipnummer, adoptant"
-            />
-            <span>⌕</span>
-          </div>
-
-          <div className={styles.topActions}>
-            <button type="button" className={styles.notificationButton}>
-              ♧
-            </button>
-
-            <div className={styles.profile}>
-              <div className={styles.avatar}>👤</div>
-              <span>{shelterName}</span>
-            </div>
-          </div>
-        </header>
-
-        <div className={styles.dashboardContent}>
-          {loading ? (
-            <section className={styles.errorCard}>
-              <h1>Dashboard wordt geladen...</h1>
-              <p>We halen de gegevens van je dierenasiel op.</p>
+    <AsielLayout>
+      <main className={styles.dashboardContent}>
+        {loading ? (
+          <section className={styles.errorCard}>
+            <h1>Dashboard wordt geladen...</h1>
+            <p>We halen de gegevens van je dierenasiel op.</p>
+          </section>
+        ) : errorMessage || !dashboardData ? (
+          <section className={styles.errorCard}>
+            <h1>Er ging iets mis</h1>
+            <p>{errorMessage || "Dashboard kon niet geladen worden."}</p>
+          </section>
+        ) : (
+          <>
+            <section className={styles.welcome}>
+              <h1>Welkom, {shelterName}!</h1>
+              <p>Dit is wat er vandaag speelt in het asiel.</p>
             </section>
-          ) : errorMessage || !dashboardData ? (
-            <section className={styles.errorCard}>
-              <h1>Er ging iets mis</h1>
-              <p>{errorMessage || "Dashboard kon niet geladen worden."}</p>
+
+            <section className={styles.statsGrid}>
+              <article className={styles.statCard}>
+                <p>Totaal dieren</p>
+                <h2>{dashboardData.totalAnimals}</h2>
+
+                <span>
+                  {
+                    dashboardData.animals.filter(
+                      (animal) => animal.species === "hond"
+                    ).length
+                  }{" "}
+                  honden &nbsp;&nbsp;
+                  {
+                    dashboardData.animals.filter(
+                      (animal) => animal.species === "kat"
+                    ).length
+                  }{" "}
+                  katten
+                </span>
+
+                <Link href="/asiel/dieren">
+                  Bekijk alle dieren <span>→</span>
+                </Link>
+              </article>
+
+              <article className={styles.statCard}>
+                <p>Beschikbaar</p>
+                <h2>{dashboardData.availableAnimals}</h2>
+                <span>Dieren zichtbaar voor pleeggezinnen</span>
+
+                <Link href="/asiel/dieren">
+                  Bekijk beschikbaar <span>→</span>
+                </Link>
+              </article>
+
+              <article className={styles.statCard}>
+                <p>Aanvragen</p>
+                <h2>{dashboardData.pendingApplications}</h2>
+                <span>Nieuwe aanvragen in afwachting</span>
+
+                <Link href="/asiel/aanvragen">
+                  Bekijk <span>→</span>
+                </Link>
+              </article>
             </section>
-          ) : (
-            <>
-              <section className={styles.welcome}>
-                <h1>Welkom, {shelterName}!</h1>
-                <p>Dit is wat er vandaag speelt in het asiel.</p>
-              </section>
 
-              <section className={styles.statsGrid}>
-                <article className={styles.statCard}>
-                  <p>Totaal dieren</p>
-                  <h2>{dashboardData.totalAnimals}</h2>
+            <section className={styles.mainGrid}>
+              <div className={styles.leftColumn}>
+                <article className={styles.animalOverview}>
+                  <div className={styles.overviewHeader}>
+                    <div>
+                      <h2>Dierenoverzicht</h2>
+                      <p>
+                        Bekijk welke dieren zichtbaar zijn en waar aanvragen op
+                        lopen.
+                      </p>
+                    </div>
 
-                  <span>
-                    {
-                      dashboardData.animals.filter(
-                        (animal) => animal.species === "hond"
-                      ).length
-                    }{" "}
-                    honden &nbsp;&nbsp;
-                    {
-                      dashboardData.animals.filter(
-                        (animal) => animal.species === "kat"
-                      ).length
-                    }{" "}
-                    katten
-                  </span>
+                    <Link href="/asiel/dieren/nieuw">+ Nieuw dier</Link>
+                  </div>
 
-                  <Link href="/asiel/dieren">
+                  <div className={styles.tabs}>
+                    <button type="button" className={styles.activeTab}>
+                      Recent toegevoegd
+                    </button>
+                    <button type="button">Beschikbaar</button>
+                    <button type="button">Gereserveerd</button>
+                    <button type="button">In opvang</button>
+                    <button type="button">Concept</button>
+                  </div>
+
+                  {recentAnimals.length === 0 ? (
+                    <div className={styles.emptyAnimals}>
+                      <div className={styles.emptyIcon}>🐾</div>
+
+                      <h3>Nog geen dieren toegevoegd</h3>
+
+                      <p>
+                        Voeg je eerste hond of kat toe zodat pleeggezinnen
+                        interesse kunnen tonen en je aanvragen kan opvolgen.
+                      </p>
+
+                      <Link href="/asiel/dieren/nieuw">
+                        + Nieuw dier toevoegen
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className={styles.animalCardsList}>
+                      {recentAnimals.map((animal: AsielDashboardAnimal) => {
+                        const applications = getApplicationsForAnimal(
+                          animal.id,
+                          dashboardData
+                        );
+
+                        const firstPendingApplication = applications.find(
+                          (application: AsielDashboardApplication) =>
+                            application.status === "in_afwachting"
+                        );
+
+                        return (
+                          <article
+                            key={animal.id}
+                            className={styles.animalCard}
+                          >
+                            <img
+                              src={animal.image_url || "/images/dog3.jpg"}
+                              alt={animal.name}
+                              className={styles.animalCardImage}
+                            />
+
+                            <div className={styles.animalCardInfo}>
+                              <div className={styles.animalCardTitle}>
+                                <h3>{animal.name}</h3>
+
+                                <span
+                                  className={`${styles.statusBadge} ${getStatusClass(
+                                    animal.status
+                                  )}`}
+                                >
+                                  {formatStatus(animal.status)}
+                                </span>
+                              </div>
+
+                              <p className={styles.animalMeta}>
+                                {animal.breed || animal.species} ·{" "}
+                                {animal.age || "Leeftijd onbekend"}
+                                {animal.gender ? ` · ${animal.gender}` : ""}
+                              </p>
+
+                              <p className={styles.animalDate}>
+                                {formatDate(animal.created_at)}
+                              </p>
+
+                              <div className={styles.animalCardFooter}>
+                                {firstPendingApplication ? (
+                                  <button
+                                    type="button"
+                                    className={styles.applicationButton}
+                                    onClick={() =>
+                                      handleOpenApplication(
+                                        firstPendingApplication.id
+                                      )
+                                    }
+                                  >
+                                    ⏳ {applications.length}{" "}
+                                    {applications.length === 1
+                                      ? "aanvraag"
+                                      : "aanvragen"}
+                                  </button>
+                                ) : (
+                                  <span className={styles.noApplicationBadge}>
+                                    Geen aanvragen
+                                  </span>
+                                )}
+
+                                <Link
+                                  href={`/asiel/dieren/${animal.id}/bewerken`}
+                                  className={styles.viewAnimalLink}
+                                >
+                                  Bekijken →
+                                </Link>
+                              </div>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <Link href="/asiel/dieren" className={styles.viewAll}>
                     Bekijk alle dieren <span>→</span>
                   </Link>
                 </article>
 
-                <article className={styles.statCard}>
-                  <p>Beschikbaar</p>
-                  <h2>{dashboardData.availableAnimals}</h2>
-                  <span>Dieren zichtbaar voor pleeggezinnen</span>
+                <article className={styles.quickActions}>
+                  <h2>Snelle acties</h2>
 
-                  <Link href="/asiel/dieren">
-                    Bekijk beschikbaar <span>→</span>
-                  </Link>
-                </article>
-
-                <article className={styles.statCard}>
-                  <p>Aanvragen</p>
-                  <h2>{dashboardData.pendingApplications}</h2>
-                  <span>Nieuwe aanvragen in afwachting</span>
-
-                  <Link href="/asiel/aanvragen">
-                    Bekijk <span>→</span>
-                  </Link>
-                </article>
-              </section>
-
-              <section className={styles.mainGrid}>
-                <div className={styles.leftColumn}>
-                  <article className={styles.animalOverview}>
-                    <div className={styles.overviewHeader}>
-                      <div>
-                        <h2>Dierenoverzicht</h2>
-                        <p>
-                          Bekijk welke dieren zichtbaar zijn en waar aanvragen
-                          op lopen.
-                        </p>
-                      </div>
-
-                      <Link href="/asiel/dieren/nieuw">+ Nieuw dier</Link>
-                    </div>
-
-                    <div className={styles.tabs}>
-                      <button type="button" className={styles.activeTab}>
-                        Recent toegevoegd
-                      </button>
-                      <button type="button">Beschikbaar</button>
-                      <button type="button">Gereserveerd</button>
-                      <button type="button">In opvang</button>
-                      <button type="button">Concept</button>
-                    </div>
-
-                    {recentAnimals.length === 0 ? (
-                      <div className={styles.emptyAnimals}>
-                        <div className={styles.emptyIcon}>🐾</div>
-
-                        <h3>Nog geen dieren toegevoegd</h3>
-
-                        <p>
-                          Voeg je eerste hond of kat toe zodat pleeggezinnen
-                          interesse kunnen tonen en je aanvragen kan opvolgen.
-                        </p>
-
-                        <Link href="/asiel/dieren/nieuw">
-                          + Nieuw dier toevoegen
-                        </Link>
-                      </div>
-                    ) : (
-                      <div className={styles.animalCardsList}>
-                        {recentAnimals.map((animal: AsielDashboardAnimal) => {
-                          const applications = getApplicationsForAnimal(
-                            animal.id,
-                            dashboardData
-                          );
-
-                          const firstPendingApplication = applications.find(
-                            (application: AsielDashboardApplication) =>
-                              application.status === "in_afwachting"
-                          );
-
-                          return (
-                            <article
-                              key={animal.id}
-                              className={styles.animalCard}
-                            >
-                              <img
-                                src={animal.image_url || "/images/dog3.jpg"}
-                                alt={animal.name}
-                                className={styles.animalCardImage}
-                              />
-
-                              <div className={styles.animalCardInfo}>
-                                <div className={styles.animalCardTitle}>
-                                  <h3>{animal.name}</h3>
-
-                                  <span
-                                    className={`${styles.statusBadge} ${getStatusClass(
-                                      animal.status
-                                    )}`}
-                                  >
-                                    {formatStatus(animal.status)}
-                                  </span>
-                                </div>
-
-                                <p className={styles.animalMeta}>
-                                  {animal.breed || animal.species} ·{" "}
-                                  {animal.age || "Leeftijd onbekend"}
-                                  {animal.gender
-                                    ? ` · ${animal.gender}`
-                                    : ""}
-                                </p>
-
-                                <p className={styles.animalDate}>
-                                  {formatDate(animal.created_at)}
-                                </p>
-
-                                <div className={styles.animalCardFooter}>
-                                  {firstPendingApplication ? (
-                                    <button
-                                      type="button"
-                                      className={styles.applicationButton}
-                                      onClick={() =>
-                                        handleOpenApplication(
-                                          firstPendingApplication.id
-                                        )
-                                      }
-                                    >
-                                      ⏳ {applications.length}{" "}
-                                      {applications.length === 1
-                                        ? "aanvraag"
-                                        : "aanvragen"}
-                                    </button>
-                                  ) : (
-                                    <span
-                                      className={styles.noApplicationBadge}
-                                    >
-                                      Geen aanvragen
-                                    </span>
-                                  )}
-
-                                  <Link
-                                    href={`/asiel/dieren/${animal.id}/bewerken`}
-                                    className={styles.viewAnimalLink}
-                                  >
-                                    Bekijken →
-                                  </Link>
-                                </div>
-                              </div>
-                            </article>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    <Link href="/asiel/dieren" className={styles.viewAll}>
-                      Bekijk alle dieren <span>→</span>
+                  <div className={styles.actionButtons}>
+                    <Link href="/asiel/dieren/nieuw">
+                      <span>🐾</span>
+                      Nieuw dier toevoegen
                     </Link>
-                  </article>
 
-                  <article className={styles.quickActions}>
-                    <h2>Snelle acties</h2>
+                    <Link href="/asiel/dieren">
+                      <span>⌕</span>
+                      Dier zoeken
+                    </Link>
+                  </div>
+                </article>
+              </div>
 
-                    <div className={styles.actionButtons}>
-                      <Link href="/asiel/dieren/nieuw">
-                        <span>🐾</span>
-                        Nieuw dier toevoegen
-                      </Link>
+              <aside className={styles.rightColumn}>
+                <article className={styles.sideCard}>
+                  <div className={styles.sideHeader}>
+                    <h2>Agenda vandaag</h2>
+                    <Link href="/asiel/agenda">Bekijk volledige agenda</Link>
+                  </div>
 
-                      <Link href="/asiel/dieren">
-                        <span>⌕</span>
-                        Dier zoeken
-                      </Link>
-                    </div>
-                  </article>
-                </div>
+                  <div className={styles.agendaList}>
+                    {agendaItems.map((item) => (
+                      <div key={item.time} className={styles.agendaItem}>
+                        <span>{item.time}</span>
+                        <p>{item.title}</p>
+                      </div>
+                    ))}
+                  </div>
+                </article>
 
-                <aside className={styles.rightColumn}>
-                  <article className={styles.sideCard}>
-                    <div className={styles.sideHeader}>
-                      <h2>Agenda vandaag</h2>
-                      <Link href="/asiel/agenda">
-                        Bekijk volledige agenda
-                      </Link>
-                    </div>
+                <article className={styles.sideCard}>
+                  <div className={styles.sideHeader}>
+                    <h2>Taken</h2>
+                    <Link href="/asiel/taken">Bekijk alle taken</Link>
+                  </div>
 
-                    <div className={styles.agendaList}>
-                      {agendaItems.map((item) => (
-                        <div key={item.time} className={styles.agendaItem}>
-                          <span>{item.time}</span>
-                          <p>{item.title}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </article>
+                  <div className={styles.taskList}>
+                    {tasks.map((task, index) => (
+                      <label key={index} className={styles.taskItem}>
+                        <input type="checkbox" />
+                        <span>{task}</span>
+                      </label>
+                    ))}
+                  </div>
 
-                  <article className={styles.sideCard}>
-                    <div className={styles.sideHeader}>
-                      <h2>Taken</h2>
-                      <Link href="/asiel/taken">Bekijk alle taken</Link>
-                    </div>
+                  <button type="button" className={styles.addTaskButton}>
+                    + Nieuwe taak toevoegen
+                  </button>
+                </article>
 
-                    <div className={styles.taskList}>
-                      {tasks.map((task, index) => (
-                        <label key={index} className={styles.taskItem}>
-                          <input type="checkbox" />
-                          <span>{task}</span>
-                        </label>
-                      ))}
-                    </div>
+                <article className={styles.notificationCard}>
+                  <h2>Recente Notificatie</h2>
 
-                    <button type="button" className={styles.addTaskButton}>
-                      + Nieuwe taak toevoegen
-                    </button>
-                  </article>
-
-                  <article className={styles.notificationCard}>
-                    <h2>Recente Notificatie</h2>
-
-                    {dashboardData.pendingApplications > 0 ? (
-                      <p>Nieuwe aanvraag voor een dier uit jouw asiel.</p>
-                    ) : (
-                      <p>Er zijn momenteel geen nieuwe aanvragen.</p>
-                    )}
-                  </article>
-                </aside>
-              </section>
-            </>
-          )}
-        </div>
-      </section>
+                  {dashboardData.pendingApplications > 0 ? (
+                    <p>Nieuwe aanvraag voor een dier uit jouw asiel.</p>
+                  ) : (
+                    <p>Er zijn momenteel geen nieuwe aanvragen.</p>
+                  )}
+                </article>
+              </aside>
+            </section>
+          </>
+        )}
+      </main>
 
       {applicationLoading && (
         <div className={styles.modalOverlay}>
@@ -526,8 +467,7 @@ export default function AsielDashboardPage() {
             <div className={styles.modalHeader}>
               <p>Aanvraag bekijken</p>
               <h2>
-                Aanvraag voor{" "}
-                {selectedApplication.animal?.name || "dit dier"}
+                Aanvraag voor {selectedApplication.animal?.name || "dit dier"}
               </h2>
             </div>
 
@@ -649,6 +589,6 @@ export default function AsielDashboardPage() {
           </div>
         </div>
       )}
-    </main>
+    </AsielLayout>
   );
 }
