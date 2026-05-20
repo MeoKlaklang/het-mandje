@@ -1,0 +1,224 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #fef5eb;
+  color: #1f130d;
+  font-family: "Inter", sans-serif;
+}
+
+.imagePanel {
+  position: relative;
+  min-height: 100vh;
+  padding: 42px;
+  background:
+    linear-gradient(rgba(31, 19, 13, 0.18), rgba(31, 19, 13, 0.58)),
+    url("/images/dog3.jpg");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.logo {
+  width: fit-content;
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.imageText {
+  max-width: 520px;
+  color: white;
+}
+
+.imageText p {
+  margin: 0 0 12px;
+  width: fit-content;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255, 241, 216, 0.22);
+  color: #ffe3bd;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.imageText h1 {
+  margin: 0;
+  font-size: clamp(44px, 6vw, 76px);
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+}
+
+.imageText span {
+  display: block;
+  margin-top: 22px;
+  max-width: 430px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #fff4e6;
+}
+
+.formPanel {
+  min-height: 100vh;
+  padding: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  width: min(430px, 100%);
+  background: #fffaf4;
+  border: 1px solid #eadfd4;
+  border-radius: 22px;
+  padding: 36px;
+  box-shadow: 0 18px 50px rgba(31, 19, 13, 0.08);
+}
+
+.cardHeader {
+  margin-bottom: 28px;
+}
+
+.cardHeader p {
+  margin: 0 0 8px;
+  color: #df963f;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.cardHeader h2 {
+  margin: 0 0 10px;
+  font-size: 32px;
+  line-height: 1.05;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.cardHeader span {
+  font-size: 13px;
+  color: #8a7a69;
+}
+
+.cardHeader a {
+  color: #df963f;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.cardHeader a:hover {
+  text-decoration: underline;
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: #1f130d;
+  font-weight: 800;
+}
+
+.form input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #d6cabe;
+  border-radius: 8px;
+  background: white;
+  padding: 0 14px;
+  font-size: 14px;
+  font-family: "Inter", sans-serif;
+  color: #1f130d;
+  outline: none;
+}
+
+.form input:focus {
+  border-color: #df963f;
+}
+
+.errorMessage {
+  margin: 0;
+  border-radius: 10px;
+  background: #fbe4e4;
+  color: #8a2d2d;
+  padding: 13px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.form button {
+  height: 46px;
+  border: none;
+  border-radius: 7px;
+  background: #df963f;
+  color: white;
+  padding: 0 28px;
+  font-size: 14px;
+  font-weight: 800;
+  font-family: "Inter", sans-serif;
+  cursor: pointer;
+}
+
+.form button:hover {
+  background: #cf842d;
+}
+
+.form button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.backLink {
+  display: inline-flex;
+  margin-top: 24px;
+  color: #8a7a69;
+  font-size: 13px;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.backLink:hover {
+  color: #df963f;
+}
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .imagePanel {
+    min-height: 360px;
+  }
+
+  .formPanel {
+    min-height: auto;
+    padding: 36px 22px 70px;
+  }
+}
+
+@media (max-width: 560px) {
+  .imagePanel {
+    padding: 30px 24px;
+  }
+
+  .card {
+    padding: 28px 22px;
+    border-radius: 18px;
+  }
+
+  .cardHeader h2 {
+    font-size: 27px;
+  }
+}
