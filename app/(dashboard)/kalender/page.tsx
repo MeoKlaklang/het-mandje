@@ -1,76 +1,204 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DashboardNavbar from "@/components/DashboardNavbar";
-import { createClient } from "@/lib/supabase/client";
 import {
   getCalendarData,
   Appointment,
   Reminder,
 } from "@/lib/calendar/getCalendarData";
 import { createReminder } from "@/lib/calendar/createReminder";
+import { respondToAppointment } from "@/lib/calendar/respondToAppointment";
+import {
+  getUserFosterAnimals,
+  UserFosterAnimal,
+} from "@/lib/calendar/getUserFosterAnimals";
+import { createUserAppointmentRequest } from "@/lib/calendar/createUserAppointmentRequest";
 import styles from "./kalender.module.css";
 
-const HOURS = Array.from({ length: 14 }, (_, i) => i + 7);
+const hours = Array.from({ length: 14 }, (_, index) => index + 7);
+const weekDays = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
 
-const WEEK_DAYS = [
-  "Maandag",
-  "Dinsdag",
-  "Woensdag",
-  "Donderdag",
-  "Vrijdag",
-  "Zaterdag",
-  "Zondag",
-];
-
-function getMonday(date: Date) {
-  const copy = new Date(date);
-  const day = copy.getDay();
+function startOfWeek(date: Date) {
+  const newDate = new Date(date);
+  const day = newDate.getDay();
   const diff = day === 0 ? -6 : 1 - day;
 
-  copy.setDate(copy.getDate() + diff);
-  copy.setHours(0, 0, 0, 0);
+  newDate.setDate(newDate.getDate() + diff);
+  newDate.setHours(0, 0, 0, 0);
 
-  return copy;
+  return newDate;
 }
 
-function addDays(date: Date, days: number) {
-  const copy = new Date(date);
-  copy.setDate(copy.getDate() + days);
-  return copy;
+function addDays(date: Date, amount: number) {
+  const newDate = new Date(date);
+  newDate.setDate(newDate.getDate() + amount);
+  return newDate;
 }
 
-function formatMonthYear(date: Date) {
+function sameDay(dateA: Date, dateB: Date) {
+  return (
+    dateA.getFullYear() === dateB.getFullYear() &&
+    dateA.getMonth() === dateB.getMonth() &&
+    dateA.getDate() === dateB.getDate()
+  );
+}
+
+function formatMonth(date: Date) {
   return date.toLocaleDateString("nl-BE", {
     month: "long",
     year: "numeric",
   });
 }
 
-function getDaysInMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+function formatDate(date: string | null) {
+  if (!date) return "Onbekend";
+
+  return new Date(date).toLocaleDateString("nl-BE", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
 }
 
-function isSameDay(a: Date, b: Date) {
-  return (
-    a.getDate() === b.getDate() &&
-    a.getMonth() === b.getMonth() &&
-    a.getFullYear() === b.getFullYear()
+function formatTime(date: string) {
+  return new Date(date).toLocaleTimeString("nl-BE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatInputDate(date: Date) {
+  return date.toISOString().split("T")[0];
+}
+
+function getAppointmentTop(startAt: string) {
+  const start = new Date(startAt);
+  const minutes = start.getHours() * 60 + start.getMinutes();
+  const startMinutes = 7 * 60;
+
+  return minutes - startMinutes;
+}
+
+function getAppointmentHeight(startAt: string, endAt: string) {
+  const start = new Date(startAt);
+  const end = new Date(endAt);
+  const diff = (end.getTime() - start.getTime()) / 1000 / 60;
+
+  return Math.max(diff, 42);
+}
+
+function getCalendarDays(currentMonth: Date) {
+  const firstDay = new Date(
+    currentMonth.getFullYear(),
+    currentMonth.getMonth(),
+    1
   );
+
+  const start = startOfWeek(firstDay);
+  return Array.from({ length: 35 }, (_, index) => addDays(start, index));
+}
+
+function formatApprovalStatus(status: string | null) {
+  if (status === "pending_user_approval") return "Wacht op jouw goedkeuring";
+  if (status === "pending_shelter_approval") return "Wacht op goedkeuring asiel";
+  if (status === "confirmed") return "Bevestigd";
+  if (status === "declined") return "Geweigerd";
+  if (status === "new_time_requested") return "Nieuw voorstel verzonden";
+  return "Bevestigd";
+}
+
+function getApprovalClass(status: string | null) {
+  if (status === "pending_user_approval") return styles.pendingStatus;
+  if (status === "pending_shelter_approval") return styles.pendingStatus;
+  if (status === "declined") return styles.declinedStatus;
+  if (status === "new_time_requested") return styles.requestStatus;
+  return styles.confirmedStatus;
+}
+
+function shouldShowAppointmentForUser(appointment: Appointment) {
+  if (appointment.approval_status === "declined") return false;
+  if (appointment.status === "cancelled") return false;
+
+  return true;
+}
+
+function getDisplayStartAt(appointment: Appointment) {
+  if (
+    appointment.approval_status === "new_time_requested" &&
+    appointment.proposed_new_start_at
+  ) {
+    return appointment.proposed_new_start_at;
+  }
+
+  return appointment.start_at;
+}
+
+function getDisplayEndAt(appointment: Appointment) {
+  if (
+    appointment.approval_status === "new_time_requested" &&
+    appointment.proposed_new_end_at
+  ) {
+    return appointment.proposed_new_end_at;
+  }
+
+  return appointment.end_at;
+}
+
+function formatProposalDate(startAt: string | null, endAt: string | null) {
+  if (!startAt || !endAt) return "Geen nieuw voorstel gevonden";
+
+  const start = new Date(startAt);
+  const end = new Date(endAt);
+
+  const date = start.toLocaleDateString("nl-BE", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
+  const startTime = start.toLocaleTimeString("nl-BE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const endTime = end.toLocaleTimeString("nl-BE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return `${date} van ${startTime} tot ${endTime}`;
 }
 
 export default function KalenderPage() {
-  const supabase = createClient();
-
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [fosterAnimals, setFosterAnimals] = useState<UserFosterAnimal[]>([]);
+
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+
+  const [loading, setLoading] = useState(true);
 
   const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
   const [reminderModalOpen, setReminderModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
 
-  const [appointmentDate, setAppointmentDate] = useState("");
-  const [appointmentTime, setAppointmentTime] = useState("");
+  const [savingAppointment, setSavingAppointment] = useState(false);
+  const [savingReminder, setSavingReminder] = useState(false);
+  const [responding, setResponding] = useState(false);
+
+  const [selectedFosterAnimal, setSelectedFosterAnimal] =
+    useState<UserFosterAnimal | null>(null);
+  const [appointmentDate, setAppointmentDate] = useState(
+    formatInputDate(new Date())
+  );
+  const [appointmentStartTime, setAppointmentStartTime] = useState("09:00");
+  const [appointmentEndTime, setAppointmentEndTime] = useState("10:00");
+  const [appointmentType, setAppointmentType] = useState("algemeen");
   const [appointmentReason, setAppointmentReason] = useState("");
   const [appointmentDescription, setAppointmentDescription] = useState("");
 
@@ -81,95 +209,123 @@ export default function KalenderPage() {
     "normal" | "important"
   >("normal");
 
-  const [loading, setLoading] = useState(false);
+  const [responseMessage, setResponseMessage] = useState("");
+  const [proposalDate, setProposalDate] = useState("");
+  const [proposalStartTime, setProposalStartTime] = useState("09:00");
+  const [proposalEndTime, setProposalEndTime] = useState("10:00");
 
-  const weekStart = getMonday(selectedDate);
+  async function loadCalendar() {
+    setLoading(true);
 
-  const weekDays = WEEK_DAYS.map((day, index) => ({
-    name: day,
-    date: addDays(weekStart, index),
-  }));
+    const [calendarData, animalData] = await Promise.all([
+      getCalendarData(),
+      getUserFosterAnimals(),
+    ]);
 
-  const monthDays = getDaysInMonth(selectedDate);
-  const currentMonth = selectedDate.getMonth();
-  const currentYear = selectedDate.getFullYear();
+    setAppointments(calendarData.appointments);
+    setReminders(calendarData.reminders);
+    setFosterAnimals(animalData.animals);
 
-  const loadCalendar = async () => {
-    const data = await getCalendarData();
-    setAppointments(data.appointments);
-    setReminders(data.reminders);
-  };
+    setLoading(false);
+  }
 
   useEffect(() => {
     loadCalendar();
   }, []);
 
-  const handlePreviousWeek = () => {
-    setSelectedDate(addDays(selectedDate, -7));
+  const weekStart = useMemo(() => startOfWeek(currentDate), [currentDate]);
+
+  const days = useMemo(() => {
+    return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+  }, [weekStart]);
+
+  const calendarDays = useMemo(() => {
+    return getCalendarDays(calendarMonth);
+  }, [calendarMonth]);
+
+  const visibleAppointments = useMemo(() => {
+    return appointments.filter(shouldShowAppointmentForUser);
+  }, [appointments]);
+
+  const todayAppointments = visibleAppointments.filter((appointment) =>
+    sameDay(new Date(getDisplayStartAt(appointment)), new Date())
+  );
+
+  const todayReminders = reminders.filter((reminder) =>
+    sameDay(new Date(reminder.due_at), new Date())
+  );
+
+  const previousWeek = () => {
+    setCurrentDate((date) => addDays(date, -7));
   };
 
-  const handleNextWeek = () => {
-    setSelectedDate(addDays(selectedDate, 7));
+  const nextWeek = () => {
+    setCurrentDate((date) => addDays(date, 7));
   };
 
-  const handleToday = () => {
-    setSelectedDate(new Date());
+  const previousMonth = () => {
+    setCalendarMonth(
+      (date) => new Date(date.getFullYear(), date.getMonth() - 1, 1)
+    );
   };
 
-  const handlePreviousMonth = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setMonth(newDate.getMonth() - 1);
-    setSelectedDate(newDate);
+  const nextMonth = () => {
+    setCalendarMonth(
+      (date) => new Date(date.getFullYear(), date.getMonth() + 1, 1)
+    );
   };
 
-  const handleNextMonth = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setMonth(newDate.getMonth() + 1);
-    setSelectedDate(newDate);
+  const resetAppointmentForm = () => {
+    setSelectedFosterAnimal(null);
+    setAppointmentDate(formatInputDate(new Date()));
+    setAppointmentStartTime("09:00");
+    setAppointmentEndTime("10:00");
+    setAppointmentType("algemeen");
+    setAppointmentReason("");
+    setAppointmentDescription("");
   };
 
   const handleCreateAppointment = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
-    setLoading(true);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      alert("Je moet ingelogd zijn.");
-      setLoading(false);
+    if (!selectedFosterAnimal) {
+      alert("Kies eerst voor welk dier je een afspraak wilt maken.");
       return;
     }
 
-    const startAt = new Date(`${appointmentDate}T${appointmentTime}`);
-    const endAt = new Date(startAt.getTime() + 30 * 60 * 1000);
+    if (!appointmentReason.trim()) {
+      alert("Vul een reden of titel in.");
+      return;
+    }
 
-    const { error } = await supabase.from("appointments").insert({
-      foster_id: user.id,
-      veterinarian_id: null,
-      animal_id: null,
+    if (!appointmentDate || !appointmentStartTime || !appointmentEndTime) {
+      alert("Vul datum, startuur en einduur in.");
+      return;
+    }
+
+    setSavingAppointment(true);
+
+    const result = await createUserAppointmentRequest({
+      animalId: selectedFosterAnimal.animalId,
+      shelterId: selectedFosterAnimal.shelterId,
       title: appointmentReason,
       description: appointmentDescription,
-      start_at: startAt.toISOString(),
-      end_at: endAt.toISOString(),
-      status: "pending",
+      date: appointmentDate,
+      startTime: appointmentStartTime,
+      endTime: appointmentEndTime,
+      appointmentType,
     });
 
-    setLoading(false);
+    setSavingAppointment(false);
 
-    if (error) {
-      console.error(error);
-      alert("Er ging iets mis bij het maken van je afspraak.");
+    if (!result.success) {
+      alert(result.error);
       return;
     }
 
-    setAppointmentDate("");
-    setAppointmentTime("");
-    setAppointmentReason("");
-    setAppointmentDescription("");
+    resetAppointmentForm();
     setAppointmentModalOpen(false);
 
     await loadCalendar();
@@ -179,7 +335,13 @@ export default function KalenderPage() {
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
-    setLoading(true);
+
+    if (!reminderTitle.trim() || !reminderDate) {
+      alert("Vul een titel en datum in.");
+      return;
+    }
+
+    setSavingReminder(true);
 
     const result = await createReminder({
       title: reminderTitle,
@@ -188,7 +350,7 @@ export default function KalenderPage() {
       priority: reminderPriority,
     });
 
-    setLoading(false);
+    setSavingReminder(false);
 
     if (!result.success) {
       alert("Er ging iets mis bij het maken van je herinnering.");
@@ -204,310 +366,693 @@ export default function KalenderPage() {
     await loadCalendar();
   };
 
-  const getAppointmentStyle = (appointment: Appointment) => {
-    const start = new Date(appointment.start_at);
-    const end = new Date(appointment.end_at);
+  const handleAppointmentResponse = async (
+    action: "confirmed" | "declined" | "new_time_requested"
+  ) => {
+    if (!selectedAppointment) return;
 
-    const dayIndex = weekDays.findIndex((day) => isSameDay(day.date, start));
+    setResponding(true);
 
-    const startHour = start.getHours() + start.getMinutes() / 60;
-    const endHour = end.getHours() + end.getMinutes() / 60;
-    const duration = Math.max(endHour - startHour, 0.5);
+    const result = await respondToAppointment({
+      appointmentId: selectedAppointment.id,
+      action,
+      responseMessage,
+      proposedNewDate: proposalDate,
+      proposedNewStartTime: proposalStartTime,
+      proposedNewEndTime: proposalEndTime,
+    });
 
-    const rowHeight = 70;
-    const top = (startHour - 7) * rowHeight;
-    const height = duration * rowHeight;
+    setResponding(false);
 
-    return {
-      left: `calc(60px + ((100% - 60px) / 7) * ${dayIndex} + 8px)`,
-      top: `${top}px`,
-      width: `calc((100% - 60px) / 7 - 16px)`,
-      height: `${height}px`,
-    };
+    if (!result.success) {
+      alert(result.error);
+      return;
+    }
+
+    setResponseMessage("");
+    setProposalDate("");
+    setProposalStartTime("09:00");
+    setProposalEndTime("10:00");
+    setSelectedAppointment(null);
+
+    await loadCalendar();
   };
-
-  const visibleAppointments = appointments.filter((appointment) => {
-    const start = new Date(appointment.start_at);
-    return weekDays.some((day) => isSameDay(day.date, start));
-  });
 
   return (
     <>
       <DashboardNavbar />
 
       <main className={styles.page}>
-        <div className={styles.layout}>
-          <section className={styles.calendarSection}>
-            <div className={styles.calendarHeader}>
-              <div className={styles.monthNavigation}>
-                <h1>{formatMonthYear(selectedDate)}</h1>
+        <div className={styles.wrapper}>
+          <section className={styles.header}>
+            <div>
+              <h1>Kalender</h1>
+              <p>
+                Bekijk je afspraken, voorgestelde momenten en persoonlijke
+                herinneringen.
+              </p>
+            </div>
 
-                <div className={styles.navButtons}>
-                  <button type="button" onClick={handlePreviousWeek}>
+            <button
+              type="button"
+              className={styles.createButton}
+              onClick={() => setAppointmentModalOpen(true)}
+            >
+              + Nieuwe afspraak
+            </button>
+          </section>
+
+          {loading ? (
+            <section className={styles.messageCard}>
+              <h2>Kalender wordt geladen...</h2>
+              <p>We halen je afspraken en herinneringen op.</p>
+            </section>
+          ) : (
+            <section className={styles.calendarLayout}>
+              <div className={styles.weekPanel}>
+                <div className={styles.weekTop}>
+                  <button type="button" onClick={previousWeek}>
                     ‹
                   </button>
 
-                  <button
-                    type="button"
-                    className={styles.todayButton}
-                    onClick={handleToday}
-                  >
-                    Vandaag
-                  </button>
+                  <h2>
+                    Week van{" "}
+                    {weekStart.toLocaleDateString("nl-BE", {
+                      day: "2-digit",
+                      month: "long",
+                    })}
+                  </h2>
 
-                  <button type="button" onClick={handleNextWeek}>
+                  <button type="button" onClick={nextWeek}>
                     ›
                   </button>
                 </div>
-              </div>
 
-              <button
-                type="button"
-                className={styles.createButton}
-                onClick={() => setAppointmentModalOpen(true)}
-              >
-                + maak afspraak met dierenarts
-              </button>
-            </div>
+                <div className={styles.weekGrid}>
+                  <div className={styles.emptyCorner}></div>
 
-            <div className={styles.calendarGrid}>
-              <div className={styles.dayHeaders}>
-                {weekDays.map((day) => (
-                  <span key={day.name}>
-                    {day.name}
-                    <small>{day.date.getDate()}</small>
-                  </span>
-                ))}
-              </div>
-
-              <div className={styles.calendarBody}>
-                {HOURS.map((hour) => (
-                  <div key={hour} className={styles.hourRow}>
-                    <span className={styles.hourLabel}>{hour}:00</span>
-                  </div>
-                ))}
-
-                {visibleAppointments.map((appointment) => {
-                  const start = new Date(appointment.start_at);
-                  const end = new Date(appointment.end_at);
-
-                  return (
+                  {days.map((day, index) => (
                     <div
-                      key={appointment.id}
-                      className={
-                        appointment.status === "confirmed"
-                          ? styles.appointment
-                          : styles.pendingAppointment
-                      }
-                      style={getAppointmentStyle(appointment)}
+                      key={day.toISOString()}
+                      className={`${styles.dayHeader} ${
+                        sameDay(day, new Date()) ? styles.todayHeader : ""
+                      }`}
                     >
-                      <div className={styles.appointmentStatus}>
-                        {appointment.status === "confirmed" ? "✓" : "⏳"}
+                      <span>{weekDays[index]}</span>
+                      <strong>{day.getDate()}</strong>
+                    </div>
+                  ))}
+
+                  <div className={styles.timeColumn}>
+                    {hours.map((hour) => (
+                      <div key={hour} className={styles.timeSlot}>
+                        {String(hour).padStart(2, "0")}:00
                       </div>
-
-                      <p className={styles.appointmentLabel}>
-                        {appointment.status === "confirmed"
-                          ? "Afspraak bevestigd"
-                          : "In afwachting"}
-                      </p>
-
-                      <h3>{appointment.title}</h3>
-
-                      <p className={styles.appointmentTime}>
-                        {start.toLocaleTimeString("nl-BE", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}{" "}
-                        -{" "}
-                        {end.toLocaleTimeString("nl-BE", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
-          <aside className={styles.sidebar}>
-            <div className={styles.miniCalendar}>
-              <div className={styles.miniCalendarHeader}>
-                <button type="button" onClick={handlePreviousMonth}>
-                  ‹
-                </button>
-
-                <h2>{formatMonthYear(selectedDate)}</h2>
-
-                <button type="button" onClick={handleNextMonth}>
-                  ›
-                </button>
-              </div>
-
-              <div className={styles.miniWeekDays}>
-                <span>MA</span>
-                <span>DI</span>
-                <span>WO</span>
-                <span>DO</span>
-                <span>VR</span>
-                <span>ZA</span>
-                <span>ZO</span>
-              </div>
-
-              <div className={styles.miniDays}>
-                {Array.from({ length: monthDays }).map((_, index) => {
-                  const dayDate = new Date(currentYear, currentMonth, index + 1);
-                  const today = new Date();
-
-                  const hasAppointment = appointments.some((appointment) =>
-                    isSameDay(new Date(appointment.start_at), dayDate)
-                  );
-
-                  const isActive = isSameDay(dayDate, selectedDate);
-                  const isToday = isSameDay(dayDate, today);
-
-                  return (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => setSelectedDate(dayDate)}
-                      className={isActive || isToday ? styles.activeDay : ""}
-                    >
-                      <span>{index + 1}</span>
-
-                      {hasAppointment && (
-                        <span
-                          className={`${styles.eventDot} ${
-                            isActive || isToday ? styles.eventDotActive : ""
-                          }`}
-                        ></span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className={styles.remindersSection}>
-              <div className={styles.remindersHeader}>
-                <h2>Herinneringen</h2>
-                <button type="button">View all</button>
-              </div>
-
-              <div className={styles.remindersList}>
-                {reminders.length === 0 ? (
-                  <div className={styles.reminderCard}>
-                    <h3>Geen herinneringen</h3>
-                    <p>Je hebt momenteel geen herinneringen.</p>
+                    ))}
                   </div>
-                ) : (
-                  reminders.map((reminder) => (
-                    <div
-                      key={reminder.id}
-                      className={
-                        reminder.priority === "important"
-                          ? styles.importantReminder
-                          : styles.reminderCard
-                      }
-                    >
-                      <h3>{reminder.title}</h3>
 
-                      {reminder.priority === "important" && (
-                        <p className={styles.importantText}>Belangrijk!</p>
-                      )}
+                  {days.map((day) => {
+                    const dayAppointments = visibleAppointments.filter(
+                      (appointment) =>
+                        sameDay(new Date(getDisplayStartAt(appointment)), day)
+                    );
 
-                      <p>{reminder.description}</p>
-                    </div>
-                  ))
-                )}
+                    return (
+                      <div key={day.toISOString()} className={styles.dayColumn}>
+                        {hours.map((hour) => (
+                          <div key={hour} className={styles.hourLine}></div>
+                        ))}
+
+                        {dayAppointments.map((appointment) => (
+                          <button
+                            key={appointment.id}
+                            type="button"
+                            className={styles.appointmentBlock}
+                            style={{
+                              top: `${getAppointmentTop(
+                                getDisplayStartAt(appointment)
+                              )}px`,
+                              height: `${getAppointmentHeight(
+                                getDisplayStartAt(appointment),
+                                getDisplayEndAt(appointment)
+                              )}px`,
+                            }}
+                            onClick={() => setSelectedAppointment(appointment)}
+                          >
+                            <span className={styles.appointmentTime}>
+                              {formatTime(getDisplayStartAt(appointment))} -{" "}
+                              {formatTime(getDisplayEndAt(appointment))}
+                            </span>
+
+                            <strong>{appointment.title}</strong>
+
+                            <p>
+                              {appointment.animal?.name ||
+                                appointment.shelter?.name ||
+                                "Persoonlijke afspraak"}
+                            </p>
+
+                            <span
+                              className={`${styles.statusDot} ${getApprovalClass(
+                                appointment.approval_status
+                              )}`}
+                            ></span>
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
+              <aside className={styles.sidePanel}>
+                <section className={styles.miniCalendar}>
+                  <div className={styles.calendarTop}>
+                    <button type="button" onClick={previousMonth}>
+                      ‹
+                    </button>
+
+                    <h2>{formatMonth(calendarMonth)}</h2>
+
+                    <button type="button" onClick={nextMonth}>
+                      ›
+                    </button>
+                  </div>
+
+                  <div className={styles.calendarDaysHeader}>
+                    <span>Ma</span>
+                    <span>Di</span>
+                    <span>Wo</span>
+                    <span>Do</span>
+                    <span>Vr</span>
+                    <span>Za</span>
+                    <span>Zo</span>
+                  </div>
+
+                  <div className={styles.calendarGrid}>
+                    {calendarDays.map((day) => {
+                      const hasAppointment = visibleAppointments.some(
+                        (appointment) =>
+                          sameDay(
+                            new Date(getDisplayStartAt(appointment)),
+                            day
+                          )
+                      );
+
+                      const isCurrentMonth =
+                        day.getMonth() === calendarMonth.getMonth();
+
+                      return (
+                        <button
+                          type="button"
+                          key={day.toISOString()}
+                          className={`${styles.calendarDay} ${
+                            sameDay(day, new Date()) ? styles.todayDay : ""
+                          } ${!isCurrentMonth ? styles.otherMonth : ""}`}
+                          onClick={() => {
+                            setCurrentDate(day);
+                            setAppointmentDate(formatInputDate(day));
+                          }}
+                        >
+                          {day.getDate()}
+
+                          {hasAppointment && <span></span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                <section className={styles.todayCard}>
+                  <div className={styles.todayHeader}>
+                    <h2>Afspraken vandaag</h2>
+                  </div>
+
+                  {todayAppointments.length === 0 ? (
+                    <div className={styles.emptyToday}>
+                      Geen afspraken vandaag.
+                    </div>
+                  ) : (
+                    <div className={styles.todayList}>
+                      {todayAppointments.map((appointment) => (
+                        <button
+                          key={appointment.id}
+                          type="button"
+                          className={styles.todayItem}
+                          onClick={() => setSelectedAppointment(appointment)}
+                        >
+                          <span>{formatTime(getDisplayStartAt(appointment))}</span>
+
+                          <div>
+                            <h3>{appointment.title}</h3>
+                            <p>
+                              {appointment.animal?.name ||
+                                appointment.shelter?.name ||
+                                "Persoonlijke afspraak"}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+                <section className={styles.remindersCard}>
+                  <div className={styles.todayHeader}>
+                    <h2>Herinneringen</h2>
+
+                    <button
+                      type="button"
+                      onClick={() => setReminderModalOpen(true)}
+                    >
+                      + Reminder
+                    </button>
+                  </div>
+
+                  {todayReminders.length === 0 ? (
+                    <div className={styles.emptyToday}>
+                      Geen herinneringen vandaag.
+                    </div>
+                  ) : (
+                    <div className={styles.reminderList}>
+                      {todayReminders.map((reminder) => (
+                        <article
+                          key={reminder.id}
+                          className={
+                            reminder.priority === "important"
+                              ? styles.importantReminder
+                              : styles.reminderItem
+                          }
+                        >
+                          <h3>{reminder.title}</h3>
+
+                          {reminder.priority === "important" && (
+                            <span>Belangrijk</span>
+                          )}
+
+                          {reminder.description && (
+                            <p>{reminder.description}</p>
+                          )}
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </aside>
+            </section>
+          )}
+        </div>
+
+        {selectedAppointment && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.detailModal}>
               <button
                 type="button"
-                className={styles.addReminder}
-                onClick={() => setReminderModalOpen(true)}
+                className={styles.closeModal}
+                onClick={() => setSelectedAppointment(null)}
               >
-                +
+                ×
               </button>
+
+              <div className={styles.modalHeader}>
+                <p>Afspraak details</p>
+                <h2>{selectedAppointment.title}</h2>
+              </div>
+
+              <div className={styles.detailStatusRow}>
+                <span
+                  className={`${styles.detailStatusBadge} ${getApprovalClass(
+                    selectedAppointment.approval_status
+                  )}`}
+                >
+                  {formatApprovalStatus(selectedAppointment.approval_status)}
+                </span>
+              </div>
+
+              {selectedAppointment.animal && (
+                <div className={styles.detailAnimal}>
+                  <img
+                    src={
+                      selectedAppointment.animal.image_url ||
+                      "/images/dog3.jpg"
+                    }
+                    alt={selectedAppointment.animal.name}
+                  />
+
+                  <div>
+                    <h3>{selectedAppointment.animal.name}</h3>
+                    <p>
+                      {selectedAppointment.animal.breed ||
+                        selectedAppointment.animal.species ||
+                        "Dier"}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className={styles.detailGrid}>
+                <p>
+                  <strong>Datum</strong>
+                  <span>{formatDate(getDisplayStartAt(selectedAppointment))}</span>
+                </p>
+
+                <p>
+                  <strong>Uur</strong>
+                  <span>
+                    {formatTime(getDisplayStartAt(selectedAppointment))} -{" "}
+                    {formatTime(getDisplayEndAt(selectedAppointment))}
+                  </span>
+                </p>
+
+                <p>
+                  <strong>Aangemaakt door</strong>
+                  <span>
+                    {selectedAppointment.created_by ||
+                      selectedAppointment.shelter?.name ||
+                      "Onbekend"}
+                  </span>
+                </p>
+
+                <p>
+                  <strong>Locatie</strong>
+                  <span>{selectedAppointment.location || "Niet ingevuld"}</span>
+                </p>
+              </div>
+
+              {selectedAppointment.description && (
+                <div className={styles.detailText}>
+                  <strong>Beschrijving</strong>
+                  <p>{selectedAppointment.description}</p>
+                </div>
+              )}
+
+              {selectedAppointment.approval_status ===
+                "pending_user_approval" && (
+                <div className={styles.responseBox}>
+                  <h3>Reageer op deze afspraak</h3>
+
+                  <label>
+                    Bericht optioneel
+                    <textarea
+                      value={responseMessage}
+                      onChange={(e) => setResponseMessage(e.target.value)}
+                      placeholder="Bijv. Dat past voor mij, tot dan!"
+                    />
+                  </label>
+
+                  <div className={styles.responseActions}>
+                    <button
+                      type="button"
+                      className={styles.declineButton}
+                      disabled={responding}
+                      onClick={() => handleAppointmentResponse("declined")}
+                    >
+                      Weigeren
+                    </button>
+
+                    <button
+                      type="button"
+                      className={styles.confirmButton}
+                      disabled={responding}
+                      onClick={() => handleAppointmentResponse("confirmed")}
+                    >
+                      Bevestigen
+                    </button>
+                  </div>
+
+                  <div className={styles.proposalBox}>
+                    <h4>Nieuwe datum voorstellen</h4>
+
+                    <div className={styles.formGrid}>
+                      <label>
+                        Datum
+                        <input
+                          type="date"
+                          value={proposalDate}
+                          onChange={(e) => setProposalDate(e.target.value)}
+                        />
+                      </label>
+
+                      <label>
+                        Startuur
+                        <input
+                          type="time"
+                          value={proposalStartTime}
+                          onChange={(e) =>
+                            setProposalStartTime(e.target.value)
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <label>
+                      Einduur
+                      <input
+                        type="time"
+                        value={proposalEndTime}
+                        onChange={(e) => setProposalEndTime(e.target.value)}
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      className={styles.proposalButton}
+                      disabled={responding}
+                      onClick={() =>
+                        handleAppointmentResponse("new_time_requested")
+                      }
+                    >
+                      Nieuw voorstel verzenden
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {selectedAppointment.approval_status ===
+                "pending_shelter_approval" && (
+                <div className={styles.proposalWaitingBox}>
+                  <h3>Afspraak aangevraagd</h3>
+
+                  <p>
+                    Je hebt deze afspraak aangevraagd bij het dierenasiel.
+                    Wacht tot het asiel je voorstel goedkeurt of weigert.
+                  </p>
+
+                  <div className={styles.proposalDateBox}>
+                    <strong>Voorgesteld moment</strong>
+                    <span>
+                      {formatDate(selectedAppointment.start_at)} ·{" "}
+                      {formatTime(selectedAppointment.start_at)} -{" "}
+                      {formatTime(selectedAppointment.end_at)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {selectedAppointment.approval_status ===
+                "new_time_requested" && (
+                <div className={styles.proposalWaitingBox}>
+                  <h3>Nieuw voorstel verzonden</h3>
+
+                  <p>
+                    Je hebt een nieuwe datum voorgesteld voor deze afspraak. Het
+                    dierenasiel moet dit voorstel nog goedkeuren.
+                  </p>
+
+                  <div className={styles.proposalDateBox}>
+                    <strong>Jouw voorgestelde moment</strong>
+                    <span>
+                      {formatProposalDate(
+                        selectedAppointment.proposed_new_start_at,
+                        selectedAppointment.proposed_new_end_at
+                      )}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {selectedAppointment.response_message && (
+                <div className={styles.detailResponse}>
+                  <strong>Jouw reactie</strong>
+                  <p>{selectedAppointment.response_message}</p>
+                </div>
+              )}
             </div>
-          </aside>
-        </div>
+          </div>
+        )}
 
         {appointmentModalOpen && (
           <div className={styles.modalOverlay}>
             <div className={styles.modal}>
               <button
                 type="button"
-                className={styles.closeButton}
-                onClick={() => setAppointmentModalOpen(false)}
+                className={styles.closeModal}
+                onClick={() => {
+                  resetAppointmentForm();
+                  setAppointmentModalOpen(false);
+                }}
               >
                 ×
               </button>
 
-              <h2>Maak afspraak met dierenarts</h2>
+              <div className={styles.modalHeader}>
+                <p>Nieuwe afspraak</p>
+                <h2>Afspraak aanvragen</h2>
+              </div>
 
-              <form
-                onSubmit={handleCreateAppointment}
-                className={styles.modalForm}
-              >
+              <form onSubmit={handleCreateAppointment} className={styles.form}>
                 <label>
-                  Datum
-                  <input
-                    type="date"
-                    value={appointmentDate}
-                    onChange={(e) => setAppointmentDate(e.target.value)}
-                    required
-                  />
-                </label>
-
-                <label>
-                  Tijd
-                  <input
-                    type="time"
-                    value={appointmentTime}
-                    onChange={(e) => setAppointmentTime(e.target.value)}
-                    required
-                  />
-                </label>
-
-                <label>
-                  Reden van afspraak
+                  Voor welk dier?
                   <select
-                    value={appointmentReason}
-                    onChange={(e) => setAppointmentReason(e.target.value)}
-                    required
+                    value={selectedFosterAnimal?.animalId || ""}
+                    onChange={(e) => {
+                      const animal =
+                        fosterAnimals.find(
+                          (item) => item.animalId === e.target.value
+                        ) || null;
+
+                      setSelectedFosterAnimal(animal);
+                    }}
                   >
-                    <option value="">Kies een reden</option>
-                    <option value="Controle">Controle</option>
-                    <option value="Vaccinatie">Vaccinatie</option>
-                    <option value="Castratie / sterilisatie">
-                      Castratie / sterilisatie
-                    </option>
-                    <option value="Medicatie">Medicatie</option>
-                    <option value="Spoed of bezorgdheid">
-                      Spoed of bezorgdheid
-                    </option>
-                    <option value="Andere reden">Andere reden</option>
+                    <option value="">Kies een opvangdier</option>
+
+                    {fosterAnimals.map((animal) => (
+                      <option key={animal.animalId} value={animal.animalId}>
+                        {animal.animalName}
+                        {animal.shelterName
+                          ? ` — ${animal.shelterName}`
+                          : ""}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                {selectedFosterAnimal && (
+                  <div className={styles.selectedAnimalBox}>
+                    <img
+                      src={
+                        selectedFosterAnimal.animalImageUrl ||
+                        "/images/dog3.jpg"
+                      }
+                      alt={selectedFosterAnimal.animalName}
+                    />
+
+                    <div>
+                      <h3>{selectedFosterAnimal.animalName}</h3>
+                      <p>
+                        {selectedFosterAnimal.animalBreed ||
+                          selectedFosterAnimal.animalSpecies ||
+                          "Dier"}
+                      </p>
+
+                      <span>
+                        Wordt gestuurd naar:{" "}
+                        {selectedFosterAnimal.shelterName || "Dierenasiel"}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <label>
+                  Afspraak met
+                  <select value="asiel" disabled>
+                    <option value="asiel">Dierenasiel</option>
                   </select>
                 </label>
 
                 <label>
-                  Extra opmerking
-                  <textarea
-                    value={appointmentDescription}
-                    onChange={(e) => setAppointmentDescription(e.target.value)}
-                    placeholder="Schrijf hier extra informatie voor de dierenarts..."
+                  Titel / reden
+                  <input
+                    type="text"
+                    value={appointmentReason}
+                    onChange={(e) => setAppointmentReason(e.target.value)}
+                    placeholder="Bijv. Vraag over verzorging"
                   />
                 </label>
 
-                <button
-                  type="submit"
-                  className={styles.submitButton}
-                  disabled={loading}
-                >
-                  {loading ? "Afspraak maken..." : "Maak afspraak"}
-                </button>
+                <div className={styles.formGrid}>
+                  <label>
+                    Datum
+                    <input
+                      type="date"
+                      value={appointmentDate}
+                      onChange={(e) => setAppointmentDate(e.target.value)}
+                    />
+                  </label>
+
+                  <label>
+                    Type afspraak
+                    <select
+                      value={appointmentType}
+                      onChange={(e) => setAppointmentType(e.target.value)}
+                    >
+                      <option value="algemeen">Algemeen</option>
+                      <option value="opvolging">Opvolging</option>
+                      <option value="verzorging">Verzorging</option>
+                      <option value="medicatie">Medicatie</option>
+                      <option value="terugbrengmoment">Terugbrengmoment</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div className={styles.formGrid}>
+                  <label>
+                    Startuur
+                    <input
+                      type="time"
+                      value={appointmentStartTime}
+                      onChange={(e) =>
+                        setAppointmentStartTime(e.target.value)
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    Einduur
+                    <input
+                      type="time"
+                      value={appointmentEndTime}
+                      onChange={(e) => setAppointmentEndTime(e.target.value)}
+                    />
+                  </label>
+                </div>
+
+                <label>
+                  Beschrijving
+                  <textarea
+                    value={appointmentDescription}
+                    onChange={(e) =>
+                      setAppointmentDescription(e.target.value)
+                    }
+                    placeholder="Extra informatie over je afspraak..."
+                  />
+                </label>
+
+                <div className={styles.infoNotice}>
+                  Deze afspraak wordt als verzoek naar het dierenasiel gestuurd.
+                  Het asiel moet je voorstel eerst goedkeuren.
+                </div>
+
+                <div className={styles.modalActions}>
+                  <button
+                    type="button"
+                    className={styles.cancelButton}
+                    onClick={() => {
+                      resetAppointmentForm();
+                      setAppointmentModalOpen(false);
+                    }}
+                  >
+                    Annuleren
+                  </button>
+
+                  <button
+                    type="submit"
+                    className={styles.saveButton}
+                    disabled={savingAppointment}
+                  >
+                    {savingAppointment ? "Verzenden..." : "Afspraak aanvragen"}
+                  </button>
+                </div>
               </form>
             </div>
           </div>
@@ -518,43 +1063,34 @@ export default function KalenderPage() {
             <div className={styles.modal}>
               <button
                 type="button"
-                className={styles.closeButton}
+                className={styles.closeModal}
                 onClick={() => setReminderModalOpen(false)}
               >
                 ×
               </button>
 
-              <h2>Maak herinnering</h2>
+              <div className={styles.modalHeader}>
+                <p>Nieuwe herinnering</p>
+                <h2>Herinnering toevoegen</h2>
+              </div>
 
-              <form onSubmit={handleCreateReminder} className={styles.modalForm}>
+              <form onSubmit={handleCreateReminder} className={styles.form}>
                 <label>
                   Titel
                   <input
                     type="text"
                     value={reminderTitle}
                     onChange={(e) => setReminderTitle(e.target.value)}
-                    placeholder="Bijvoorbeeld: Medicatie geven"
-                    required
+                    placeholder="Bijv. Medicatie geven"
                   />
                 </label>
 
                 <label>
-                  Beschrijving
-                  <textarea
-                    value={reminderDescription}
-                    onChange={(e) => setReminderDescription(e.target.value)}
-                    placeholder="Schrijf hier wat je moet onthouden..."
-                    required
-                  />
-                </label>
-
-                <label>
-                  Datum en tijd
+                  Datum
                   <input
-                    type="datetime-local"
+                    type="date"
                     value={reminderDate}
                     onChange={(e) => setReminderDate(e.target.value)}
-                    required
                   />
                 </label>
 
@@ -573,13 +1109,36 @@ export default function KalenderPage() {
                   </select>
                 </label>
 
-                <button
-                  type="submit"
-                  className={styles.submitButton}
-                  disabled={loading}
-                >
-                  {loading ? "Herinnering maken..." : "Maak herinnering"}
-                </button>
+                <label>
+                  Beschrijving
+                  <textarea
+                    value={reminderDescription}
+                    onChange={(e) =>
+                      setReminderDescription(e.target.value)
+                    }
+                    placeholder="Extra info over deze herinnering..."
+                  />
+                </label>
+
+                <div className={styles.modalActions}>
+                  <button
+                    type="button"
+                    className={styles.cancelButton}
+                    onClick={() => setReminderModalOpen(false)}
+                  >
+                    Annuleren
+                  </button>
+
+                  <button
+                    type="submit"
+                    className={styles.saveButton}
+                    disabled={savingReminder}
+                  >
+                    {savingReminder
+                      ? "Opslaan..."
+                      : "Herinnering opslaan"}
+                  </button>
+                </div>
               </form>
             </div>
           </div>

@@ -151,15 +151,65 @@
 
 .appointmentBlock {
   position: absolute;
-  left: 8px;
-  right: 8px;
-  background: #df963f;
-  color: white;
-  border-radius: 9px;
-  padding: 8px;
+  left: 7px;
+  right: 7px;
+  border: 1px solid #eadfd4;
+  border-left: 5px solid #df963f;
+  background: #fffaf4;
+  color: #1f130d;
+  border-radius: 10px;
+  padding: 7px 8px 7px 9px;
   font-size: 11px;
   overflow: hidden;
-  box-shadow: 0 8px 18px rgba(31, 19, 13, 0.14);
+  box-shadow: 0 8px 18px rgba(31, 19, 13, 0.08);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.appointmentBlock:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(31, 19, 13, 0.12);
+  border-color: #df963f;
+}
+
+.appointmentTime {
+  font-size: 9.5px;
+  font-weight: 900;
+  color: #8a7a69;
+  line-height: 1.1;
+}
+
+.appointmentBlock strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appointmentBlock p {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: #62564b;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statusDot {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
 }
 
 .appointmentBlock strong {
@@ -573,6 +623,300 @@
 .saveButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.appointmentBlock {
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.statusMiniBadge {
+  margin-top: 5px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 8.5px;
+  font-weight: 900;
+  font-style: normal;
+  display: inline-flex;
+}
+
+.pendingStatus {
+  background: #fff1d8;
+  color: #8b5b1f;
+}
+
+.statusDot.pendingStatus {
+  background: #df963f;
+}
+
+.statusDot.confirmedStatus {
+  background: #3f8f55;
+}
+
+.statusDot.declinedStatus {
+  background: #c64d4d;
+}
+
+.statusDot.requestStatus {
+  background: #4f6f9f;
+}
+
+.confirmedStatus {
+  background: #e6f5e8;
+  color: #1f4d2b;
+}
+
+.declinedStatus {
+  background: #fbe4e4;
+  color: #8a2d2d;
+}
+
+.requestStatus {
+  background: #e8eef7;
+  color: #34465e;
+}
+
+.todayItem {
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.detailModal {
+  position: relative;
+  width: min(620px, 100%);
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 18px;
+  padding: 30px;
+  box-shadow: 0 18px 55px rgba(31, 19, 13, 0.2);
+}
+
+.detailStatusRow {
+  margin-bottom: 18px;
+}
+
+.detailStatusBadge {
+  width: fit-content;
+  padding: 7px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  display: inline-flex;
+}
+
+.detailAnimal {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 14px;
+  align-items: center;
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 18px;
+}
+
+.detailAnimal img {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #e8ded4;
+}
+
+.detailAnimal h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.detailAnimal p {
+  margin: 0;
+  font-size: 12px;
+  color: #62564b;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.detailGrid p {
+  margin: 0;
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 10px;
+  padding: 13px;
+}
+
+.detailGrid strong,
+.detailText strong,
+.detailResponse strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.detailGrid span,
+.detailText p,
+.detailResponse p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #62564b;
+}
+
+.detailText,
+.detailResponse {
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.detailResponse {
+  background: #fff1d8;
+  color: #8b5b1f;
+}
+
+.proposalPanel {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #e8eef7;
+  border: 1px solid #cfd9eb;
+}
+
+.proposalPanel strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #34465e;
+}
+
+.proposalPanel p {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #34465e;
+}
+
+.proposalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.acceptProposalButton,
+.declineProposalButton {
+  min-height: 38px;
+  border-radius: 7px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.acceptProposalButton {
+  border: none;
+  background: #df963f;
+  color: white;
+}
+
+.declineProposalButton {
+  border: 1px solid #f1c5c5;
+  background: #fbe4e4;
+  color: #8a2d2d;
+}
+
+.acceptProposalButton:disabled,
+.declineProposalButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.deletePanel {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #fbe4e4;
+  border: 1px solid #f1c5c5;
+}
+
+.deletePanel p {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #8a2d2d;
+}
+
+.deletePanel button {
+  min-height: 38px;
+  border: none;
+  border-radius: 7px;
+  background: #c64d4d;
+  color: white;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.deletePanel button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.shelterApprovalPanel {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #fff1d8;
+  border: 1px solid #ebd3a8;
+}
+
+.shelterApprovalPanel strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #8b5b1f;
+}
+
+.shelterApprovalPanel p {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #8b5b1f;
+}
+
+@media (max-width: 620px) {
+  .proposalActions {
+    flex-direction: column;
+  }
+
+  .acceptProposalButton,
+  .declineProposalButton,
+  .deletePanel button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 620px) {
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 1150px) {

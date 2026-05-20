@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import AsielLayout from "@/components/asiel/AsielLayout";
@@ -25,6 +25,8 @@ import {
 } from "@/lib/asiel/getAnimalMedicalRecords";
 import { createAnimalMedicalRecord } from "@/lib/asiel/createAnimalMedicalRecord";
 
+import { createAnimalAppointmentRequest } from "@/lib/asiel/createAnimalAppointmentRequest";
+
 import styles from "./dossier.module.css";
 
 type DossierTab =
@@ -33,6 +35,12 @@ type DossierTab =
   | "behandelingen"
   | "afspraken"
   | "notities";
+
+type ActivityItem = {
+  id: string;
+  title: string;
+  date: string | null;
+};
 
 function formatDate(date: string | null) {
   if (!date) return "Onbekend";
@@ -62,6 +70,14 @@ function formatStatus(status: string | null) {
   if (status === "niet_beschikbaar") return "Niet beschikbaar";
   if (status === "concept") return "Concept";
   return "Status onbekend";
+}
+
+function formatAppointmentStatus(status: string | null) {
+  if (status === "pending_user_approval") return "Wachten op goedkeuring";
+  if (status === "confirmed") return "Bevestigd";
+  if (status === "declined") return "Geweigerd";
+  if (status === "new_time_requested") return "Nieuw voorstel gevraagd";
+  return "Bevestigd";
 }
 
 export default function AnimalDossierPage() {
@@ -117,6 +133,18 @@ export default function AnimalDossierPage() {
   const [performedAction, setPerformedAction] = useState("");
   const [vaccinationOrProcedure, setVaccinationOrProcedure] = useState("");
   const [followUpAdvice, setFollowUpAdvice] = useState("");
+
+  const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
+  const [savingAppointment, setSavingAppointment] = useState(false);
+
+  const [appointmentTitle, setAppointmentTitle] = useState("");
+  const [appointmentDescription, setAppointmentDescription] = useState("");
+  const [appointmentDate, setAppointmentDate] = useState("");
+  const [appointmentStartTime, setAppointmentStartTime] = useState("13:00");
+  const [appointmentEndTime, setAppointmentEndTime] = useState("14:00");
+  const [appointmentType, setAppointmentType] = useState("intake");
+  const [appointmentLocation, setAppointmentLocation] = useState("");
+  const [appointmentCreatedBy, setAppointmentCreatedBy] = useState("");
 
   useEffect(() => {
     async function loadDossier() {
@@ -278,6 +306,119 @@ export default function AnimalDossierPage() {
     setMedicalRecords(newRecords);
   };
 
+  const handleCreateAppointment = async () => {
+    if (!appointmentTitle.trim()) {
+      alert("Vul een titel in voor de afspraak.");
+      return;
+    }
+
+    if (!appointmentDate || !appointmentStartTime || !appointmentEndTime) {
+      alert("Vul datum, startuur en einduur in.");
+      return;
+    }
+
+    setSavingAppointment(true);
+
+    const result = await createAnimalAppointmentRequest({
+      animalId,
+      title: appointmentTitle,
+      description: appointmentDescription,
+      date: appointmentDate,
+      startTime: appointmentStartTime,
+      endTime: appointmentEndTime,
+      appointmentType,
+      location: appointmentLocation,
+      createdBy: appointmentCreatedBy,
+    });
+
+    setSavingAppointment(false);
+
+    if (!result.success) {
+      alert(result.error);
+      return;
+    }
+
+    setAppointmentTitle("");
+    setAppointmentDescription("");
+    setAppointmentDate("");
+    setAppointmentStartTime("13:00");
+    setAppointmentEndTime("14:00");
+    setAppointmentType("intake");
+    setAppointmentLocation("");
+    setAppointmentCreatedBy("");
+    setAppointmentModalOpen(false);
+
+    const { data } = await getAnimalDossier(animalId);
+
+    if (data) {
+      setDossier(data);
+    }
+  };
+
+  const recentActivities = useMemo<ActivityItem[]>(() => {
+    const animalCreatedActivity: ActivityItem[] = dossier?.animal?.created_at
+      ? [
+          {
+            id: "animal-created",
+            title: "Dossier aangemaakt",
+            date: dossier.animal.created_at,
+          },
+        ]
+      : [];
+
+    const fosterActivity: ActivityItem[] = dossier?.foster?.startDate
+      ? [
+          {
+            id: "foster-linked",
+            title: "Pleeggezin gekoppeld",
+            date: dossier.foster.startDate,
+          },
+        ]
+      : [];
+
+    const appointmentActivities: ActivityItem[] =
+      dossier?.appointments.map((appointment) => ({
+        id: `appointment-${appointment.id}`,
+        title: `Afspraak: ${appointment.title}`,
+        date: appointment.start_at,
+      })) || [];
+
+    const noteActivities: ActivityItem[] = notes.map((note) => ({
+      id: `note-${note.id}`,
+      title: `Notitie: ${note.title}`,
+      date: note.created_at,
+    }));
+
+    const medicationActivities: ActivityItem[] = medications.map(
+      (medication) => ({
+        id: `medication-${medication.id}`,
+        title: `Medicatie toegevoegd: ${medication.name}`,
+        date: medication.created_at,
+      })
+    );
+
+    const medicalActivities: ActivityItem[] = medicalRecords.map((record) => ({
+      id: `medical-${record.id}`,
+      title: `Medisch verslag: ${record.title}`,
+      date: record.record_date || record.created_at,
+    }));
+
+    return [
+      ...animalCreatedActivity,
+      ...fosterActivity,
+      ...appointmentActivities,
+      ...noteActivities,
+      ...medicationActivities,
+      ...medicalActivities,
+    ]
+      .sort((a, b) => {
+        const dateA = a.date ? new Date(a.date).getTime() : 0;
+        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        return dateB - dateA;
+      })
+      .slice(0, 4);
+  }, [dossier, notes, medications, medicalRecords]);
+
   if (loading) {
     return (
       <AsielLayout>
@@ -331,7 +472,12 @@ export default function AnimalDossierPage() {
                 Dier bewerken
               </Link>
 
-              <button type="button">+ Afspraak maken</button>
+              <button
+                type="button"
+                onClick={() => setAppointmentModalOpen(true)}
+              >
+                + Afspraak maken
+              </button>
             </div>
           </div>
 
@@ -586,53 +732,24 @@ export default function AnimalDossierPage() {
               <article className={styles.card}>
                 <div className={styles.cardHeader}>
                   <h2>Recente activiteit</h2>
+                  <button type="button">Bekijk alles</button>
                 </div>
 
                 <div className={styles.timeline}>
-                  <div>
-                    <span></span>
-                    <p>Dossier aangemaakt</p>
-                    <small>{formatDate(animal.created_at)}</small>
-                  </div>
-
-                  {foster && (
+                  {recentActivities.length === 0 ? (
                     <div>
                       <span></span>
-                      <p>Pleeggezin gekoppeld</p>
-                      <small>{formatDate(foster.startDate)}</small>
+                      <p>Nog geen recente activiteit</p>
+                      <small>Geen updates gevonden</small>
                     </div>
-                  )}
-
-                  {latestAppointment && (
-                    <div>
-                      <span></span>
-                      <p>{latestAppointment.title}</p>
-                      <small>{formatDateTime(latestAppointment.start_at)}</small>
-                    </div>
-                  )}
-
-                  {latestMedicalRecord && (
-                    <div>
-                      <span></span>
-                      <p>Medisch verslag: {latestMedicalRecord.title}</p>
-                      <small>{formatDate(latestMedicalRecord.record_date)}</small>
-                    </div>
-                  )}
-
-                  {notes[0] && (
-                    <div>
-                      <span></span>
-                      <p>Laatste notitie: {notes[0].title}</p>
-                      <small>{formatDate(notes[0].created_at)}</small>
-                    </div>
-                  )}
-
-                  {latestMedication && (
-                    <div>
-                      <span></span>
-                      <p>Medicatie toegevoegd: {latestMedication.name}</p>
-                      <small>{formatDate(latestMedication.created_at)}</small>
-                    </div>
+                  ) : (
+                    recentActivities.map((activity) => (
+                      <div key={activity.id}>
+                        <span></span>
+                        <p>{activity.title}</p>
+                        <small>{formatDate(activity.date)}</small>
+                      </div>
+                    ))
                   )}
                 </div>
               </article>
@@ -844,7 +961,13 @@ export default function AnimalDossierPage() {
               <article className={styles.cardWide}>
                 <div className={styles.cardHeader}>
                   <h2>Afspraken</h2>
-                  <button type="button">+ Nieuwe afspraak</button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAppointmentModalOpen(true)}
+                  >
+                    + Nieuwe afspraak
+                  </button>
                 </div>
 
                 {dossier.appointments.length === 0 ? (
@@ -858,12 +981,49 @@ export default function AnimalDossierPage() {
                         key={appointment.id}
                         className={styles.appointmentItem}
                       >
-                        <span>{formatDateTime(appointment.start_at)}</span>
+                        <div className={styles.appointmentTop}>
+                          <span>{formatDateTime(appointment.start_at)}</span>
+
+                          <strong
+                            className={
+                              appointment.approval_status ===
+                              "pending_user_approval"
+                                ? styles.pendingBadge
+                                : appointment.approval_status === "declined"
+                                ? styles.declinedBadge
+                                : styles.confirmedBadge
+                            }
+                          >
+                            {formatAppointmentStatus(
+                              appointment.approval_status
+                            )}
+                          </strong>
+                        </div>
+
                         <h3>{appointment.title}</h3>
+
                         <p>
                           {appointment.appointment_type || "Algemeen"} ·{" "}
                           {appointment.created_by || "Asielteam"}
                         </p>
+
+                        {appointment.location && (
+                          <p className={styles.appointmentDetail}>
+                            Locatie: {appointment.location}
+                          </p>
+                        )}
+
+                        {appointment.description && (
+                          <p className={styles.appointmentDetail}>
+                            {appointment.description}
+                          </p>
+                        )}
+
+                        {appointment.response_message && (
+                          <p className={styles.appointmentResponse}>
+                            Reactie pleeggezin: {appointment.response_message}
+                          </p>
+                        )}
                       </article>
                     ))}
                   </div>
@@ -1278,6 +1438,134 @@ export default function AnimalDossierPage() {
                   {savingMedicalRecord
                     ? "Opslaan..."
                     : "Medisch verslag opslaan"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {appointmentModalOpen && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <button
+                type="button"
+                className={styles.closeModal}
+                onClick={() => setAppointmentModalOpen(false)}
+              >
+                ×
+              </button>
+
+              <div className={styles.modalHeader}>
+                <p>Nieuwe afspraak</p>
+                <h2>Afspraak voorstellen</h2>
+              </div>
+
+              <label>
+                Titel
+                <input
+                  type="text"
+                  value={appointmentTitle}
+                  onChange={(e) => setAppointmentTitle(e.target.value)}
+                  placeholder="Bijv. Intakegesprek"
+                />
+              </label>
+
+              <div className={styles.formGrid}>
+                <label>
+                  Datum
+                  <input
+                    type="date"
+                    value={appointmentDate}
+                    onChange={(e) => setAppointmentDate(e.target.value)}
+                  />
+                </label>
+
+                <label>
+                  Type afspraak
+                  <select
+                    value={appointmentType}
+                    onChange={(e) => setAppointmentType(e.target.value)}
+                  >
+                    <option value="intake">Intakegesprek</option>
+                    <option value="opvolging">Opvolging</option>
+                    <option value="dierenarts">Dierenarts</option>
+                    <option value="medicatie">Medicatie</option>
+                    <option value="terugbrengmoment">Terugbrengmoment</option>
+                    <option value="algemeen">Algemeen</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className={styles.formGrid}>
+                <label>
+                  Startuur
+                  <input
+                    type="time"
+                    value={appointmentStartTime}
+                    onChange={(e) => setAppointmentStartTime(e.target.value)}
+                  />
+                </label>
+
+                <label>
+                  Einduur
+                  <input
+                    type="time"
+                    value={appointmentEndTime}
+                    onChange={(e) => setAppointmentEndTime(e.target.value)}
+                  />
+                </label>
+              </div>
+
+              <label>
+                Locatie
+                <input
+                  type="text"
+                  value={appointmentLocation}
+                  onChange={(e) => setAppointmentLocation(e.target.value)}
+                  placeholder="Bijv. Dierenasiel Mechelen"
+                />
+              </label>
+
+              <label>
+                Aangemaakt door
+                <input
+                  type="text"
+                  value={appointmentCreatedBy}
+                  onChange={(e) => setAppointmentCreatedBy(e.target.value)}
+                  placeholder="Bijv. Dierenasiel Mechelen of Dr. Kingen"
+                />
+              </label>
+
+              <label>
+                Beschrijving
+                <textarea
+                  value={appointmentDescription}
+                  onChange={(e) => setAppointmentDescription(e.target.value)}
+                  placeholder="Bijv. Kennismaking met het dier en praktische afspraken overlopen..."
+                />
+              </label>
+
+              <div className={styles.infoNotice}>
+                Deze afspraak wordt naar het pleeggezin gestuurd. De afspraak
+                staat op “wachten op goedkeuring” tot de user bevestigt.
+              </div>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={() => setAppointmentModalOpen(false)}
+                >
+                  Annuleren
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.saveButton}
+                  disabled={savingAppointment}
+                  onClick={handleCreateAppointment}
+                >
+                  {savingAppointment ? "Opslaan..." : "Afspraak voorstellen"}
                 </button>
               </div>
             </div>

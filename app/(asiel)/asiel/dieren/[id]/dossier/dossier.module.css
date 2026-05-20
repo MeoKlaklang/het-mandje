@@ -761,6 +761,65 @@
   color: #62564b;
 }
 
+.appointmentTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.pendingBadge,
+.confirmedBadge,
+.declinedBadge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.pendingBadge {
+  background: #fff1d8;
+  color: #8b5b1f;
+}
+
+.confirmedBadge {
+  background: #e6f5e8;
+  color: #1f4d2b;
+}
+
+.declinedBadge {
+  background: #fbe4e4;
+  color: #8a2d2d;
+}
+
+.appointmentDetail {
+  margin: 8px 0 0 !important;
+  font-size: 12px !important;
+  line-height: 1.45;
+  color: #62564b !important;
+}
+
+.appointmentResponse {
+  margin: 10px 0 0 !important;
+  padding: 12px;
+  border-radius: 9px;
+  background: #fff1d8;
+  color: #8b5b1f !important;
+  font-size: 12px !important;
+  line-height: 1.45;
+}
+
+.infoNotice {
+  margin: 8px 0 18px;
+  padding: 13px 14px;
+  border-radius: 10px;
+  background: #fff1d8;
+  color: #8b5b1f;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 @media (max-width: 900px) {
   .medicationMeta {
     grid-template-columns: repeat(2, 1fr);
