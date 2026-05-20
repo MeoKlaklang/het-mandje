@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   getSheltersForVeterinarian,
   ShelterOption,
-} from "@/lib/veterinarian/getSheltersForVeterinarian";
+} from "@/lib/dierenarts/getSheltersForVeterinarian";
 import styles from "./dierenarts-register.module.css";
 
 export default function DierenartsRegisterPage() {

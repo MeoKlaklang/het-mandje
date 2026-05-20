@@ -1,0 +1,692 @@
+.page {
+  min-height: calc(100vh - 94px);
+  background: #fef5eb;
+  padding: 52px 58px 80px 70px;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr 310px;
+  gap: 56px;
+  align-items: start;
+}
+
+.leftColumn {
+  display: grid;
+  gap: 42px;
+}
+
+.rightColumn {
+  display: grid;
+  gap: 28px;
+}
+
+.welcomeCard {
+  position: relative;
+  min-height: 170px;
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 12px;
+  padding: 28px 34px;
+  display: grid;
+  gap: 18px;
+  box-shadow: 0 10px 28px rgba(31, 19, 13, 0.04);
+}
+
+.dateLabel {
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: #8a7a69;
+}
+
+.welcomeCard h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.05;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.welcomeCard p {
+  margin: 0;
+  font-size: 15px;
+  color: #1f130d;
+}
+
+.welcomeCard p strong {
+  color: #df963f;
+}
+
+.welcomeCard button {
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
+  border: none;
+  background: transparent;
+  color: #1f130d;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sectionBlock {
+  display: grid;
+  gap: 16px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.sectionHeader button {
+  border: none;
+  background: transparent;
+  color: #1f130d;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.sectionHeader button:hover {
+  color: #df963f;
+}
+
+/* Afspraak requests */
+
+.requestGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.requestCard {
+  min-height: 142px;
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 10px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.requestCard h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.requestCard p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  font-weight: 800;
+}
+
+.requestCard > span {
+  display: block;
+  margin-top: 14px;
+  color: #8a7a69;
+  font-size: 11px;
+}
+
+.requestActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.acceptButton {
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  padding: 0 14px;
+  background: #df963f;
+  color: white;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.detailsButton {
+  border: none;
+  background: transparent;
+  color: #1f130d;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* Recente patiënten */
+
+.patientList {
+  display: grid;
+  gap: 12px;
+}
+
+.patientItem {
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.patientAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #d7d1a6;
+  color: #1f130d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+}
+
+.patientItem h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.patientItem p {
+  margin: 0;
+  font-size: 12px;
+  color: #8a7a69;
+}
+
+.patientItem span {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #fff1d8;
+  color: #8b5b1f;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+/* Mini kalender */
+
+.miniCalendar,
+.todayCard,
+.todoCard {
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 14px 34px rgba(45, 27, 18, 0.05);
+}
+
+.calendarTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.calendarTop h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.calendarTop button {
+  border: none;
+  background: transparent;
+  color: #a4a09a;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+.calendarDaysHeader,
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+}
+
+.calendarDaysHeader {
+  margin-bottom: 12px;
+}
+
+.calendarDaysHeader span {
+  font-size: 10px;
+  font-weight: 900;
+  color: #9b8d7f;
+}
+
+.calendarGrid {
+  gap: 8px 0;
+}
+
+.calendarDay {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  margin: 0 auto;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #1f130d;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.calendarDay:hover {
+  background: #fff1d8;
+}
+
+.calendarDay span {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #df963f;
+}
+
+.todayDay {
+  background: #df963f !important;
+  color: white;
+  font-weight: 900;
+}
+
+.todayDay span {
+  background: white;
+}
+
+.otherMonth {
+  color: #c5b9ae;
+}
+
+.activeDay {
+  background: #df963f !important;
+  color: white !important;
+}
+
+.activeDay span {
+  background: white !important;
+}
+
+/* Agenda vandaag */
+
+.todayList {
+  display: grid;
+  gap: 12px;
+}
+
+.todayItem {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 10px;
+  background: #d7d1a6;
+}
+
+.todayItem > span {
+  font-size: 12px;
+  font-weight: 900;
+  color: #4d4339;
+}
+
+.todayItem h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.todayItem p {
+  margin: 0;
+  color: #62564b;
+  font-size: 11px;
+}
+
+/* Todo */
+
+.todoList {
+  display: grid;
+  gap: 10px;
+}
+
+.todoItem {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 12px;
+  border-radius: 9px;
+  background: white;
+  border: 1px solid #eadfd4;
+  cursor: pointer;
+}
+
+.todoItem input {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+}
+
+.todoItem span {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #62564b;
+}
+
+.todoDone span {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+.loadingCard,
+.emptyBox {
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 12px;
+  padding: 24px;
+  color: #62564b;
+}
+
+.loadingCard h1 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.loadingCard p,
+.emptyBox {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.welcomeCard a {
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
+  color: #1f130d;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.welcomeCard a:hover {
+  color: #df963f;
+}
+
+.sectionHeader a {
+  color: #1f130d;
+  font-size: 11px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.sectionHeader a:hover {
+  color: #df963f;
+}
+
+.acceptButton,
+.detailsButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.patientAvatar img {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.loadingCard,
+.emptyBox {
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 12px;
+  padding: 24px;
+  color: #62564b;
+}
+
+.loadingCard h1 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.loadingCard p,
+.emptyBox {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.welcomeCard a {
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
+  color: #1f130d;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.welcomeCard a:hover {
+  color: #df963f;
+}
+
+.sectionHeader a {
+  color: #1f130d;
+  font-size: 11px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.sectionHeader a:hover {
+  color: #df963f;
+}
+
+.acceptButton,
+.detailsButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.patientAvatar img {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.todoItem span small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #8a7a69;
+}
+
+/* MODAL */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(31, 19, 13, 0.35);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 70px 20px;
+  overflow-y: auto;
+}
+
+.modal {
+  position: relative;
+  width: min(520px, 100%);
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 18px;
+  padding: 30px;
+  box-shadow: 0 18px 55px rgba(31, 19, 13, 0.2);
+}
+
+.closeModal {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  border: none;
+  background: transparent;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+.modalHeader {
+  margin-bottom: 24px;
+}
+
+.modalHeader p {
+  margin: 0 0 5px;
+  color: #df963f;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.modal input,
+.modal textarea {
+  width: 100%;
+  border: 1px solid #d7cbbf;
+  border-radius: 7px;
+  background: white;
+  padding: 0 13px;
+  height: 42px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  outline: none;
+}
+
+.modal textarea {
+  min-height: 100px;
+  height: auto;
+  padding-top: 12px;
+  resize: vertical;
+}
+
+.modal input:focus,
+.modal textarea:focus {
+  border-color: #df963f;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancelButton,
+.saveButton {
+  min-width: 130px;
+  height: 43px;
+  border-radius: 7px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.cancelButton {
+  border: 1px solid #dfd4c7;
+  background: white;
+  color: #1f130d;
+}
+
+.saveButton {
+  border: none;
+  background: #df963f;
+  color: white;
+}
+
+.saveButton:hover {
+  background: #cf842d;
+}
+
+.saveButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+
+@media (max-width: 1200px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rightColumn {
+    max-width: 420px;
+  }
+
+  .requestGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 34px 22px 70px;
+  }
+
+  .requestGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .patientItem {
+    grid-template-columns: 42px 1fr;
+  }
+
+  .patientItem span {
+    grid-column: 2;
+    width: fit-content;
+  }
+
+  .welcomeCard button {
+    position: static;
+    width: fit-content;
+  }
+}

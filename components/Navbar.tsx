@@ -56,7 +56,7 @@ export default function Navbar() {
 						<span>Voor partners ▾</span>
 						<div className={styles.dropdownContent}>
 							<Link href="/asielen/login">Voor asielen</Link>
-							<Link href="/dierenartsen">Voor dierenartsen</Link>
+							<Link href="/dierenarts/login">Voor dierenartsen</Link>
 						</div>
 					</div>
 				)}
