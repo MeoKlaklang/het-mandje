@@ -18,7 +18,6 @@ export type DierenartsAnimalDossier = {
 
   description: string | null;
   short_description: string | null;
-
   care_level: string | null;
   medical_notes: string | null;
   behavior_notes: string | null;
@@ -27,7 +26,6 @@ export type DierenartsAnimalDossier = {
   available_until: string | null;
   expected_duration: string | null;
   status: string | null;
-
   image_url: string | null;
 
   vaccinated: boolean | null;
@@ -79,22 +77,24 @@ export type DierenartsAnimalDossier = {
   } | null;
 };
 
+type ShelterJoin =
+  | {
+      id: string;
+      name: string;
+      city: string | null;
+    }
+  | {
+      id: string;
+      name: string;
+      city: string | null;
+    }[]
+  | null;
+
 type AnimalRow = Omit<
   DierenartsAnimalDossier,
   "shelter" | "fosterApplication"
 > & {
-  shelters:
-    | {
-        id: string;
-        name: string;
-        city: string | null;
-      }
-    | {
-        id: string;
-        name: string;
-        city: string | null;
-      }[]
-    | null;
+  shelters: ShelterJoin;
 };
 
 type ApplicationRow = {
@@ -104,6 +104,7 @@ type ApplicationRow = {
   message: string | null;
   start_date: string | null;
   end_date: string | null;
+  created_at: string | null;
 };
 
 type ProfileRow = {
@@ -112,18 +113,29 @@ type ProfileRow = {
   last_name: string | null;
   city: string | null;
   postal_code: string | null;
-  phone: string | null;
-  email: string | null;
 };
+
+const ACTIVE_APPLICATION_STATUSES = [
+  "goedgekeurd",
+  "Goedgekeurd",
+  "approved",
+  "Approved",
+  "accepted",
+  "Accepted",
+  "in_opvang",
+  "In opvang",
+  "opvang",
+];
 
 export async function getDierenartsAnimalDossier(animalId: string) {
   const supabase = createClient();
 
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (userError || !user) {
     return {
       data: null,
       error: "Je bent niet ingelogd.",
@@ -134,9 +146,18 @@ export async function getDierenartsAnimalDossier(animalId: string) {
     .from("veterinarians")
     .select("id, user_id, shelter_id")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (veterinarianError || !veterinarian) {
+  if (veterinarianError) {
+    console.error("Fout bij ophalen dierenartsprofiel:", veterinarianError);
+
+    return {
+      data: null,
+      error: veterinarianError.message,
+    };
+  }
+
+  if (!veterinarian) {
     return {
       data: null,
       error: "Geen dierenartsprofiel gevonden.",
@@ -164,13 +185,21 @@ export async function getDierenartsAnimalDossier(animalId: string) {
     )
     .eq("id", animalId)
     .eq("shelter_id", veterinarian.shelter_id)
-    .single();
+    .maybeSingle();
 
-  if (animalError || !animalData) {
+  if (animalError) {
+    console.error("Fout bij ophalen dierendossier:", animalError);
+
+    return {
+      data: null,
+      error: animalError.message,
+    };
+  }
+
+  if (!animalData) {
     return {
       data: null,
       error:
-        animalError?.message ||
         "Dossier niet gevonden of dit dier hoort niet bij jouw gekoppeld asiel.",
     };
   }
@@ -183,7 +212,7 @@ export async function getDierenartsAnimalDossier(animalId: string) {
 
   let fosterApplication: DierenartsAnimalDossier["fosterApplication"] = null;
 
-  const { data: applicationData, error: applicationError } = await supabase
+  const { data: applicationsData, error: applicationError } = await supabase
     .from("animal_applications")
     .select(
       `
@@ -192,44 +221,56 @@ export async function getDierenartsAnimalDossier(animalId: string) {
       status,
       message,
       start_date,
-      end_date
+      end_date,
+      created_at
     `
     )
     .eq("animal_id", animalId)
     .eq("shelter_id", veterinarian.shelter_id)
-    .eq("status", "goedgekeurd")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("created_at", { ascending: false });
 
   if (applicationError) {
-    console.error(
-      "Fout bij ophalen goedgekeurde opvangaanvraag:",
-      applicationError
-    );
+    console.error("Fout bij ophalen pleegaanvragen:", applicationError);
   }
 
-  const application = applicationData as ApplicationRow | null;
+  const applications = (applicationsData || []) as ApplicationRow[];
 
-  if (application?.user_id) {
+  const activeApplication =
+    applications.find((application) =>
+      ACTIVE_APPLICATION_STATUSES.includes(application.status)
+    ) || null;
+
+  if (activeApplication?.user_id) {
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
-      .select("id, first_name, last_name, city, postal_code, phone, email")
-      .eq("id", application.user_id)
+      .select("id, first_name, last_name, city, postal_code")
+      .eq("id", activeApplication.user_id)
       .maybeSingle();
 
     if (profileError) {
-      console.error("Fout bij ophalen pleeggezin profiel:", profileError);
+      console.error("Fout bij ophalen pleeggezin:", profileError);
     }
 
+    const profile = profileData as ProfileRow | null;
+
     fosterApplication = {
-      id: application.id,
-      user_id: application.user_id,
-      status: application.status,
-      message: application.message,
-      start_date: application.start_date,
-      end_date: application.end_date,
-      fosterProfile: (profileData as ProfileRow | null) || null,
+      id: activeApplication.id,
+      user_id: activeApplication.user_id,
+      status: activeApplication.status,
+      message: activeApplication.message,
+      start_date: activeApplication.start_date,
+      end_date: activeApplication.end_date,
+      fosterProfile: profile
+        ? {
+            id: profile.id,
+            first_name: profile.first_name,
+            last_name: profile.last_name,
+            city: profile.city,
+            postal_code: profile.postal_code,
+            phone: null,
+            email: null,
+          }
+        : null,
     };
   }
 

@@ -1,49 +1,44 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import DierenartsLayout from "@/components/dierenarts/DierenartsLayout";
-
 import {
   getDierenartsAnimalDossier,
   DierenartsAnimalDossier,
 } from "@/lib/dierenarts/getDierenartsAnimalDossier";
-
-import { getAnimalNotes, AnimalNote } from "@/lib/asiel/getAnimalNotes";
-import { createAnimalNote } from "@/lib/asiel/createAnimalNote";
-
 import {
-  getAnimalMedications,
-  AnimalMedication,
-} from "@/lib/asiel/getAnimalMedications";
-import { createAnimalMedication } from "@/lib/asiel/createAnimalMedication";
-
+  getDierenartsAnimalMedicalRecords,
+  DierenartsAnimalMedicalRecord,
+} from "@/lib/dierenarts/getDierenartsAnimalMedicalRecords";
+import { createDierenartsAnimalMedicalRecord } from "@/lib/dierenarts/createDierenartsAnimalMedicalRecord";
 import {
-  getAnimalMedicalRecords,
-  AnimalMedicalRecord,
-} from "@/lib/asiel/getAnimalMedicalRecords";
-import { createAnimalMedicalRecord } from "@/lib/asiel/createAnimalMedicalRecord";
-
-import { createDierenartsAnimalAppointmentRequest } from "@/lib/dierenarts/createDierenartsAnimalAppointmentRequest";
-
+  getDierenartsAnimalMedications,
+  DierenartsAnimalMedication,
+} from "@/lib/dierenarts/getDierenartsAnimalMedications";
+import { createDierenartsAnimalMedication } from "@/lib/dierenarts/createDierenartsAnimalMedication";
+import {
+  getDierenartsAnimalNotes,
+  DierenartsAnimalNote,
+} from "@/lib/dierenarts/getDierenartsAnimalNotes";
+import { createDierenartsAnimalNote } from "@/lib/dierenarts/createDierenartsAnimalNote";
 import styles from "./dossier.module.css";
 
-type DossierTab =
-  | "overzicht"
-  | "medisch"
-  | "behandelingen"
-  | "afspraken"
-  | "notities";
+type Tab = "overzicht" | "medisch" | "behandeling" | "afspraken" | "notities";
 
-type ActivityItem = {
-  id: string;
-  title: string;
-  date: string | null;
-};
+function yesNo(value: boolean | null) {
+  if (value === true) return "Ja";
+  if (value === false) return "Nee";
+  return "Onbekend";
+}
 
-function formatDate(date: string | null) {
-  if (!date) return "Onbekend";
+function valueOrDash(value: string | null | undefined) {
+  return value && value.trim() ? value : "Niet ingevuld";
+}
+
+function formatDate(date: string | null | undefined) {
+  if (!date) return "Niet ingevuld";
 
   return new Date(date).toLocaleDateString("nl-BE", {
     day: "2-digit",
@@ -52,95 +47,42 @@ function formatDate(date: string | null) {
   });
 }
 
-function formatDateTime(date: string | null) {
-  if (!date) return "Onbekend";
-
-  return new Date(date).toLocaleString("nl-BE", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function todayInputDate() {
+  return new Date().toISOString().split("T")[0];
 }
 
-function formatStatus(status: string | null) {
-  if (status === "beschikbaar") return "Beschikbaar";
-  if (status === "gereserveerd") return "Gereserveerd";
-  if (status === "in_opvang") return "In opvang";
-  if (status === "niet_beschikbaar") return "Niet beschikbaar";
-  if (status === "concept") return "Concept";
-  return "Status onbekend";
-}
-
-function formatAppointmentStatus(status: string | null) {
-  if (status === "pending_user_approval") return "Wachten op goedkeuring";
-  if (status === "confirmed") return "Bevestigd";
-  if (status === "declined") return "Geweigerd";
-  if (status === "new_time_requested") return "Nieuw voorstel gevraagd";
-  return "Bevestigd";
-}
-
-function appointmentBadgeClass(status: string | null) {
-  if (status === "pending_user_approval" || status === "new_time_requested") {
-    return styles.pendingBadge;
-  }
-
-  if (status === "declined") return styles.declinedBadge;
-
-  return styles.confirmedBadge;
-}
-
-function booleanText(value: boolean | null) {
-  return value ? "Ja" : "Nee";
-}
-
-function getFosterName(dossier: DierenartsAnimalDossier | null) {
-  const profile = dossier?.fosterApplication?.fosterProfile;
+function getFosterName(animal: DierenartsAnimalDossier) {
+  const profile = animal.fosterApplication?.fosterProfile;
 
   if (!profile) return "Geen pleeggezin gekoppeld";
 
-  const fullName = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
-  return fullName || "Pleeggezin zonder naam";
+  const firstName = profile.first_name || "";
+  const lastName = profile.last_name || "";
+
+  return `${firstName} ${lastName}`.trim() || "Pleeggezin zonder naam";
 }
 
 export default function DierenartsAnimalDossierPage() {
-  const router = useRouter();
   const params = useParams<{ id: string }>();
-  const animalId = params.id;
 
-  const [dossier, setDossier] = useState<DierenartsAnimalDossier | null>(null);
-  const [notes, setNotes] = useState<AnimalNote[]>([]);
-  const [medications, setMedications] = useState<AnimalMedication[]>([]);
-  const [medicalRecords, setMedicalRecords] = useState<AnimalMedicalRecord[]>([]);
+  const [animal, setAnimal] = useState<DierenartsAnimalDossier | null>(null);
+  const [medicalRecords, setMedicalRecords] = useState<
+    DierenartsAnimalMedicalRecord[]
+  >([]);
+  const [medications, setMedications] = useState<
+    DierenartsAnimalMedication[]
+  >([]);
+  const [notes, setNotes] = useState<DierenartsAnimalNote[]>([]);
 
-  const [activeTab, setActiveTab] = useState<DossierTab>("overzicht");
+  const [activeTab, setActiveTab] = useState<Tab>("overzicht");
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const [noteModalOpen, setNoteModalOpen] = useState(false);
-  const [savingNote, setSavingNote] = useState(false);
-  const [noteTitle, setNoteTitle] = useState("");
-  const [noteContent, setNoteContent] = useState("");
-  const [noteCreatedBy, setNoteCreatedBy] = useState("");
-  const [noteRole, setNoteRole] = useState("dierenarts");
-  const [visibleToFoster, setVisibleToFoster] = useState(false);
-
-  const [medicationModalOpen, setMedicationModalOpen] = useState(false);
-  const [savingMedication, setSavingMedication] = useState(false);
-  const [medicationName, setMedicationName] = useState("");
-  const [medicationDosage, setMedicationDosage] = useState("");
-  const [medicationFrequency, setMedicationFrequency] = useState("");
-  const [medicationInstructions, setMedicationInstructions] = useState("");
-  const [medicationStartDate, setMedicationStartDate] = useState("");
-  const [medicationEndDate, setMedicationEndDate] = useState("");
-  const [medicationCreatedBy, setMedicationCreatedBy] = useState("");
-  const [medicationRole, setMedicationRole] = useState("dierenarts");
-  const [medicationVisibleToFoster, setMedicationVisibleToFoster] = useState(true);
-
   const [medicalModalOpen, setMedicalModalOpen] = useState(false);
   const [savingMedicalRecord, setSavingMedicalRecord] = useState(false);
+
   const [medicalTitle, setMedicalTitle] = useState("");
-  const [medicalDate, setMedicalDate] = useState("");
+  const [medicalDate, setMedicalDate] = useState(todayInputDate());
   const [medicalCreatedBy, setMedicalCreatedBy] = useState("");
   const [medicalRole, setMedicalRole] = useState("dierenarts");
   const [visitReason, setVisitReason] = useState("");
@@ -150,210 +92,119 @@ export default function DierenartsAnimalDossierPage() {
   const [vaccinationOrProcedure, setVaccinationOrProcedure] = useState("");
   const [followUpAdvice, setFollowUpAdvice] = useState("");
 
-  const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
-  const [savingAppointment, setSavingAppointment] = useState(false);
-  const [appointmentTitle, setAppointmentTitle] = useState("");
-  const [appointmentDescription, setAppointmentDescription] = useState("");
-  const [appointmentDate, setAppointmentDate] = useState("");
-  const [appointmentStartTime, setAppointmentStartTime] = useState("13:00");
-  const [appointmentEndTime, setAppointmentEndTime] = useState("14:00");
-  const [appointmentType, setAppointmentType] = useState("dierenarts");
-  const [appointmentLocation, setAppointmentLocation] = useState("");
-  const [appointmentCreatedBy, setAppointmentCreatedBy] = useState("");
+  const [medicationModalOpen, setMedicationModalOpen] = useState(false);
+  const [savingMedication, setSavingMedication] = useState(false);
+
+  const [medicationName, setMedicationName] = useState("");
+  const [medicationDosage, setMedicationDosage] = useState("");
+  const [medicationFrequency, setMedicationFrequency] = useState("");
+  const [medicationStartDate, setMedicationStartDate] = useState("");
+  const [medicationEndDate, setMedicationEndDate] = useState("");
+  const [medicationInstructions, setMedicationInstructions] = useState("");
+  const [medicationCreatedBy, setMedicationCreatedBy] = useState("");
+  const [medicationRole, setMedicationRole] = useState("dierenarts");
+  const [medicationVisibleToFoster, setMedicationVisibleToFoster] =
+    useState(true);
+
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [savingNote, setSavingNote] = useState(false);
+
+  const [noteTitle, setNoteTitle] = useState("");
+  const [noteContent, setNoteContent] = useState("");
+  const [noteCreatedBy, setNoteCreatedBy] = useState("");
+  const [noteRole, setNoteRole] = useState("dierenarts");
+  const [noteVisibleToFoster, setNoteVisibleToFoster] = useState(false);
 
   async function loadDossier() {
     setLoading(true);
+    setErrorMessage("");
 
-    const [
-      dossierResult,
-      notesResult,
-      medicationsResult,
-      medicalRecordsResult,
-    ] = await Promise.all([
-      getDierenartsAnimalDossier(animalId),
-      getAnimalNotes(animalId),
-      getAnimalMedications(animalId),
-      getAnimalMedicalRecords(animalId),
-    ]);
+    const dossierResult = await getDierenartsAnimalDossier(params.id);
 
     if (dossierResult.error) {
       setErrorMessage(dossierResult.error);
-    } else if (notesResult.error) {
-      setErrorMessage(notesResult.error);
-    } else if (medicationsResult.error) {
-      setErrorMessage(medicationsResult.error);
-    } else if (medicalRecordsResult.error) {
-      setErrorMessage(medicalRecordsResult.error);
-    } else {
-      setErrorMessage("");
     }
 
-    setDossier(dossierResult.data || null);
-    setNotes(notesResult.notes || []);
-    setMedications(medicationsResult.medications || []);
+    setAnimal(dossierResult.data);
+
+    const medicalRecordsResult = await getDierenartsAnimalMedicalRecords(
+      params.id
+    );
+
+    if (medicalRecordsResult.error) {
+      console.error(medicalRecordsResult.error);
+    }
+
     setMedicalRecords(medicalRecordsResult.records || []);
+
+    const medicationsResult = await getDierenartsAnimalMedications(params.id);
+
+    if (medicationsResult.error) {
+      console.error(medicationsResult.error);
+    }
+
+    setMedications(medicationsResult.medications || []);
+
+    const notesResult = await getDierenartsAnimalNotes(params.id);
+
+    if (notesResult.error) {
+      console.error(notesResult.error);
+    }
+
+    setNotes(notesResult.notes || []);
+
     setLoading(false);
   }
 
   useEffect(() => {
-    loadDossier();
-  }, [animalId]);
-
-  const recentActivities = useMemo<ActivityItem[]>(() => {
-    const appointmentActivities: ActivityItem[] = (dossier?.appointments || []).map(
-      (appointment) => ({
-        id: `appointment-${appointment.id}`,
-        title: `Afspraak: ${appointment.title}`,
-        date: appointment.start_at,
-      })
-    );
-
-    const noteActivities: ActivityItem[] = (notes || []).map((note) => ({
-      id: `note-${note.id}`,
-      title: `Notitie: ${note.title}`,
-      date: note.created_at,
-    }));
-
-    const medicationActivities: ActivityItem[] = (medications || []).map(
-      (medication) => ({
-        id: `medication-${medication.id}`,
-        title: `Medicatie toegevoegd: ${medication.name}`,
-        date: medication.created_at,
-      })
-    );
-
-    const medicalActivities: ActivityItem[] = (medicalRecords || []).map(
-      (record) => ({
-        id: `medical-${record.id}`,
-        title: `Medisch verslag: ${record.title}`,
-        date: record.record_date || record.created_at,
-      })
-    );
-
-    const animalCreatedActivity: ActivityItem[] = dossier?.created_at
-      ? [
-          {
-            id: "animal-created",
-            title: "Dossier aangemaakt",
-            date: dossier.created_at,
-          },
-        ]
-      : [];
-
-    const fosterActivity: ActivityItem[] = dossier?.fosterApplication?.start_date
-      ? [
-          {
-            id: "foster-linked",
-            title: "Pleeggezin gekoppeld",
-            date: dossier.fosterApplication.start_date,
-          },
-        ]
-      : [];
-
-    return [
-      ...animalCreatedActivity,
-      ...fosterActivity,
-      ...appointmentActivities,
-      ...noteActivities,
-      ...medicationActivities,
-      ...medicalActivities,
-    ]
-      .filter((activity) => activity.date)
-      .sort(
-        (a, b) =>
-          new Date(b.date || "").getTime() - new Date(a.date || "").getTime()
-      )
-      .slice(0, 4);
-  }, [dossier, notes, medications, medicalRecords]);
-
-  const handleCreateNote = async () => {
-    if (!noteTitle.trim() || !noteContent.trim()) {
-      alert("Vul een titel en notitie in.");
-      return;
+    if (params.id) {
+      loadDossier();
     }
+  }, [params.id]);
 
-    setSavingNote(true);
+  const resetMedicalForm = () => {
+    setMedicalTitle("");
+    setMedicalDate(todayInputDate());
+    setMedicalCreatedBy("");
+    setMedicalRole("dierenarts");
+    setVisitReason("");
+    setExamination("");
+    setDiagnosis("");
+    setPerformedAction("");
+    setVaccinationOrProcedure("");
+    setFollowUpAdvice("");
+  };
 
-    const result = await createAnimalNote({
-      animalId,
-      title: noteTitle,
-      content: noteContent,
-      createdByName: noteCreatedBy,
-      createdByRole: noteRole,
-      visibleToFoster,
-    });
+  const resetMedicationForm = () => {
+    setMedicationName("");
+    setMedicationDosage("");
+    setMedicationFrequency("");
+    setMedicationStartDate("");
+    setMedicationEndDate("");
+    setMedicationInstructions("");
+    setMedicationCreatedBy("");
+    setMedicationRole("dierenarts");
+    setMedicationVisibleToFoster(true);
+  };
 
-    setSavingNote(false);
-
-    if (!result.success) {
-      alert(result.error);
-      return;
-    }
-
+  const resetNoteForm = () => {
     setNoteTitle("");
     setNoteContent("");
     setNoteCreatedBy("");
     setNoteRole("dierenarts");
-    setVisibleToFoster(false);
-    setNoteModalOpen(false);
-
-    const { notes: newNotes } = await getAnimalNotes(animalId);
-    setNotes(newNotes || []);
-  };
-
-  const handleCreateMedication = async () => {
-    if (!medicationName.trim()) {
-      alert("Vul de naam van de medicatie in.");
-      return;
-    }
-
-    setSavingMedication(true);
-
-    const result = await createAnimalMedication({
-      animalId,
-      name: medicationName,
-      dosage: medicationDosage,
-      frequency: medicationFrequency,
-      instructions: medicationInstructions,
-      startDate: medicationStartDate,
-      endDate: medicationEndDate,
-      createdByName: medicationCreatedBy,
-      createdByRole: medicationRole,
-      visibleToFoster: medicationVisibleToFoster,
-    });
-
-    setSavingMedication(false);
-
-    if (!result.success) {
-      alert(result.error);
-      return;
-    }
-
-    setMedicationName("");
-    setMedicationDosage("");
-    setMedicationFrequency("");
-    setMedicationInstructions("");
-    setMedicationStartDate("");
-    setMedicationEndDate("");
-    setMedicationCreatedBy("");
-    setMedicationRole("dierenarts");
-    setMedicationVisibleToFoster(true);
-    setMedicationModalOpen(false);
-
-    const { medications: newMedications } = await getAnimalMedications(animalId);
-    setMedications(newMedications || []);
+    setNoteVisibleToFoster(false);
   };
 
   const handleCreateMedicalRecord = async () => {
-    if (!medicalTitle.trim() || !medicalDate) {
-      alert("Vul een titel en datum in.");
+    if (!medicalTitle.trim()) {
+      alert("Vul een titel in voor het medisch verslag.");
       return;
     }
 
     setSavingMedicalRecord(true);
 
-    const result = await createAnimalMedicalRecord({
-      animalId,
+    const result = await createDierenartsAnimalMedicalRecord({
+      animalId: params.id,
       title: medicalTitle,
       recordDate: medicalDate,
       createdByName: medicalCreatedBy,
@@ -373,66 +224,85 @@ export default function DierenartsAnimalDossierPage() {
       return;
     }
 
-    setMedicalTitle("");
-    setMedicalDate("");
-    setMedicalCreatedBy("");
-    setMedicalRole("dierenarts");
-    setVisitReason("");
-    setExamination("");
-    setDiagnosis("");
-    setPerformedAction("");
-    setVaccinationOrProcedure("");
-    setFollowUpAdvice("");
+    resetMedicalForm();
     setMedicalModalOpen(false);
 
-    const { records: newRecords } = await getAnimalMedicalRecords(animalId);
-    setMedicalRecords(newRecords || []);
+    const medicalRecordsResult = await getDierenartsAnimalMedicalRecords(
+      params.id
+    );
+
+    setMedicalRecords(medicalRecordsResult.records || []);
   };
 
-  const handleCreateAppointment = async () => {
-    if (!appointmentTitle.trim()) {
-      alert("Vul een titel in voor de afspraak.");
+  const handleCreateMedication = async () => {
+    if (!medicationName.trim()) {
+      alert("Vul de naam van de medicatie in.");
       return;
     }
 
-    if (!appointmentDate || !appointmentStartTime || !appointmentEndTime) {
-      alert("Vul datum, startuur en einduur in.");
-      return;
-    }
+    setSavingMedication(true);
 
-    setSavingAppointment(true);
-
-    const result = await createDierenartsAnimalAppointmentRequest({
-      animalId,
-      title: appointmentTitle,
-      description: appointmentDescription,
-      date: appointmentDate,
-      startTime: appointmentStartTime,
-      endTime: appointmentEndTime,
-      appointmentType,
-      location: appointmentLocation,
-      createdBy: appointmentCreatedBy,
+    const result = await createDierenartsAnimalMedication({
+      animalId: params.id,
+      name: medicationName,
+      dosage: medicationDosage,
+      frequency: medicationFrequency,
+      instructions: medicationInstructions,
+      startDate: medicationStartDate,
+      endDate: medicationEndDate,
+      createdByName: medicationCreatedBy,
+      createdByRole: medicationRole,
+      visibleToFoster: medicationVisibleToFoster,
     });
 
-    setSavingAppointment(false);
+    setSavingMedication(false);
 
     if (!result.success) {
       alert(result.error);
       return;
     }
 
-    setAppointmentTitle("");
-    setAppointmentDescription("");
-    setAppointmentDate("");
-    setAppointmentStartTime("13:00");
-    setAppointmentEndTime("14:00");
-    setAppointmentType("dierenarts");
-    setAppointmentLocation("");
-    setAppointmentCreatedBy("");
-    setAppointmentModalOpen(false);
+    resetMedicationForm();
+    setMedicationModalOpen(false);
 
-    const { data } = await getDierenartsAnimalDossier(animalId);
-    if (data) setDossier(data);
+    const medicationsResult = await getDierenartsAnimalMedications(params.id);
+    setMedications(medicationsResult.medications || []);
+  };
+
+  const handleCreateNote = async () => {
+    if (!noteTitle.trim()) {
+      alert("Vul een titel in voor de notitie.");
+      return;
+    }
+
+    if (!noteContent.trim()) {
+      alert("Vul een notitie in.");
+      return;
+    }
+
+    setSavingNote(true);
+
+    const result = await createDierenartsAnimalNote({
+      animalId: params.id,
+      title: noteTitle,
+      content: noteContent,
+      createdByName: noteCreatedBy,
+      createdByRole: noteRole,
+      visibleToFoster: noteVisibleToFoster,
+    });
+
+    setSavingNote(false);
+
+    if (!result.success) {
+      alert(result.error);
+      return;
+    }
+
+    resetNoteForm();
+    setNoteModalOpen(false);
+
+    const notesResult = await getDierenartsAnimalNotes(params.id);
+    setNotes(notesResult.notes || []);
   };
 
   if (loading) {
@@ -448,23 +318,22 @@ export default function DierenartsAnimalDossierPage() {
     );
   }
 
-  if (errorMessage || !dossier) {
+  if (!animal) {
     return (
       <DierenartsLayout>
         <main className={styles.page}>
           <section className={styles.messageCard}>
             <h1>Dossier niet gevonden</h1>
             <p>{errorMessage || "Dit dier kon niet geladen worden."}</p>
-            <button type="button" onClick={() => router.push("/dierenarts/dashboard")}>
-              Terug naar dashboard
+
+            <button type="button" onClick={() => window.history.back()}>
+              Terug
             </button>
           </section>
         </main>
       </DierenartsLayout>
     );
   }
-
-  const fosterProfile = dossier.fosterApplication?.fosterProfile || null;
 
   return (
     <DierenartsLayout>
@@ -476,16 +345,14 @@ export default function DierenartsAnimalDossierPage() {
             </Link>
 
             <div className={styles.topActions}>
-              <button type="button" onClick={() => setAppointmentModalOpen(true)}>
-                + Afspraak maken
-              </button>
+              <button type="button">+ Afspraak maken</button>
             </div>
           </div>
 
           <section className={styles.dossierHero}>
             <img
-              src={dossier.image_url || "/images/dog3.jpg"}
-              alt={dossier.name}
+              src={animal.image_url || "/images/dog3.jpg"}
+              alt={animal.name}
               className={styles.heroImage}
             />
 
@@ -494,75 +361,101 @@ export default function DierenartsAnimalDossierPage() {
 
               <div className={styles.titleRow}>
                 <div>
-                  <h1>{dossier.name}</h1>
+                  <h1>{animal.name}</h1>
                   <p>
-                    {dossier.breed || dossier.species} · {dossier.gender || "Onbekend"}
+                    {valueOrDash(animal.breed)} · {valueOrDash(animal.age)} ·{" "}
+                    {valueOrDash(animal.gender)}
                   </p>
                 </div>
 
-                <span className={styles.statusPill}>{formatStatus(dossier.status)}</span>
+                <span className={styles.statusPill}>
+                  {valueOrDash(animal.status)}
+                </span>
               </div>
 
               <div className={styles.compactTags}>
-                <span>{dossier.species}</span>
-                {dossier.care_level && <span>Zorgniveau: {dossier.care_level}</span>}
-                {dossier.needs_medication && <span>Medicatie nodig</span>}
-                {dossier.vaccinated && <span>Gevaccineerd</span>}
+                {animal.vaccinated && <span>Gevaccineerd</span>}
+                {animal.neutered && <span>Gecastreerd</span>}
+                {animal.house_trained && <span>Zindelijk</span>}
+                {animal.needs_medication && <span>Medicatie nodig</span>}
+                {!animal.vaccinated &&
+                  !animal.neutered &&
+                  !animal.house_trained &&
+                  !animal.needs_medication && <span>Geen tags ingevuld</span>}
               </div>
 
               <div className={styles.heroMeta}>
                 <p>
-                  <strong>Leeftijd</strong>
-                  <span>{dossier.age || "Onbekend"}</span>
-                </p>
-                <p>
-                  <strong>Gewicht</strong>
-                  <span>{dossier.weight || "Onbekend"}</span>
-                </p>
-                <p>
                   <strong>Chipnummer</strong>
-                  <span>{dossier.chip_number || "Niet ingevuld"}</span>
+                  <span>{valueOrDash(animal.chip_number)}</span>
+                </p>
+
+                <p>
+                  <strong>Kleur / vacht</strong>
+                  <span>{valueOrDash(animal.coat_color)}</span>
+                </p>
+
+                <p>
+                  <strong>Toegevoegd</strong>
+                  <span>{formatDate(animal.created_at)}</span>
                 </p>
               </div>
             </div>
 
             <aside className={styles.heroFoster}>
-              <h2>Pleeggezin</h2>
+              <h2>Huidig pleeggezin</h2>
 
-              {fosterProfile ? (
+              {animal.fosterApplication?.fosterProfile ? (
                 <>
                   <div className={styles.personMini}>
                     <div className={styles.avatar}>👤</div>
+
                     <div>
-                      <h3>{getFosterName(dossier)}</h3>
-                      <p>{fosterProfile.city || "Gemeente onbekend"}</p>
+                      <h3>{getFosterName(animal)}</h3>
+                      <p>
+                        {valueOrDash(
+                          animal.fosterApplication.fosterProfile.postal_code
+                        )}{" "}
+                        {valueOrDash(
+                          animal.fosterApplication.fosterProfile.city
+                        )}
+                      </p>
                     </div>
                   </div>
 
                   <div className={styles.fosterSmallInfo}>
                     <p>
-                      <strong>E-mail</strong>
-                      <span>{fosterProfile.email || "Niet ingevuld"}</span>
+                      <strong>Opvangperiode</strong>
+                      <span>
+                        {formatDate(animal.fosterApplication.start_date)} -{" "}
+                        {formatDate(animal.fosterApplication.end_date)}
+                      </span>
                     </p>
+
                     <p>
-                      <strong>Telefoon</strong>
-                      <span>{fosterProfile.phone || "Niet ingevuld"}</span>
+                      <strong>Status</strong>
+                      <span>{valueOrDash(animal.fosterApplication.status)}</span>
                     </p>
+
                     <p>
-                      <strong>Start opvang</strong>
-                      <span>{formatDate(dossier.fosterApplication?.start_date || null)}</span>
+                      <strong>Contact</strong>
+                      <span>
+                        {animal.fosterApplication.fosterProfile.email ||
+                          animal.fosterApplication.fosterProfile.phone ||
+                          "Niet ingevuld"}
+                      </span>
                     </p>
                   </div>
                 </>
               ) : (
                 <p className={styles.emptyText}>
-                  Er is momenteel geen pleeggezin gekoppeld aan dit dier.
+                  Dit dier heeft momenteel geen gekoppeld pleeggezin.
                 </p>
               )}
             </aside>
           </section>
 
-          <nav className={styles.tabs}>
+          <section className={styles.tabs}>
             <button
               type="button"
               className={activeTab === "overzicht" ? styles.activeTab : ""}
@@ -570,6 +463,7 @@ export default function DierenartsAnimalDossierPage() {
             >
               Overzicht
             </button>
+
             <button
               type="button"
               className={activeTab === "medisch" ? styles.activeTab : ""}
@@ -577,13 +471,15 @@ export default function DierenartsAnimalDossierPage() {
             >
               Medisch dossier
             </button>
+
             <button
               type="button"
-              className={activeTab === "behandelingen" ? styles.activeTab : ""}
-              onClick={() => setActiveTab("behandelingen")}
+              className={activeTab === "behandeling" ? styles.activeTab : ""}
+              onClick={() => setActiveTab("behandeling")}
             >
-              Behandelingen
+              Behandeling
             </button>
+
             <button
               type="button"
               className={activeTab === "afspraken" ? styles.activeTab : ""}
@@ -591,6 +487,7 @@ export default function DierenartsAnimalDossierPage() {
             >
               Afspraken
             </button>
+
             <button
               type="button"
               className={activeTab === "notities" ? styles.activeTab : ""}
@@ -598,7 +495,7 @@ export default function DierenartsAnimalDossierPage() {
             >
               Notities
             </button>
-          </nav>
+          </section>
 
           {activeTab === "overzicht" && (
             <section className={styles.tabGrid}>
@@ -610,82 +507,105 @@ export default function DierenartsAnimalDossierPage() {
                 <div className={styles.summaryGrid}>
                   <div>
                     <strong>Soort</strong>
-                    <span>{dossier.species}</span>
+                    <span>{valueOrDash(animal.species)}</span>
                   </div>
+
                   <div>
                     <strong>Ras</strong>
-                    <span>{dossier.breed || "Onbekend"}</span>
+                    <span>{valueOrDash(animal.breed)}</span>
                   </div>
+
                   <div>
-                    <strong>Geboortedatum</strong>
-                    <span>{formatDate(dossier.birth_date)}</span>
+                    <strong>Geslacht</strong>
+                    <span>{valueOrDash(animal.gender)}</span>
                   </div>
+
                   <div>
-                    <strong>Paspoort</strong>
-                    <span>{dossier.passport_number || "Niet ingevuld"}</span>
+                    <strong>Leeftijd</strong>
+                    <span>{valueOrDash(animal.age)}</span>
+                  </div>
+
+                  <div>
+                    <strong>Gevaccineerd</strong>
+                    <span>{yesNo(animal.vaccinated)}</span>
+                  </div>
+
+                  <div>
+                    <strong>Gecastreerd</strong>
+                    <span>{yesNo(animal.neutered)}</span>
                   </div>
                 </div>
               </article>
 
               <article className={styles.card}>
                 <div className={styles.cardHeader}>
-                  <h2>Gezondheid</h2>
+                  <h2>Medische aandachtspunten</h2>
                 </div>
 
-                <div className={styles.summaryGrid}>
-                  <div>
-                    <strong>Gevaccineerd</strong>
-                    <span>{booleanText(dossier.vaccinated)}</span>
-                  </div>
-                  <div>
-                    <strong>Gecastreerd</strong>
-                    <span>{booleanText(dossier.neutered)}</span>
-                  </div>
-                  <div>
-                    <strong>Medicatie nodig</strong>
-                    <span>{booleanText(dossier.needs_medication)}</span>
-                  </div>
-                  <div>
-                    <strong>Zorgniveau</strong>
-                    <span>{dossier.care_level || "Normaal"}</span>
-                  </div>
+                <div className={styles.textBlock}>
+                  <h3>Medische notities</h3>
+                  <p>{valueOrDash(animal.medical_notes)}</p>
+                </div>
+
+                <div className={styles.textBlock}>
+                  <h3>Speciale noden</h3>
+                  <p>{valueOrDash(animal.special_needs)}</p>
+                </div>
+
+                <div className={styles.textBlock}>
+                  <h3>Heeft medicatie nodig?</h3>
+                  <p>{yesNo(animal.needs_medication)}</p>
                 </div>
               </article>
 
               <article className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <h2>Gedrag</h2>
+                </div>
+
+                <div className={styles.textBlock}>
+                  <h3>Gedragsnotities</h3>
+                  <p>{valueOrDash(animal.behavior_notes)}</p>
+                </div>
+
+                <div className={styles.textBlock}>
+                  <h3>Temperament</h3>
+                  <p>{valueOrDash(animal.temperament)}</p>
+                </div>
+              </article>
+
+              <article className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <h2>Gekoppeld asiel</h2>
+                </div>
+
+                <div className={styles.infoRows}>
+                  <p>
+                    <strong>Naam asiel</strong>
+                    <span>{valueOrDash(animal.shelter?.name)}</span>
+                  </p>
+
+                  <p>
+                    <strong>Gemeente</strong>
+                    <span>{valueOrDash(animal.shelter?.city)}</span>
+                  </p>
+                </div>
+              </article>
+
+              <article className={styles.cardWide}>
                 <div className={styles.cardHeader}>
                   <h2>Beschrijving</h2>
                 </div>
 
                 <div className={styles.textBlock}>
-                  <h3>Korte beschrijving</h3>
-                  <p>{dossier.short_description || "Geen korte beschrijving."}</p>
+                  <h3>Korte omschrijving</h3>
+                  <p>{valueOrDash(animal.short_description)}</p>
                 </div>
 
                 <div className={styles.textBlock}>
-                  <h3>Gedrag</h3>
-                  <p>{dossier.behavior_notes || "Geen gedragsnotities."}</p>
+                  <h3>Volledige beschrijving</h3>
+                  <p>{valueOrDash(animal.description)}</p>
                 </div>
-              </article>
-
-              <article className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <h2>Recente activiteiten</h2>
-                </div>
-
-                {recentActivities.length === 0 ? (
-                  <div className={styles.emptyBox}>Nog geen recente activiteiten.</div>
-                ) : (
-                  <div className={styles.timeline}>
-                    {recentActivities.map((activity) => (
-                      <div key={activity.id}>
-                        <span></span>
-                        <p>{activity.title}</p>
-                        <small>{formatDateTime(activity.date)}</small>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </article>
             </section>
           )}
@@ -695,48 +615,80 @@ export default function DierenartsAnimalDossierPage() {
               <article className={styles.cardWide}>
                 <div className={styles.cardHeader}>
                   <h2>Medisch dossier</h2>
-                  <button type="button" onClick={() => setMedicalModalOpen(true)}>
-                    + Medisch verslag
+
+                  <button
+                    type="button"
+                    onClick={() => setMedicalModalOpen(true)}
+                  >
+                    + Medisch verslag toevoegen
                   </button>
                 </div>
 
                 {medicalRecords.length === 0 ? (
-                  <div className={styles.emptyBox}>Nog geen medische verslagen.</div>
+                  <div className={styles.emptyBox}>
+                    Nog geen medische verslagen voor dit dier.
+                  </div>
                 ) : (
-                  <div className={styles.medicationList}>
+                  <div className={styles.medicalRecordList}>
                     {medicalRecords.map((record) => (
-                      <article key={record.id} className={styles.medicationItem}>
-                        <div className={styles.medicationTop}>
+                      <article
+                        key={record.id}
+                        className={styles.medicalRecordItem}
+                      >
+                        <div className={styles.medicalRecordTop}>
                           <div>
                             <h3>{record.title}</h3>
+
                             <p>
-                              {formatDate(record.record_date)} · {record.created_by_name || "Onbekend"} · {record.created_by_role || "dierenarts"}
+                              {formatDate(
+                                record.record_date || record.created_at
+                              )}{" "}
+                              · {record.created_by_name || "Dierenarts"} ·{" "}
+                              {record.created_by_role || "dierenarts"}
+                            </p>
+                          </div>
+
+                          <span>Intern dossier</span>
+                        </div>
+
+                        <div className={styles.medicalRecordContent}>
+                          <div>
+                            <strong>Reden van bezoek</strong>
+                            <p>{record.visit_reason || "Niet ingevuld"}</p>
+                          </div>
+
+                          <div>
+                            <strong>Onderzoek / observatie</strong>
+                            <p>{record.examination || "Niet ingevuld"}</p>
+                          </div>
+
+                          <div>
+                            <strong>Diagnose / conclusie</strong>
+                            <p>{record.diagnosis || "Niet ingevuld"}</p>
+                          </div>
+
+                          <div>
+                            <strong>Uitgevoerde handeling</strong>
+                            <p>
+                              {record.performed_action || "Niet ingevuld"}
+                            </p>
+                          </div>
+
+                          <div>
+                            <strong>Vaccinatie / procedure</strong>
+                            <p>
+                              {record.vaccination_or_procedure ||
+                                "Niet ingevuld"}
+                            </p>
+                          </div>
+
+                          <div>
+                            <strong>Advies voor opvolging</strong>
+                            <p>
+                              {record.follow_up_advice || "Niet ingevuld"}
                             </p>
                           </div>
                         </div>
-
-                        <div className={styles.medicationMeta}>
-                          <p>
-                            <strong>Reden bezoek</strong>
-                            <span>{record.visit_reason || "Niet ingevuld"}</span>
-                          </p>
-                          <p>
-                            <strong>Onderzoek</strong>
-                            <span>{record.examination || "Niet ingevuld"}</span>
-                          </p>
-                          <p>
-                            <strong>Diagnose</strong>
-                            <span>{record.diagnosis || "Niet ingevuld"}</span>
-                          </p>
-                          <p>
-                            <strong>Actie</strong>
-                            <span>{record.performed_action || "Niet ingevuld"}</span>
-                          </p>
-                        </div>
-
-                        {record.follow_up_advice && (
-                          <p className={styles.medicationInstructions}>{record.follow_up_advice}</p>
-                        )}
                       </article>
                     ))}
                   </div>
@@ -745,34 +697,46 @@ export default function DierenartsAnimalDossierPage() {
             </section>
           )}
 
-          {activeTab === "behandelingen" && (
+          {activeTab === "behandeling" && (
             <section className={styles.tabGrid}>
               <article className={styles.cardWide}>
                 <div className={styles.cardHeader}>
-                  <h2>Behandelingen en medicatie</h2>
-                  <button type="button" onClick={() => setMedicationModalOpen(true)}>
+                  <h2>Behandelingen & medicatie</h2>
+
+                  <button
+                    type="button"
+                    onClick={() => setMedicationModalOpen(true)}
+                  >
                     + Medicatie toevoegen
                   </button>
                 </div>
 
                 {medications.length === 0 ? (
-                  <div className={styles.emptyBox}>Nog geen behandelingen toegevoegd.</div>
+                  <div className={styles.emptyBox}>
+                    Nog geen medicatie toegevoegd voor dit dier.
+                  </div>
                 ) : (
                   <div className={styles.medicationList}>
                     {medications.map((medication) => (
-                      <article key={medication.id} className={styles.medicationItem}>
+                      <article
+                        key={medication.id}
+                        className={styles.medicationItem}
+                      >
                         <div className={styles.medicationTop}>
                           <div>
                             <h3>{medication.name}</h3>
+
                             <p>
-                              {medication.created_by_name || "Onbekend"} · {medication.created_by_role || "dierenarts"} · {formatDate(medication.created_at)}
+                              {medication.created_by_name || "Dierenarts"} ·{" "}
+                              {medication.created_by_role || "dierenarts"} ·{" "}
+                              {formatDate(medication.created_at)}
                             </p>
                           </div>
 
-                          {medication.visible_to_foster ? (
-                            <span className={styles.visibleBadge}>Zichtbaar</span>
-                          ) : (
-                            <span className={styles.privateBadge}>Intern</span>
+                          {medication.visible_to_foster && (
+                            <span className={styles.visibleBadge}>
+                              Zichtbaar voor pleeggezin
+                            </span>
                           )}
                         </div>
 
@@ -781,64 +745,29 @@ export default function DierenartsAnimalDossierPage() {
                             <strong>Dosering</strong>
                             <span>{medication.dosage || "Niet ingevuld"}</span>
                           </p>
+
                           <p>
                             <strong>Frequentie</strong>
-                            <span>{medication.frequency || "Niet ingevuld"}</span>
+                            <span>
+                              {medication.frequency || "Niet ingevuld"}
+                            </span>
                           </p>
+
                           <p>
                             <strong>Startdatum</strong>
                             <span>{formatDate(medication.start_date)}</span>
                           </p>
+
                           <p>
                             <strong>Einddatum</strong>
                             <span>{formatDate(medication.end_date)}</span>
                           </p>
                         </div>
 
-                        {medication.instructions && (
-                          <p className={styles.medicationInstructions}>{medication.instructions}</p>
-                        )}
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </article>
-            </section>
-          )}
-
-          {activeTab === "afspraken" && (
-            <section className={styles.tabGrid}>
-              <article className={styles.cardWide}>
-                <div className={styles.cardHeader}>
-                  <h2>Afspraken</h2>
-                  <button type="button" onClick={() => setAppointmentModalOpen(true)}>
-                    + Afspraak maken
-                  </button>
-                </div>
-
-                {(dossier.appointments || []).length === 0 ? (
-                  <div className={styles.emptyBox}>Nog geen dierenartsafspraken.</div>
-                ) : (
-                  <div className={styles.appointmentList}>
-                    {(dossier.appointments || []).map((appointment) => (
-                      <article key={appointment.id} className={styles.appointmentItem}>
-                        <div className={styles.appointmentTop}>
-                          <span>{formatDateTime(appointment.start_at)}</span>
-                          <strong className={appointmentBadgeClass(appointment.approval_status)}>
-                            {formatAppointmentStatus(appointment.approval_status)}
-                          </strong>
-                        </div>
-
-                        <h3>{appointment.title}</h3>
-                        <p>{appointment.appointment_type || "dierenarts"}</p>
-
-                        {appointment.description && (
-                          <p className={styles.appointmentDetail}>{appointment.description}</p>
-                        )}
-
-                        {appointment.response_message && (
-                          <p className={styles.appointmentResponse}>{appointment.response_message}</p>
-                        )}
+                        <p className={styles.medicationInstructions}>
+                          {medication.instructions ||
+                            "Geen instructies ingevuld."}
+                        </p>
                       </article>
                     ))}
                   </div>
@@ -852,13 +781,16 @@ export default function DierenartsAnimalDossierPage() {
               <article className={styles.cardWide}>
                 <div className={styles.cardHeader}>
                   <h2>Notities</h2>
+
                   <button type="button" onClick={() => setNoteModalOpen(true)}>
-                    + Notitie
+                    + Notitie toevoegen
                   </button>
                 </div>
 
                 {notes.length === 0 ? (
-                  <div className={styles.emptyBox}>Nog geen notities toegevoegd.</div>
+                  <div className={styles.emptyBox}>
+                    Nog geen notities toegevoegd voor dit dier.
+                  </div>
                 ) : (
                   <div className={styles.notesList}>
                     {notes.map((note) => (
@@ -866,13 +798,18 @@ export default function DierenartsAnimalDossierPage() {
                         <div className={styles.noteTop}>
                           <div>
                             <h3>{note.title}</h3>
+
                             <p>
-                              {note.created_by_name || "Onbekend"} · {note.created_by_role || "dierenarts"} · {formatDate(note.created_at)}
+                              {note.created_by_name || "Dierenarts"} ·{" "}
+                              {note.created_by_role || "dierenarts"} ·{" "}
+                              {formatDate(note.created_at)}
                             </p>
                           </div>
 
                           {note.visible_to_foster ? (
-                            <span className={styles.visibleBadge}>Zichtbaar</span>
+                            <span className={styles.visibleBadge}>
+                              Zichtbaar voor pleeggezin
+                            </span>
                           ) : (
                             <span className={styles.privateBadge}>Intern</span>
                           )}
@@ -886,12 +823,299 @@ export default function DierenartsAnimalDossierPage() {
               </article>
             </section>
           )}
+
+          {activeTab === "afspraken" && (
+            <section className={styles.messageCard}>
+              <h1>Afspraken</h1>
+              <p>
+                Deze tab bouwen we hierna. Hier kan de dierenarts afspraken
+                voorstellen aan het pleeggezin.
+              </p>
+            </section>
+          )}
         </div>
+
+        {medicalModalOpen && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <button
+                type="button"
+                className={styles.closeModal}
+                onClick={() => setMedicalModalOpen(false)}
+              >
+                ×
+              </button>
+
+              <div className={styles.modalHeader}>
+                <p>Nieuw medisch verslag</p>
+                <h2>Medisch verslag toevoegen</h2>
+              </div>
+
+              <label>
+                Titel
+                <input
+                  type="text"
+                  value={medicalTitle}
+                  onChange={(e) => setMedicalTitle(e.target.value)}
+                  placeholder="Bijv. Algemene check-up"
+                />
+              </label>
+
+              <div className={styles.formGrid}>
+                <label>
+                  Datum consult
+                  <input
+                    type="date"
+                    value={medicalDate}
+                    onChange={(e) => setMedicalDate(e.target.value)}
+                  />
+                </label>
+
+                <label>
+                  Uitgevoerd door
+                  <input
+                    type="text"
+                    value={medicalCreatedBy}
+                    onChange={(e) => setMedicalCreatedBy(e.target.value)}
+                    placeholder="Bijv. Dr. Kingen"
+                  />
+                </label>
+              </div>
+
+              <label>
+                Rol
+                <select
+                  value={medicalRole}
+                  onChange={(e) => setMedicalRole(e.target.value)}
+                >
+                  <option value="dierenarts">Dierenarts</option>
+                  <option value="assistent">Assistent</option>
+                </select>
+              </label>
+
+              <label>
+                Reden van bezoek
+                <textarea
+                  value={visitReason}
+                  onChange={(e) => setVisitReason(e.target.value)}
+                  placeholder="Bijv. jaarlijkse controle, hoesten, wondcontrole..."
+                />
+              </label>
+
+              <label>
+                Onderzoek / observatie
+                <textarea
+                  value={examination}
+                  onChange={(e) => setExamination(e.target.value)}
+                  placeholder="Wat werd onderzocht of opgemerkt?"
+                />
+              </label>
+
+              <label>
+                Diagnose / conclusie
+                <textarea
+                  value={diagnosis}
+                  onChange={(e) => setDiagnosis(e.target.value)}
+                  placeholder="Bijv. lichte oorontsteking, geen afwijkingen..."
+                />
+              </label>
+
+              <label>
+                Uitgevoerde handeling
+                <textarea
+                  value={performedAction}
+                  onChange={(e) => setPerformedAction(e.target.value)}
+                  placeholder="Bijv. oor gereinigd, wond verzorgd, bloed afgenomen..."
+                />
+              </label>
+
+              <label>
+                Vaccinatie / procedure / dosering
+                <textarea
+                  value={vaccinationOrProcedure}
+                  onChange={(e) => setVaccinationOrProcedure(e.target.value)}
+                  placeholder="Bijv. vaccin Nobivac DHP, 1 dosis subcutaan..."
+                />
+              </label>
+
+              <label>
+                Advies voor opvolging
+                <textarea
+                  value={followUpAdvice}
+                  onChange={(e) => setFollowUpAdvice(e.target.value)}
+                  placeholder="Bijv. controle binnen 7 dagen, medicatie afmaken..."
+                />
+              </label>
+
+              <div className={styles.infoNotice}>
+                Dit medisch verslag is bedoeld voor dierenarts en dierenasiel.
+                Het pleeggezin krijgt hiervan geen aparte melding.
+              </div>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={() => setMedicalModalOpen(false)}
+                >
+                  Annuleren
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.saveButton}
+                  disabled={savingMedicalRecord}
+                  onClick={handleCreateMedicalRecord}
+                >
+                  {savingMedicalRecord ? "Opslaan..." : "Verslag opslaan"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {medicationModalOpen && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <button
+                type="button"
+                className={styles.closeModal}
+                onClick={() => setMedicationModalOpen(false)}
+              >
+                ×
+              </button>
+
+              <div className={styles.modalHeader}>
+                <p>Nieuwe medicatie</p>
+                <h2>Medicatie toevoegen</h2>
+              </div>
+
+              <label>
+                Naam medicatie
+                <input
+                  type="text"
+                  value={medicationName}
+                  onChange={(e) => setMedicationName(e.target.value)}
+                  placeholder="Bijv. Metacam"
+                />
+              </label>
+
+              <div className={styles.formGrid}>
+                <label>
+                  Dosering
+                  <input
+                    type="text"
+                    value={medicationDosage}
+                    onChange={(e) => setMedicationDosage(e.target.value)}
+                    placeholder="Bijv. 0,5 ml"
+                  />
+                </label>
+
+                <label>
+                  Frequentie
+                  <input
+                    type="text"
+                    value={medicationFrequency}
+                    onChange={(e) => setMedicationFrequency(e.target.value)}
+                    placeholder="Bijv. 1x per dag"
+                  />
+                </label>
+              </div>
+
+              <div className={styles.formGrid}>
+                <label>
+                  Startdatum
+                  <input
+                    type="date"
+                    value={medicationStartDate}
+                    onChange={(e) => setMedicationStartDate(e.target.value)}
+                  />
+                </label>
+
+                <label>
+                  Einddatum
+                  <input
+                    type="date"
+                    value={medicationEndDate}
+                    onChange={(e) => setMedicationEndDate(e.target.value)}
+                  />
+                </label>
+              </div>
+
+              <label>
+                Instructies
+                <textarea
+                  value={medicationInstructions}
+                  onChange={(e) => setMedicationInstructions(e.target.value)}
+                  placeholder="Bijv. Toedienen na het eten. Goed schudden voor gebruik."
+                />
+              </label>
+
+              <div className={styles.formGrid}>
+                <label>
+                  Toegevoegd door
+                  <input
+                    type="text"
+                    value={medicationCreatedBy}
+                    onChange={(e) => setMedicationCreatedBy(e.target.value)}
+                    placeholder="Bijv. Dr. Kingen"
+                  />
+                </label>
+
+                <label>
+                  Rol
+                  <select
+                    value={medicationRole}
+                    onChange={(e) => setMedicationRole(e.target.value)}
+                  >
+                    <option value="dierenarts">Dierenarts</option>
+                    <option value="assistent">Assistent</option>
+                    <option value="asiel">Dierenasiel</option>
+                  </select>
+                </label>
+              </div>
+
+              <label className={styles.checkLabel}>
+                <input
+                  type="checkbox"
+                  checked={medicationVisibleToFoster}
+                  onChange={(e) =>
+                    setMedicationVisibleToFoster(e.target.checked)
+                  }
+                />
+                Zichtbaar maken voor pleeggezin en notificatie sturen
+              </label>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={() => setMedicationModalOpen(false)}
+                >
+                  Annuleren
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.saveButton}
+                  disabled={savingMedication}
+                  onClick={handleCreateMedication}
+                >
+                  {savingMedication ? "Opslaan..." : "Medicatie opslaan"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {noteModalOpen && (
           <div className={styles.modalOverlay}>
             <div className={styles.modal}>
-              <button type="button" className={styles.closeModal} onClick={() => setNoteModalOpen(false)}>
+              <button
+                type="button"
+                className={styles.closeModal}
+                onClick={() => setNoteModalOpen(false)}
+              >
                 ×
               </button>
 
@@ -902,249 +1126,72 @@ export default function DierenartsAnimalDossierPage() {
 
               <label>
                 Titel
-                <input value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} />
+                <input
+                  type="text"
+                  value={noteTitle}
+                  onChange={(e) => setNoteTitle(e.target.value)}
+                  placeholder="Bijv. Oppassen tijdens optillen"
+                />
               </label>
 
               <label>
-                Aangemaakt door
-                <input value={noteCreatedBy} onChange={(e) => setNoteCreatedBy(e.target.value)} placeholder="Bijv. Dr. Kingen" />
-              </label>
-
-              <label>
-                Rol
-                <select value={noteRole} onChange={(e) => setNoteRole(e.target.value)}>
-                  <option value="dierenarts">Dierenarts</option>
-                  <option value="asiel">Asiel</option>
-                </select>
-              </label>
-
-              <label>
-                Inhoud
-                <textarea value={noteContent} onChange={(e) => setNoteContent(e.target.value)} />
-              </label>
-
-              <label className={styles.checkLabel}>
-                <input type="checkbox" checked={visibleToFoster} onChange={(e) => setVisibleToFoster(e.target.checked)} />
-                Zichtbaar voor pleeggezin
-              </label>
-
-              <div className={styles.modalActions}>
-                <button type="button" className={styles.cancelButton} onClick={() => setNoteModalOpen(false)}>
-                  Annuleren
-                </button>
-                <button type="button" className={styles.saveButton} disabled={savingNote} onClick={handleCreateNote}>
-                  {savingNote ? "Opslaan..." : "Notitie opslaan"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {medicationModalOpen && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modal}>
-              <button type="button" className={styles.closeModal} onClick={() => setMedicationModalOpen(false)}>
-                ×
-              </button>
-
-              <div className={styles.modalHeader}>
-                <p>Nieuwe behandeling</p>
-                <h2>Medicatie toevoegen</h2>
-              </div>
-
-              <label>
-                Naam medicatie
-                <input value={medicationName} onChange={(e) => setMedicationName(e.target.value)} />
+                Notitie
+                <textarea
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  placeholder="Schrijf hier de observatie of opmerking..."
+                />
               </label>
 
               <div className={styles.formGrid}>
-                <label>
-                  Dosering
-                  <input value={medicationDosage} onChange={(e) => setMedicationDosage(e.target.value)} />
-                </label>
-                <label>
-                  Frequentie
-                  <input value={medicationFrequency} onChange={(e) => setMedicationFrequency(e.target.value)} />
-                </label>
-              </div>
-
-              <div className={styles.formGrid}>
-                <label>
-                  Startdatum
-                  <input type="date" value={medicationStartDate} onChange={(e) => setMedicationStartDate(e.target.value)} />
-                </label>
-                <label>
-                  Einddatum
-                  <input type="date" value={medicationEndDate} onChange={(e) => setMedicationEndDate(e.target.value)} />
-                </label>
-              </div>
-
-              <label>
-                Aangemaakt door
-                <input value={medicationCreatedBy} onChange={(e) => setMedicationCreatedBy(e.target.value)} placeholder="Bijv. Dr. Kingen" />
-              </label>
-
-              <label>
-                Instructies
-                <textarea value={medicationInstructions} onChange={(e) => setMedicationInstructions(e.target.value)} />
-              </label>
-
-              <label className={styles.checkLabel}>
-                <input type="checkbox" checked={medicationVisibleToFoster} onChange={(e) => setMedicationVisibleToFoster(e.target.checked)} />
-                Zichtbaar voor pleeggezin
-              </label>
-
-              <div className={styles.modalActions}>
-                <button type="button" className={styles.cancelButton} onClick={() => setMedicationModalOpen(false)}>
-                  Annuleren
-                </button>
-                <button type="button" className={styles.saveButton} disabled={savingMedication} onClick={handleCreateMedication}>
-                  {savingMedication ? "Opslaan..." : "Medicatie opslaan"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {medicalModalOpen && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modal}>
-              <button type="button" className={styles.closeModal} onClick={() => setMedicalModalOpen(false)}>
-                ×
-              </button>
-
-              <div className={styles.modalHeader}>
-                <p>Medisch dossier</p>
-                <h2>Medisch verslag toevoegen</h2>
-              </div>
-
-              <label>
-                Titel
-                <input value={medicalTitle} onChange={(e) => setMedicalTitle(e.target.value)} />
-              </label>
-
-              <div className={styles.formGrid}>
-                <label>
-                  Datum
-                  <input type="date" value={medicalDate} onChange={(e) => setMedicalDate(e.target.value)} />
-                </label>
                 <label>
                   Aangemaakt door
-                  <input value={medicalCreatedBy} onChange={(e) => setMedicalCreatedBy(e.target.value)} placeholder="Bijv. Dr. Kingen" />
+                  <input
+                    type="text"
+                    value={noteCreatedBy}
+                    onChange={(e) => setNoteCreatedBy(e.target.value)}
+                    placeholder="Bijv. Dr. Kingen"
+                  />
                 </label>
-              </div>
 
-              <label>
-                Reden bezoek
-                <textarea value={visitReason} onChange={(e) => setVisitReason(e.target.value)} />
-              </label>
-
-              <label>
-                Onderzoek
-                <textarea value={examination} onChange={(e) => setExamination(e.target.value)} />
-              </label>
-
-              <label>
-                Diagnose
-                <textarea value={diagnosis} onChange={(e) => setDiagnosis(e.target.value)} />
-              </label>
-
-              <label>
-                Uitgevoerde actie / behandeling
-                <textarea value={performedAction} onChange={(e) => setPerformedAction(e.target.value)} />
-              </label>
-
-              <label>
-                Vaccinatie of procedure
-                <textarea value={vaccinationOrProcedure} onChange={(e) => setVaccinationOrProcedure(e.target.value)} />
-              </label>
-
-              <label>
-                Opvolgadvies
-                <textarea value={followUpAdvice} onChange={(e) => setFollowUpAdvice(e.target.value)} />
-              </label>
-
-              <div className={styles.modalActions}>
-                <button type="button" className={styles.cancelButton} onClick={() => setMedicalModalOpen(false)}>
-                  Annuleren
-                </button>
-                <button type="button" className={styles.saveButton} disabled={savingMedicalRecord} onClick={handleCreateMedicalRecord}>
-                  {savingMedicalRecord ? "Opslaan..." : "Verslag opslaan"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {appointmentModalOpen && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modal}>
-              <button type="button" className={styles.closeModal} onClick={() => setAppointmentModalOpen(false)}>
-                ×
-              </button>
-
-              <div className={styles.modalHeader}>
-                <p>Nieuwe afspraak</p>
-                <h2>Afspraak voorstellen</h2>
-              </div>
-
-              <label>
-                Titel
-                <input value={appointmentTitle} onChange={(e) => setAppointmentTitle(e.target.value)} placeholder="Bijv. Controleafspraak" />
-              </label>
-
-              <div className={styles.formGrid}>
                 <label>
-                  Datum
-                  <input type="date" value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} />
-                </label>
-                <label>
-                  Type afspraak
-                  <select value={appointmentType} onChange={(e) => setAppointmentType(e.target.value)}>
+                  Rol
+                  <select
+                    value={noteRole}
+                    onChange={(e) => setNoteRole(e.target.value)}
+                  >
                     <option value="dierenarts">Dierenarts</option>
-                    <option value="controle">Controle</option>
-                    <option value="vaccinatie">Vaccinatie</option>
-                    <option value="opvolging">Opvolging</option>
+                    <option value="assistent">Assistent</option>
+                    <option value="asiel">Dierenasiel</option>
                   </select>
                 </label>
               </div>
 
-              <div className={styles.formGrid}>
-                <label>
-                  Startuur
-                  <input type="time" value={appointmentStartTime} onChange={(e) => setAppointmentStartTime(e.target.value)} />
-                </label>
-                <label>
-                  Einduur
-                  <input type="time" value={appointmentEndTime} onChange={(e) => setAppointmentEndTime(e.target.value)} />
-                </label>
-              </div>
-
-              <label>
-                Locatie
-                <input value={appointmentLocation} onChange={(e) => setAppointmentLocation(e.target.value)} />
+              <label className={styles.checkLabel}>
+                <input
+                  type="checkbox"
+                  checked={noteVisibleToFoster}
+                  onChange={(e) => setNoteVisibleToFoster(e.target.checked)}
+                />
+                Zichtbaar maken voor pleeggezin
               </label>
-
-              <label>
-                Aangemaakt door
-                <input value={appointmentCreatedBy} onChange={(e) => setAppointmentCreatedBy(e.target.value)} placeholder="Bijv. Dr. Kingen" />
-              </label>
-
-              <label>
-                Beschrijving
-                <textarea value={appointmentDescription} onChange={(e) => setAppointmentDescription(e.target.value)} />
-              </label>
-
-              <div className={styles.infoNotice}>
-                Deze afspraak wordt naar het pleeggezin gestuurd en wacht op goedkeuring.
-              </div>
 
               <div className={styles.modalActions}>
-                <button type="button" className={styles.cancelButton} onClick={() => setAppointmentModalOpen(false)}>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={() => setNoteModalOpen(false)}
+                >
                   Annuleren
                 </button>
-                <button type="button" className={styles.saveButton} disabled={savingAppointment} onClick={handleCreateAppointment}>
-                  {savingAppointment ? "Verzenden..." : "Afspraak verzenden"}
+
+                <button
+                  type="button"
+                  className={styles.saveButton}
+                  disabled={savingNote}
+                  onClick={handleCreateNote}
+                >
+                  {savingNote ? "Opslaan..." : "Notitie opslaan"}
                 </button>
               </div>
             </div>
@@ -1154,4 +1201,3 @@ export default function DierenartsAnimalDossierPage() {
     </DierenartsLayout>
   );
 }
-    
