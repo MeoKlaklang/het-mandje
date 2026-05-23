@@ -106,7 +106,7 @@ export default function AsielLayout({
   return (
     <main className={styles.layout}>
       <aside className={styles.sidebar}>
-        <Link href="/home" className={styles.logoLink}>
+        <Link href="/asiel/dashboard" className={styles.logoLink}>
           <Image
             src="/images/logo.png"
             alt="Het Mandje logo"

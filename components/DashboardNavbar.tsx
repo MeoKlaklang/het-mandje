@@ -43,7 +43,7 @@ export default function DashboardNavbar() {
   return (
     <header className={styles.header}>
       <div className={styles.topRow}>
-        <Link href="/home">
+        <Link href="/asiel/dashboard">
           <Image
             src="/images/logo.png"
             alt="Het Mandje logo"
