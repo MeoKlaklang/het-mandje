@@ -232,7 +232,7 @@ export default function AsielLayout({
 
           <div className={styles.topActions}>
             <button type="button" className={styles.notificationButton}>
-              ♧
+              
             </button>
 
             <div className={styles.profile}>

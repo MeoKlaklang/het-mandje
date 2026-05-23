@@ -43,8 +43,8 @@
   margin: 0;
   font-size: 28px;
   line-height: 1.05;
-  font-weight: 900;
   color: #1f130d;
+  padding-top: 20px;
 }
 
 .welcomeCard p {

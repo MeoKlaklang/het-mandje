@@ -32,6 +32,7 @@
   margin: 0;
   font-size: 34px;
   line-height: 1.05;
+  padding-top: 20px;    
 }
 
 .header span {
@@ -82,6 +83,7 @@
   margin: 4px 0 0;
   font-size: 32px;
   line-height: 1;
+  padding-top: 10px;
 }
 
 .panel {
