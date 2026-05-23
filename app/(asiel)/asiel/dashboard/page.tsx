@@ -14,23 +14,22 @@ import {
   ApplicationDetails,
 } from "@/lib/asiel/getApplicationDetailsForShelter";
 import { updateApplicationStatus } from "@/lib/asiel/updateApplicationStatus";
+import {
+  getShelterAgendaData,
+  ShelterAgendaAppointment,
+} from "@/lib/asiel/getShelterAgendaData";
+import { getShelterTodos, ShelterTodo } from "@/lib/asiel/getShelterTodos";
+import { createShelterTodo } from "@/lib/asiel/createShelterTodo";
+import { toggleShelterTodo } from "@/lib/asiel/toggleShelterTodo";
 import styles from "./asiel-dashboard.module.css";
 
-const agendaItems = [
-  {
-    time: "09:30",
-    title: "Intake gesprek - Familie Vermeulen",
-  },
-  {
-    time: "11:00",
-    title: "Consultatie volgen",
-  },
-];
+type AnimalTab = "recent" | "beschikbaar" | "aanvragen" | "in_opvang";
 
-const tasks = [
-  "Quarantaine ruimte schoonmaken van de katten",
-  "Nieuwe aanvragen controleren",
-  "Medicatieoverzicht nakijken",
+const animalTabs: { id: AnimalTab; label: string }[] = [
+  { id: "recent", label: "Recent toegevoegd" },
+  { id: "beschikbaar", label: "Beschikbaar" },
+  { id: "aanvragen", label: "Aanvragen" },
+  { id: "in_opvang", label: "In opvang" },
 ];
 
 const answerLabels: Record<string, string> = {
@@ -63,11 +62,17 @@ function formatNormalDate(date: string | null) {
   });
 }
 
+function formatTime(date: string) {
+  return new Date(date).toLocaleTimeString("nl-BE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function formatStatus(status: string | null) {
   if (status === "gereserveerd") return "Gereserveerd";
   if (status === "in_opvang") return "In opvang";
   if (status === "niet_beschikbaar") return "Niet beschikbaar";
-  if (status === "concept") return "Concept";
   return "Beschikbaar";
 }
 
@@ -75,7 +80,6 @@ function getStatusClass(status: string | null) {
   if (status === "gereserveerd") return styles.statusReserved;
   if (status === "in_opvang") return styles.statusFoster;
   if (status === "niet_beschikbaar") return styles.statusUnavailable;
-  if (status === "concept") return styles.statusConcept;
   return styles.statusAvailable;
 }
 
@@ -90,40 +94,217 @@ function getApplicationsForAnimal(
   );
 }
 
+function sameDay(dateA: Date, dateB: Date) {
+  return (
+    dateA.getFullYear() === dateB.getFullYear() &&
+    dateA.getMonth() === dateB.getMonth() &&
+    dateA.getDate() === dateB.getDate()
+  );
+}
+
+function startOfWeek(date: Date) {
+  const newDate = new Date(date);
+  const day = newDate.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+
+  newDate.setDate(newDate.getDate() + diff);
+  newDate.setHours(0, 0, 0, 0);
+
+  return newDate;
+}
+
+function addDays(date: Date, amount: number) {
+  const newDate = new Date(date);
+  newDate.setDate(newDate.getDate() + amount);
+  return newDate;
+}
+
+function getCalendarDays(currentMonth: Date) {
+  const firstDay = new Date(
+    currentMonth.getFullYear(),
+    currentMonth.getMonth(),
+    1
+  );
+
+  const start = startOfWeek(firstDay);
+
+  return Array.from({ length: 35 }, (_, index) => addDays(start, index));
+}
+
+function formatMonth(date: Date) {
+  return date.toLocaleDateString("nl-BE", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function getAnimalName(
+  animalId: string | null,
+  animals: AsielDashboardAnimal[]
+) {
+  if (!animalId) return "Onbekend dier";
+
+  return animals.find((animal) => animal.id === animalId)?.name || "Onbekend dier";
+}
+
 export default function AsielDashboardPage() {
   const [dashboardData, setDashboardData] =
     useState<AsielDashboardData | null>(null);
+
+  const [appointments, setAppointments] = useState<ShelterAgendaAppointment[]>(
+    []
+  );
+
+  const [todos, setTodos] = useState<ShelterTodo[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [activeAnimalTab, setActiveAnimalTab] = useState<AnimalTab>("recent");
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+
+  const [newTodo, setNewTodo] = useState("");
+  const [todoSaving, setTodoSaving] = useState(false);
+
   const [selectedApplication, setSelectedApplication] =
     useState<ApplicationDetails | null>(null);
+
   const [applicationLoading, setApplicationLoading] = useState(false);
   const [decisionLoading, setDecisionLoading] = useState(false);
 
   async function loadDashboard() {
-    const { data, error } = await getAsielDashboardData();
+    setLoading(true);
 
-    if (error) {
-      setErrorMessage(error);
+    const [dashboardResult, agendaResult, todoResult] = await Promise.all([
+      getAsielDashboardData(),
+      getShelterAgendaData(),
+      getShelterTodos(),
+    ]);
+
+    if (dashboardResult.error) {
+      setErrorMessage(dashboardResult.error);
+    } else if (agendaResult.error) {
+      setErrorMessage(agendaResult.error);
+    } else if (todoResult.error) {
+      setErrorMessage(todoResult.error);
     } else {
       setErrorMessage("");
     }
 
-    setDashboardData(data);
+    setDashboardData(dashboardResult.data);
+    setAppointments(agendaResult.appointments || []);
+    setTodos(todoResult.todos || []);
     setLoading(false);
+  }
+
+  async function reloadTodos() {
+    const result = await getShelterTodos();
+
+    if (result.error) {
+      alert(result.error);
+      return;
+    }
+
+    setTodos(result.todos || []);
   }
 
   useEffect(() => {
     loadDashboard();
   }, []);
 
+  const shelterName = dashboardData?.shelter?.name || "Dierenasiel";
+
   const recentAnimals = useMemo(() => {
     if (!dashboardData) return [];
     return dashboardData.animals.slice(0, 4);
   }, [dashboardData]);
 
-  const shelterName = dashboardData?.shelter?.name || "Dierenasiel";
+  const availableAnimals = useMemo(() => {
+    if (!dashboardData) return [];
+
+    return dashboardData.animals
+      .filter((animal) => animal.status === "beschikbaar")
+      .slice(0, 4);
+  }, [dashboardData]);
+
+  const aanvraagAnimals = useMemo(() => {
+    if (!dashboardData) return [];
+
+    const animalIdsWithApplications = new Set(
+      dashboardData.applications
+        .filter((application) => application.status === "in_afwachting")
+        .map((application) => application.animal_id)
+    );
+
+    return dashboardData.animals
+      .filter((animal) => animalIdsWithApplications.has(animal.id))
+      .slice(0, 4);
+  }, [dashboardData]);
+
+  const fosterAnimals = useMemo(() => {
+    if (!dashboardData) return [];
+
+    return dashboardData.animals
+      .filter((animal) => animal.status === "in_opvang")
+      .slice(0, 4);
+  }, [dashboardData]);
+
+  const visibleAnimals = useMemo(() => {
+    if (activeAnimalTab === "beschikbaar") return availableAnimals;
+    if (activeAnimalTab === "aanvragen") return aanvraagAnimals;
+    if (activeAnimalTab === "in_opvang") return fosterAnimals;
+    return recentAnimals;
+  }, [
+    activeAnimalTab,
+    availableAnimals,
+    aanvraagAnimals,
+    fosterAnimals,
+    recentAnimals,
+  ]);
+
+  const calendarDays = useMemo(() => {
+    return getCalendarDays(calendarMonth);
+  }, [calendarMonth]);
+
+  const recentUpdates = useMemo(() => {
+    if (!dashboardData) return [];
+
+    const applicationUpdates = dashboardData.applications.map((application) => ({
+      id: `application-${application.id}`,
+      title: `Nieuwe aanvraag voor ${getAnimalName(
+        application.animal_id,
+        dashboardData.animals
+      )}`,
+      date: application.created_at,
+    }));
+
+    const appointmentUpdates = appointments.map((appointment) => ({
+      id: `appointment-${appointment.id}`,
+      title: `Afspraak: ${appointment.title}`,
+      date: appointment.start_at,
+    }));
+
+    return [...applicationUpdates, ...appointmentUpdates]
+      .filter((update) => update.date)
+      .sort((a, b) => {
+        const dateA = a.date ? new Date(a.date).getTime() : 0;
+        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        return dateB - dateA;
+      })
+      .slice(0, 4);
+  }, [dashboardData, appointments]);
+
+  const previousMonth = () => {
+    setCalendarMonth(
+      (current) => new Date(current.getFullYear(), current.getMonth() - 1, 1)
+    );
+  };
+
+  const nextMonth = () => {
+    setCalendarMonth(
+      (current) => new Date(current.getFullYear(), current.getMonth() + 1, 1)
+    );
+  };
 
   const handleOpenApplication = async (applicationId: string) => {
     setApplicationLoading(true);
@@ -178,8 +359,45 @@ export default function AsielDashboardPage() {
     );
 
     setSelectedApplication(null);
-    setLoading(true);
     await loadDashboard();
+  };
+
+  const handleCreateTodo = async () => {
+    if (!newTodo.trim()) {
+      alert("Schrijf eerst een todo.");
+      return;
+    }
+
+    setTodoSaving(true);
+
+    const result = await createShelterTodo({
+      description: newTodo,
+      createdBy: shelterName,
+    });
+
+    setTodoSaving(false);
+
+    if (!result.success) {
+      alert(result.error);
+      return;
+    }
+
+    setNewTodo("");
+    await reloadTodos();
+  };
+
+  const handleToggleTodo = async (todo: ShelterTodo) => {
+    const result = await toggleShelterTodo({
+      todoId: todo.id,
+      isDone: !todo.is_done,
+    });
+
+    if (!result.success) {
+      alert(result.error);
+      return;
+    }
+
+    await reloadTodos();
   };
 
   return (
@@ -264,24 +482,28 @@ export default function AsielDashboardPage() {
                   </div>
 
                   <div className={styles.tabs}>
-                    <button type="button" className={styles.activeTab}>
-                      Recent toegevoegd
-                    </button>
-                    <button type="button">Beschikbaar</button>
-                    <button type="button">Gereserveerd</button>
-                    <button type="button">In opvang</button>
-                    <button type="button">Concept</button>
+                    {animalTabs.map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        className={
+                          activeAnimalTab === tab.id ? styles.activeTab : ""
+                        }
+                        onClick={() => setActiveAnimalTab(tab.id)}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
                   </div>
 
-                  {recentAnimals.length === 0 ? (
+                  {visibleAnimals.length === 0 ? (
                     <div className={styles.emptyAnimals}>
                       <div className={styles.emptyIcon}>🐾</div>
 
-                      <h3>Nog geen dieren toegevoegd</h3>
+                      <h3>Geen dieren gevonden</h3>
 
                       <p>
-                        Voeg je eerste hond of kat toe zodat pleeggezinnen
-                        interesse kunnen tonen en je aanvragen kan opvolgen.
+                        Er zijn momenteel geen dieren binnen deze categorie.
                       </p>
 
                       <Link href="/asiel/dieren/nieuw">
@@ -290,7 +512,7 @@ export default function AsielDashboardPage() {
                     </div>
                   ) : (
                     <div className={styles.animalCardsList}>
-                      {recentAnimals.map((animal: AsielDashboardAnimal) => {
+                      {visibleAnimals.map((animal: AsielDashboardAnimal) => {
                         const applications = getApplicationsForAnimal(
                           animal.id,
                           dashboardData
@@ -306,22 +528,31 @@ export default function AsielDashboardPage() {
                             key={animal.id}
                             className={styles.animalCard}
                           >
-                            <img
-                              src={animal.image_url || "/images/dog3.jpg"}
-                              alt={animal.name}
-                              className={styles.animalCardImage}
-                            />
+                            <Link href={`/asiel/dieren/${animal.id}/dossier`}>
+                              <img
+                                src={animal.image_url || "/images/dog3.jpg"}
+                                alt={animal.name}
+                                className={styles.animalCardImage}
+                              />
+                            </Link>
 
                             <div className={styles.animalCardInfo}>
                               <div className={styles.animalCardTitle}>
-                                <h3>{animal.name}</h3>
+                                <Link
+                                  href={`/asiel/dieren/${animal.id}/dossier`}
+                                  className={styles.animalNameLink}
+                                >
+                                  <h3>{animal.name}</h3>
+                                </Link>
 
                                 <span
                                   className={`${styles.statusBadge} ${getStatusClass(
                                     animal.status
                                   )}`}
                                 >
-                                  {formatStatus(animal.status)}
+                                  {activeAnimalTab === "aanvragen"
+                                    ? "Aanvraag"
+                                    : formatStatus(animal.status)}
                                 </span>
                               </div>
 
@@ -361,7 +592,7 @@ export default function AsielDashboardPage() {
                                   href={`/asiel/dieren/${animal.id}/bewerken`}
                                   className={styles.viewAnimalLink}
                                 >
-                                  Bekijken →
+                                  Bewerk →
                                 </Link>
                               </div>
                             </div>
@@ -396,47 +627,131 @@ export default function AsielDashboardPage() {
               <aside className={styles.rightColumn}>
                 <article className={styles.sideCard}>
                   <div className={styles.sideHeader}>
-                    <h2>Agenda vandaag</h2>
+                    <h2>Mini kalender</h2>
                     <Link href="/asiel/agenda">Bekijk volledige agenda</Link>
                   </div>
 
-                  <div className={styles.agendaList}>
-                    {agendaItems.map((item) => (
-                      <div key={item.time} className={styles.agendaItem}>
-                        <span>{item.time}</span>
-                        <p>{item.title}</p>
-                      </div>
-                    ))}
+                  <div className={styles.miniCalendar}>
+                    <div className={styles.calendarTop}>
+                      <button type="button" onClick={previousMonth}>
+                        ‹
+                      </button>
+
+                      <h3>{formatMonth(calendarMonth)}</h3>
+
+                      <button type="button" onClick={nextMonth}>
+                        ›
+                      </button>
+                    </div>
+
+                    <div className={styles.calendarDaysHeader}>
+                      <span>Ma</span>
+                      <span>Di</span>
+                      <span>Wo</span>
+                      <span>Do</span>
+                      <span>Vr</span>
+                      <span>Za</span>
+                      <span>Zo</span>
+                    </div>
+
+                    <div className={styles.calendarGrid}>
+                      {calendarDays.map((day) => {
+                        const hasAppointment = appointments.some(
+                          (appointment) =>
+                            sameDay(new Date(appointment.start_at), day)
+                        );
+
+                        const isCurrentMonth =
+                          day.getMonth() === calendarMonth.getMonth();
+
+                        return (
+                          <button
+                            type="button"
+                            key={day.toISOString()}
+                            className={`${styles.calendarDay} ${
+                              sameDay(day, new Date()) ? styles.todayDay : ""
+                            } ${!isCurrentMonth ? styles.otherMonth : ""}`}
+                          >
+                            {day.getDate()}
+                            {hasAppointment && <span></span>}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </article>
 
                 <article className={styles.sideCard}>
                   <div className={styles.sideHeader}>
-                    <h2>Taken</h2>
-                    <Link href="/asiel/taken">Bekijk alle taken</Link>
+                    <h2>To do’s vandaag</h2>
+                  </div>
+
+                  <div className={styles.todoInput}>
+                    <input
+                      type="text"
+                      value={newTodo}
+                      onChange={(event) => setNewTodo(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          handleCreateTodo();
+                        }
+                      }}
+                      placeholder="Nieuwe todo..."
+                    />
+
+                    <button
+                      type="button"
+                      disabled={todoSaving}
+                      onClick={handleCreateTodo}
+                    >
+                      +
+                    </button>
                   </div>
 
                   <div className={styles.taskList}>
-                    {tasks.map((task, index) => (
-                      <label key={index} className={styles.taskItem}>
-                        <input type="checkbox" />
-                        <span>{task}</span>
-                      </label>
-                    ))}
+                    {todos.length === 0 ? (
+                      <p className={styles.emptyTodo}>
+                        Geen todo’s voor vandaag.
+                      </p>
+                    ) : (
+                      todos.map((todo) => (
+                        <label
+                          key={todo.id}
+                          className={`${styles.taskItem} ${
+                            todo.is_done ? styles.taskDone : ""
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={todo.is_done}
+                            onChange={() => handleToggleTodo(todo)}
+                          />
+
+                          <span>{todo.description}</span>
+                        </label>
+                      ))
+                    )}
                   </div>
 
-                  <button type="button" className={styles.addTaskButton}>
-                    + Nieuwe taak toevoegen
-                  </button>
+                  <p className={styles.todoHint}>
+                    Afgevinkte todo’s verdwijnen automatisch de volgende dag.
+                  </p>
                 </article>
 
                 <article className={styles.notificationCard}>
-                  <h2>Recente Notificatie</h2>
+                  <h2>Recente notificaties</h2>
 
-                  {dashboardData.pendingApplications > 0 ? (
-                    <p>Nieuwe aanvraag voor een dier uit jouw asiel.</p>
+                  {recentUpdates.length === 0 ? (
+                    <p>Er zijn momenteel geen nieuwe updates.</p>
                   ) : (
-                    <p>Er zijn momenteel geen nieuwe aanvragen.</p>
+                    <div className={styles.recentUpdateList}>
+                      {recentUpdates.map((update) => (
+                        <div key={update.id} className={styles.recentUpdate}>
+                          <strong>{update.title}</strong>
+                          <span>{formatNormalDate(update.date)}</span>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </article>
               </aside>
