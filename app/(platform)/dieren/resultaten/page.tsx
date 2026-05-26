@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getAnimals, Animal } from "@/lib/animals/getAnimals";
 import styles from "./resultaten.module.css";
+import dynamic from "next/dynamic";
+
+const MapPreview = dynamic(() => import("@/components/MapPreview"), {
+	ssr: false,
+});
 
 function getAgeCategory(age: string | null) {
 	if (!age) return "";
@@ -38,19 +43,25 @@ function getGenderIcon(gender: string | null) {
 	return gender;
 }
 
-export default function DierenResultatenPage() {
+function isDateRangeValid(startDate: string, endDate: string) {
+	if (!startDate || !endDate) return true;
+	return endDate >= startDate;
+}
+
+function DierenResultatenContent() {
 	const searchParams = useSearchParams();
 
 	const initialSoort = searchParams.get("soort") || "";
 	const initialLocatie = searchParams.get("locatie") || "";
-	const initialDatum = searchParams.get("datum") || "";
+	const initialStart = searchParams.get("start") || "";
+	const initialEind = searchParams.get("eind") || "";
 
 	const [animals, setAnimals] = useState<Animal[]>([]);
 	const [loading, setLoading] = useState(true);
 
 	const [locationFilter, setLocationFilter] = useState(initialLocatie);
-	const [startDateFilter, setStartDateFilter] = useState(initialDatum);
-	const [endDateFilter, setEndDateFilter] = useState("");
+	const [startDateFilter, setStartDateFilter] = useState(initialStart);
+	const [endDateFilter, setEndDateFilter] = useState(initialEind);
 	const [speciesFilter, setSpeciesFilter] = useState(initialSoort);
 	const [genderFilter, setGenderFilter] = useState("");
 	const [ageFilter, setAgeFilter] = useState("");
@@ -62,7 +73,7 @@ export default function DierenResultatenPage() {
 		async function loadAnimals() {
 			const { animals } = await getAnimals();
 
-			setAnimals(animals);
+			setAnimals(animals || []);
 			setLoading(false);
 		}
 
@@ -76,6 +87,13 @@ export default function DierenResultatenPage() {
 			setLikedAnimals(JSON.parse(savedLikes));
 		}
 	}, []);
+
+	useEffect(() => {
+		setSpeciesFilter(searchParams.get("soort") || "");
+		setLocationFilter(searchParams.get("locatie") || "");
+		setStartDateFilter(searchParams.get("start") || "");
+		setEndDateFilter(searchParams.get("eind") || "");
+	}, [searchParams]);
 
 	const toggleLike = (e: React.MouseEvent<HTMLButtonElement>, animalId: string) => {
 		e.preventDefault();
@@ -113,6 +131,22 @@ export default function DierenResultatenPage() {
 			});
 		}
 
+		if (isDateRangeValid(startDateFilter, endDateFilter)) {
+			if (startDateFilter) {
+				result = result.filter((animal) => {
+					if (!animal.available_until) return true;
+					return animal.available_until >= startDateFilter;
+				});
+			}
+
+			if (endDateFilter) {
+				result = result.filter((animal) => {
+					if (!animal.available_from) return true;
+					return animal.available_from <= endDateFilter;
+				});
+			}
+		}
+
 		if (genderFilter) {
 			result = result.filter((animal) => animal.gender === genderFilter);
 		}
@@ -144,15 +178,22 @@ export default function DierenResultatenPage() {
 		});
 
 		return result;
-	}, [animals, speciesFilter, locationFilter, genderFilter, ageFilter, sizeFilter, likedAnimals]);
+	}, [animals, speciesFilter, locationFilter, startDateFilter, endDateFilter, genderFilter, ageFilter, sizeFilter, likedAnimals]);
 
 	return (
 		<main className={styles.page}>
 			<div className={styles.layout}>
 				<aside className={styles.filters}>
-					<div className={styles.mapBox}>
-						<Link href="/dieren/kaart">Toon op kaart</Link>
-					</div>
+					<MapPreview
+						markers={filteredAnimals
+							.filter((animal) => animal.shelters?.latitude != null && animal.shelters?.longitude != null)
+							.map((animal) => ({
+								id: animal.id,
+								name: animal.name,
+								latitude: animal.shelters!.latitude!,
+								longitude: animal.shelters!.longitude!,
+							}))}
+					/>
 
 					<label>
 						Locatie
@@ -162,14 +203,26 @@ export default function DierenResultatenPage() {
 					<div className={styles.dateGroup}>
 						<label>
 							Startdatum
-							<input type="date" value={startDateFilter} onChange={(e) => setStartDateFilter(e.target.value)} />
+							<input
+								type="date"
+								value={startDateFilter}
+								onChange={(e) => {
+									setStartDateFilter(e.target.value);
+
+									if (endDateFilter && e.target.value > endDateFilter) {
+										setEndDateFilter("");
+									}
+								}}
+							/>
 						</label>
 
 						<label>
 							Einddatum
-							<input type="date" value={endDateFilter} onChange={(e) => setEndDateFilter(e.target.value)} />
+							<input type="date" value={endDateFilter} min={startDateFilter || undefined} onChange={(e) => setEndDateFilter(e.target.value)} />
 						</label>
 					</div>
+
+					{!isDateRangeValid(startDateFilter, endDateFilter) && <p className={styles.emptyText}>De einddatum kan niet vóór de startdatum liggen.</p>}
 
 					<label>
 						Ik zoek een
@@ -274,5 +327,19 @@ export default function DierenResultatenPage() {
 				</section>
 			</div>
 		</main>
+	);
+}
+
+export default function DierenResultatenPage() {
+	return (
+		<Suspense
+			fallback={
+				<main className={styles.page}>
+					<p className={styles.emptyText}>Dieren worden geladen...</p>
+				</main>
+			}
+		>
+			<DierenResultatenContent />
+		</Suspense>
 	);
 }

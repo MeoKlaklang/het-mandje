@@ -53,11 +53,11 @@
   font-size: clamp(44px, 6vw, 76px);
   line-height: 0.95;
   letter-spacing: -0.06em;
+  padding-top: 30px;
 }
 
 .imageText span {
   display: block;
-  margin-top: 22px;
   max-width: 430px;
   font-size: 15px;
   line-height: 1.6;
@@ -98,8 +98,8 @@
   margin: 0 0 10px;
   font-size: 32px;
   line-height: 1.05;
-  font-weight: 900;
   letter-spacing: -0.04em;
+  padding-top: 15px;
 }
 
 .cardHeader span {

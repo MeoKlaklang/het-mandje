@@ -9,16 +9,23 @@ export default function DierenPage() {
 
   const [animalType, setAnimalType] = useState("");
   const [location, setLocation] = useState("");
-  const [date, setDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (startDate && endDate && endDate < startDate) {
+      alert("De einddatum kan niet vóór de begindatum liggen.");
+      return;
+    }
 
     const params = new URLSearchParams();
 
     if (animalType) params.set("soort", animalType);
     if (location) params.set("locatie", location);
-    if (date) params.set("datum", date);
+    if (startDate) params.set("start", startDate);
+    if (endDate) params.set("eind", endDate);
 
     router.push(`/dieren/resultaten?${params.toString()}`);
   };
@@ -61,19 +68,32 @@ export default function DierenPage() {
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="Voor je postcode of straat in"
+                placeholder="Vul je postcode of gemeente in"
               />
             </label>
 
-            <label className={styles.searchItem}>
-              <span>Op</span>
+            <div className={`${styles.searchItem} ${styles.dateRangeItem}`}>
+              <span>Opvangperiode</span>
 
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </label>
+              <div className={styles.dateRange}>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  aria-label="Begindatum"
+                />
+
+                <span className={styles.dateDivider}>tot</span>
+
+                <input
+                  type="date"
+                  value={endDate}
+                  min={startDate || undefined}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  aria-label="Einddatum"
+                />
+              </div>
+            </div>
 
             <button type="submit" className={styles.searchButton}>
               Vind een dier

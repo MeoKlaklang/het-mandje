@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import DierenartsLayout from "@/components/dierenarts/DierenartsLayout";
 import {
   getDierenartsTasks,
@@ -25,28 +26,10 @@ import { createDierenartsTodo } from "@/lib/dierenarts/createDierenartsTodo";
 import { toggleDierenartsTodo } from "@/lib/dierenarts/toggleDierenartsTodo";
 import styles from "./taken.module.css";
 
-type Column = {
-  id: DierenartsTaskStatus;
-  title: string;
-  description: string;
-};
-
-const columns: Column[] = [
-  {
-    id: "in_progress",
-    title: "In progress",
-    description: "Taken die nog uitgevoerd moeten worden.",
-  },
-  {
-    id: "in_review",
-    title: "In review",
-    description: "Taken die nagekeken of opgevolgd worden.",
-  },
-  {
-    id: "done",
-    title: "Done",
-    description: "Taken die afgerond zijn.",
-  },
+const columns: { id: DierenartsTaskStatus; title: string }[] = [
+  { id: "in_progress", title: "In progress" },
+  { id: "in_review", title: "Review" },
+  { id: "done", title: "Done" },
 ];
 
 function formatDate(date: string) {
@@ -59,6 +42,14 @@ function formatDate(date: string) {
 
 function todayDate() {
   return new Date().toISOString().split("T")[0];
+}
+
+function sameDay(dateA: Date, dateB: Date) {
+  return (
+    dateA.getFullYear() === dateB.getFullYear() &&
+    dateA.getMonth() === dateB.getMonth() &&
+    dateA.getDate() === dateB.getDate()
+  );
 }
 
 function startOfWeek(date: Date) {
@@ -76,14 +67,6 @@ function addDays(date: Date, amount: number) {
   const newDate = new Date(date);
   newDate.setDate(newDate.getDate() + amount);
   return newDate;
-}
-
-function sameDay(dateA: Date, dateB: Date) {
-  return (
-    dateA.getFullYear() === dateB.getFullYear() &&
-    dateA.getMonth() === dateB.getMonth() &&
-    dateA.getDate() === dateB.getDate()
-  );
 }
 
 function getCalendarDays(currentMonth: Date) {
@@ -108,21 +91,21 @@ function formatMonth(date: Date) {
 export default function DierenartsTakenPage() {
   const [tasks, setTasks] = useState<DierenartsTask[]>([]);
   const [animals, setAnimals] = useState<DierenartsAnimalOption[]>([]);
-  const [calendarAppointments, setCalendarAppointments] = useState<
+  const [appointments, setAppointments] = useState<
     DierenartsCalendarAppointment[]
   >([]);
   const [todos, setTodos] = useState<DierenartsTodo[]>([]);
 
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
-
   const [loading, setLoading] = useState(true);
-  const [savingTask, setSavingTask] = useState(false);
-  const [savingTodo, setSavingTodo] = useState(false);
-  const [todoLoading, setTodoLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [todoModalOpen, setTodoModalOpen] = useState(false);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [savingTask, setSavingTask] = useState(false);
+  const [todoSaving, setTodoSaving] = useState(false);
+  const [updatingTodoId, setUpdatingTodoId] = useState<string | null>(null);
+
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [newTodo, setNewTodo] = useState("");
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -131,10 +114,6 @@ export default function DierenartsTakenPage() {
   const [animalSearch, setAnimalSearch] = useState("");
   const [selectedAnimal, setSelectedAnimal] =
     useState<DierenartsAnimalOption | null>(null);
-
-  const [todoTitle, setTodoTitle] = useState("");
-  const [todoDescription, setTodoDescription] = useState("");
-  const [todoDueDate, setTodoDueDate] = useState(todayDate());
 
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] =
@@ -163,30 +142,45 @@ export default function DierenartsTakenPage() {
       setErrorMessage("");
     }
 
-    setTasks(tasksResult.tasks);
-    setAnimals(animalsResult.animals);
-    setCalendarAppointments(dashboardResult.calendarAppointments || []);
-    setTodos(todoResult.todos);
+    setTasks(tasksResult.tasks || []);
+    setAnimals(animalsResult.animals || []);
+    setAppointments(dashboardResult.calendarAppointments || []);
+    setTodos(todoResult.todos || []);
     setLoading(false);
   }
 
   async function reloadTodos() {
-    setTodoLoading(true);
-
     const result = await getDierenartsTodos();
 
     if (result.error) {
-      setErrorMessage(result.error);
-    } else {
-      setTodos(result.todos);
+      alert(result.error);
+      return;
     }
 
-    setTodoLoading(false);
+    setTodos(result.todos || []);
   }
 
   useEffect(() => {
     loadPageData();
   }, []);
+
+  const tasksByStatus = useMemo(() => {
+    return columns.reduce<Record<DierenartsTaskStatus, DierenartsTask[]>>(
+      (acc, column) => {
+        acc[column.id] = tasks.filter((task) => task.status === column.id);
+        return acc;
+      },
+      {
+        in_progress: [],
+        in_review: [],
+        done: [],
+      }
+    );
+  }, [tasks]);
+
+  const calendarDays = useMemo(() => {
+    return getCalendarDays(calendarMonth);
+  }, [calendarMonth]);
 
   const filteredAnimals = useMemo(() => {
     const query = animalSearch.trim().toLowerCase();
@@ -208,48 +202,31 @@ export default function DierenartsTakenPage() {
       .slice(0, 5);
   }, [animalSearch, animals]);
 
-  const tasksByStatus = useMemo(() => {
-    return columns.reduce<Record<DierenartsTaskStatus, DierenartsTask[]>>(
-      (acc, column) => {
-        acc[column.id] = tasks.filter((task) => task.status === column.id);
-        return acc;
-      },
-      {
-        in_progress: [],
-        in_review: [],
-        done: [],
-      }
-    );
-  }, [tasks]);
-
-  const calendarDays = useMemo(() => {
-    return getCalendarDays(calendarMonth);
-  }, [calendarMonth]);
-
-  const resetForm = () => {
-    setTitle("");
-    setDescription("");
-    setCreatedByName("");
-    setAnimalSearch("");
-    setSelectedAnimal(null);
-  };
-
-  const resetTodoForm = () => {
-    setTodoTitle("");
-    setTodoDescription("");
-    setTodoDueDate(todayDate());
-  };
+  const sortedTodos = useMemo(() => {
+    return [...todos].sort((a, b) => {
+      if (a.is_done !== b.is_done) return a.is_done ? 1 : -1;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }, [todos]);
 
   const previousMonth = () => {
     setCalendarMonth(
-      (date) => new Date(date.getFullYear(), date.getMonth() - 1, 1)
+      (current) => new Date(current.getFullYear(), current.getMonth() - 1, 1)
     );
   };
 
   const nextMonth = () => {
     setCalendarMonth(
-      (date) => new Date(date.getFullYear(), date.getMonth() + 1, 1)
+      (current) => new Date(current.getFullYear(), current.getMonth() + 1, 1)
     );
+  };
+
+  const resetTaskForm = () => {
+    setTitle("");
+    setDescription("");
+    setCreatedByName("");
+    setAnimalSearch("");
+    setSelectedAnimal(null);
   };
 
   const handleCreateTask = async () => {
@@ -274,34 +251,36 @@ export default function DierenartsTakenPage() {
       return;
     }
 
-    resetForm();
-    setModalOpen(false);
-
+    resetTaskForm();
+    setTaskModalOpen(false);
     await loadPageData();
   };
 
-  const handleDrop = async (status: DierenartsTaskStatus) => {
-    if (!draggedTaskId) return;
+  const handleMoveTask = async (
+    taskId: string,
+    nextStatus: DierenartsTaskStatus
+  ) => {
+    const currentTask = tasks.find((task) => task.id === taskId);
 
-    const currentTask = tasks.find((task) => task.id === draggedTaskId);
-
-    if (!currentTask || currentTask.status === status) {
+    if (!currentTask || currentTask.status === nextStatus) {
       setDraggedTaskId(null);
       setDragOverColumn(null);
       return;
     }
 
+    const previousTasks = tasks;
+
     setTasks((currentTasks) =>
       currentTasks.map((task) =>
-        task.id === draggedTaskId ? { ...task, status } : task
+        task.id === taskId ? { ...task, status: nextStatus } : task
       )
     );
 
-    const result = await updateDierenartsTaskStatus(draggedTaskId, status);
+    const result = await updateDierenartsTaskStatus(taskId, nextStatus);
 
     if (!result.success) {
+      setTasks(previousTasks);
       alert(result.error);
-      await loadPageData();
     }
 
     setDraggedTaskId(null);
@@ -309,276 +288,344 @@ export default function DierenartsTakenPage() {
   };
 
   const handleCreateTodo = async () => {
-    if (!todoTitle.trim()) {
-      alert("Vul een titel in voor je todo.");
+    if (!newTodo.trim()) {
+      alert("Schrijf eerst een todo.");
       return;
     }
 
-    setSavingTodo(true);
+    setTodoSaving(true);
 
     const result = await createDierenartsTodo({
-      title: todoTitle,
-      description: todoDescription,
-      dueDate: todoDueDate,
+      title: newTodo,
+      description: "",
+      dueDate: todayDate(),
     });
 
-    setSavingTodo(false);
+    setTodoSaving(false);
 
     if (!result.success) {
       alert(result.error);
       return;
     }
 
-    resetTodoForm();
-    setTodoModalOpen(false);
-
+    setNewTodo("");
     await reloadTodos();
   };
 
   const handleToggleTodo = async (todo: DierenartsTodo) => {
-    const result = await toggleDierenartsTodo(todo.id, !todo.is_done);
+    const nextValue = !todo.is_done;
+
+    setUpdatingTodoId(todo.id);
+
+    const result = await toggleDierenartsTodo(todo.id, nextValue);
+
+    setUpdatingTodoId(null);
 
     if (!result.success) {
       alert(result.error);
       return;
     }
 
-    setTodos((currentTodos) =>
-      currentTodos
-        .map((item) =>
-          item.id === todo.id ? { ...item, is_done: !item.is_done } : item
-        )
-        .sort((a, b) => Number(a.is_done) - Number(b.is_done))
-    );
+    await reloadTodos();
   };
 
   return (
     <DierenartsLayout>
       <main className={styles.page}>
-        <section className={styles.header}>
-          <div>
-            <p>Takenbord</p>
-            <h1>Tasks</h1>
-            <span>
-              Beheer medische opvolgingen, controles en interne taken per dier.
-            </span>
-          </div>
-
-          <button
-            type="button"
-            className={styles.createButton}
-            onClick={() => setModalOpen(true)}
-          >
-            + Maak taak
-          </button>
-        </section>
-
-        {loading ? (
-          <section className={styles.messageCard}>
-            <h2>Taken worden geladen...</h2>
-            <p>We halen je taken, agenda en todo’s op.</p>
-          </section>
-        ) : errorMessage ? (
-          <section className={styles.messageCard}>
-            <h2>Er ging iets mis</h2>
-            <p>{errorMessage}</p>
-          </section>
-        ) : (
-          <section className={styles.tasksLayout}>
-            <div className={styles.boardPanel}>
-              <section className={styles.board}>
-                {columns.map((column) => (
-                  <div
-                    key={column.id}
-                    className={`${styles.column} ${
-                      dragOverColumn === column.id
-                        ? styles.columnDragOver
-                        : ""
-                    }`}
-                    onDragOver={(event) => {
-                      event.preventDefault();
-                      setDragOverColumn(column.id);
-                    }}
-                    onDragLeave={() => setDragOverColumn(null)}
-                    onDrop={() => handleDrop(column.id)}
-                  >
-                    <div className={styles.columnHeader}>
-                      <div>
-                        <h2>{column.title}</h2>
-                        <p>{column.description}</p>
-                      </div>
-
-                      <span>{tasksByStatus[column.id].length}</span>
-                    </div>
-
-                    <div className={styles.taskList}>
-                      {tasksByStatus[column.id].length === 0 ? (
-                        <div className={styles.emptyColumn}>
-                          Geen taken in deze kolom.
-                        </div>
-                      ) : (
-                        tasksByStatus[column.id].map((task) => (
-                          <article
-                            key={task.id}
-                            className={styles.taskCard}
-                            draggable
-                            onDragStart={() => setDraggedTaskId(task.id)}
-                            onDragEnd={() => {
-                              setDraggedTaskId(null);
-                              setDragOverColumn(null);
-                            }}
-                          >
-                            <div className={styles.taskTop}>
-                              <span>{formatDate(task.created_at)}</span>
-                              <strong>⋮</strong>
-                            </div>
-
-                            <h3>{task.title}</h3>
-
-                            {task.description && <p>{task.description}</p>}
-
-                            {task.animal && (
-                              <div className={styles.animalBox}>
-                                <img
-                                  src={
-                                    task.animal.image_url || "/images/dog3.jpg"
-                                  }
-                                  alt={task.animal.name}
-                                />
-
-                                <div>
-                                  <strong>{task.animal.name}</strong>
-                                  <span>
-                                    {task.animal.breed ||
-                                      task.animal.species ||
-                                      "Dier"}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-
-                            <div className={styles.taskFooter}>
-                              <span>
-                                {task.created_by_name || "Dierenartsenteam"}
-                              </span>
-                              <small>Sleep om status te wijzigen</small>
-                            </div>
-                          </article>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </section>
+        <div className={styles.wrapper}>
+          <section className={styles.header}>
+            <div>
+              <h1>Task</h1>
+              <p>
+                Beheer medische opvolgingen, controles en interne taken binnen
+                je dierenartspraktijk.
+              </p>
             </div>
 
-            <aside className={styles.sidePanel}>
-              <section className={styles.miniCalendar}>
-                <div className={styles.calendarTop}>
-                  <button type="button" onClick={previousMonth}>
-                    ‹
-                  </button>
-
-                  <h2>{formatMonth(calendarMonth)}</h2>
-
-                  <button type="button" onClick={nextMonth}>
-                    ›
-                  </button>
-                </div>
-
-                <div className={styles.calendarDaysHeader}>
-                  <span>Ma</span>
-                  <span>Di</span>
-                  <span>Wo</span>
-                  <span>Do</span>
-                  <span>Vr</span>
-                  <span>Za</span>
-                  <span>Zo</span>
-                </div>
-
-                <div className={styles.calendarGrid}>
-                  {calendarDays.map((day) => {
-                    const hasAppointment = calendarAppointments.some(
-                      (appointment) =>
-                        sameDay(new Date(appointment.start_at), day)
-                    );
-
-                    const isCurrentMonth =
-                      day.getMonth() === calendarMonth.getMonth();
-
-                    return (
-                      <button
-                        type="button"
-                        key={day.toISOString()}
-                        className={`${styles.calendarDay} ${
-                          sameDay(day, new Date()) ? styles.todayDay : ""
-                        } ${!isCurrentMonth ? styles.otherMonth : ""}`}
-                      >
-                        {day.getDate()}
-                        {hasAppointment && <span></span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-
-              <section className={styles.todoCard}>
-                <div className={styles.sideHeader}>
-                  <h2>To do’s vandaag</h2>
-
-                  <button
-                    type="button"
-                    onClick={() => setTodoModalOpen(true)}
-                  >
-                    + Toevoegen
-                  </button>
-                </div>
-
-                {todoLoading ? (
-                  <div className={styles.emptyTodo}>
-                    Todo’s worden geladen...
-                  </div>
-                ) : todos.length === 0 ? (
-                  <div className={styles.emptyTodo}>
-                    Geen todo’s voor vandaag.
-                  </div>
-                ) : (
-                  <div className={styles.todoList}>
-                    {todos.map((todo) => (
-                      <label
-                        key={todo.id}
-                        className={`${styles.todoItem} ${
-                          todo.is_done ? styles.todoDone : ""
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={todo.is_done}
-                          onChange={() => handleToggleTodo(todo)}
-                        />
-
-                        <span>
-                          {todo.title}
-                          {todo.description && <small>{todo.description}</small>}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </section>
-            </aside>
+            <button
+              type="button"
+              className={styles.createButton}
+              onClick={() => setTaskModalOpen(true)}
+            >
+              + Maak taak
+            </button>
           </section>
-        )}
 
-        {modalOpen && (
+          {loading ? (
+            <section className={styles.messageCard}>
+              <h2>Taken worden geladen...</h2>
+              <p>We halen je taken, agenda en todo’s op.</p>
+            </section>
+          ) : errorMessage ? (
+            <section className={styles.messageCard}>
+              <h2>Er ging iets mis</h2>
+              <p>{errorMessage}</p>
+            </section>
+          ) : (
+            <section className={styles.layoutGrid}>
+              <div className={styles.board}>
+                {columns.map((column) => {
+                  const columnTasks = tasksByStatus[column.id];
+
+                  return (
+                    <section
+                      key={column.id}
+                      className={`${styles.column} ${
+                        dragOverColumn === column.id ? styles.columnOver : ""
+                      }`}
+                      onDragOver={(event) => {
+                        event.preventDefault();
+                        setDragOverColumn(column.id);
+                      }}
+                      onDragLeave={() => setDragOverColumn(null)}
+                      onDrop={() => {
+                        if (draggedTaskId) {
+                          handleMoveTask(draggedTaskId, column.id);
+                        }
+                      }}
+                    >
+                      <div className={styles.columnHeader}>
+                        <h2>{column.title}</h2>
+                        <span>{columnTasks.length}</span>
+                      </div>
+
+                      <div className={styles.taskList}>
+                        {columnTasks.length === 0 ? (
+                          <div className={styles.emptyColumn}>
+                            Sleep hier een taak naartoe.
+                          </div>
+                        ) : (
+                          columnTasks.map((task) => (
+                            <article
+                              key={task.id}
+                              className={`${styles.taskCard} ${
+                                draggedTaskId === task.id
+                                  ? styles.taskDragging
+                                  : ""
+                              }`}
+                              draggable
+                              onDragStart={() => setDraggedTaskId(task.id)}
+                              onDragEnd={() => {
+                                setDraggedTaskId(null);
+                                setDragOverColumn(null);
+                              }}
+                            >
+                              <button
+                                type="button"
+                                className={styles.dragHandle}
+                                aria-label="Taak verslepen"
+                              >
+                                ⋮⋮
+                              </button>
+
+                              <div className={styles.taskTop}>
+                                <span className={styles.priorityDot}></span>
+                                <p>{formatDate(task.created_at)}</p>
+                              </div>
+
+                              <h3>{task.title}</h3>
+
+                              {task.animal && (
+                                <Link
+                                  href={`/dierenarts/dieren/${task.animal.id}/dossier`}
+                                  className={styles.linkedAnimal}
+                                >
+                                  <img
+                                    src={
+                                      task.animal.image_url ||
+                                      "/images/dog3.jpg"
+                                    }
+                                    alt={task.animal.name}
+                                  />
+
+                                  <span>{task.animal.name}</span>
+                                </Link>
+                              )}
+
+                              {task.description && (
+                                <p className={styles.description}>
+                                  {task.description}
+                                </p>
+                              )}
+
+                              <div className={styles.taskMeta}>
+                                <span>
+                                  {task.created_by_name || "Dierenartsenteam"}
+                                </span>
+                              </div>
+
+                              <div className={styles.moveButtons}>
+                                {task.status !== "in_progress" && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleMoveTask(task.id, "in_progress")
+                                    }
+                                  >
+                                    In progress
+                                  </button>
+                                )}
+
+                                {task.status !== "in_review" && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleMoveTask(task.id, "in_review")
+                                    }
+                                  >
+                                    Review
+                                  </button>
+                                )}
+
+                                {task.status !== "done" && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleMoveTask(task.id, "done")
+                                    }
+                                  >
+                                    Done
+                                  </button>
+                                )}
+                              </div>
+                            </article>
+                          ))
+                        )}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+
+              <aside className={styles.sidePanel}>
+                <article className={styles.sideCard}>
+                  <div className={styles.sideHeader}>
+                    <Link href="/dierenarts/agenda">
+                      Bekijk volledige agenda
+                    </Link>
+                  </div>
+
+                  <div className={styles.miniCalendar}>
+                    <div className={styles.calendarTop}>
+                      <button type="button" onClick={previousMonth}>
+                        ‹
+                      </button>
+
+                      <h3>{formatMonth(calendarMonth)}</h3>
+
+                      <button type="button" onClick={nextMonth}>
+                        ›
+                      </button>
+                    </div>
+
+                    <div className={styles.calendarDaysHeader}>
+                      <span>Ma</span>
+                      <span>Di</span>
+                      <span>Wo</span>
+                      <span>Do</span>
+                      <span>Vr</span>
+                      <span>Za</span>
+                      <span>Zo</span>
+                    </div>
+
+                    <div className={styles.calendarGrid}>
+                      {calendarDays.map((day) => {
+                        const hasAppointment = appointments.some(
+                          (appointment) =>
+                            sameDay(new Date(appointment.start_at), day)
+                        );
+
+                        const isCurrentMonth =
+                          day.getMonth() === calendarMonth.getMonth();
+
+                        return (
+                          <button
+                            type="button"
+                            key={day.toISOString()}
+                            className={`${styles.calendarDay} ${
+                              sameDay(day, new Date()) ? styles.todayDay : ""
+                            } ${!isCurrentMonth ? styles.otherMonth : ""}`}
+                          >
+                            {day.getDate()}
+                            {hasAppointment && <span></span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </article>
+
+                <article className={styles.sideCard}>
+                  <div className={styles.sideHeader}>
+                    <h2>To do’s vandaag</h2>
+                  </div>
+
+                  <div className={styles.todoInput}>
+                    <input
+                      type="text"
+                      value={newTodo}
+                      onChange={(event) => setNewTodo(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          handleCreateTodo();
+                        }
+                      }}
+                      placeholder="Nieuwe todo..."
+                    />
+
+                    <button
+                      type="button"
+                      disabled={todoSaving}
+                      onClick={handleCreateTodo}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <div className={styles.todoDashboardList}>
+                    {sortedTodos.length === 0 ? (
+                      <p className={styles.emptyTodo}>
+                        Geen todo’s voor vandaag.
+                      </p>
+                    ) : (
+                      sortedTodos.map((todo) => (
+                        <label
+                          key={todo.id}
+                          className={`${styles.dashboardTodoItem} ${
+                            todo.is_done ? styles.taskDone : ""
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={todo.is_done}
+                            disabled={updatingTodoId === todo.id}
+                            onChange={() => handleToggleTodo(todo)}
+                          />
+
+                          <span>{todo.title}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+
+                  <p className={styles.todoHint}>
+                    Afgevinkte todo’s verdwijnen automatisch de volgende dag.
+                  </p>
+                </article>
+              </aside>
+            </section>
+          )}
+        </div>
+
+        {taskModalOpen && (
           <div className={styles.modalOverlay}>
             <div className={styles.modal}>
               <button
                 type="button"
                 className={styles.closeModal}
                 onClick={() => {
-                  resetForm();
-                  setModalOpen(false);
+                  resetTaskForm();
+                  setTaskModalOpen(false);
                 }}
               >
                 ×
@@ -594,7 +641,7 @@ export default function DierenartsTakenPage() {
                 <input
                   type="text"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(event) => setTitle(event.target.value)}
                   placeholder="Bijv. Bloedresultaten nakijken"
                 />
               </label>
@@ -604,8 +651,8 @@ export default function DierenartsTakenPage() {
                 <input
                   type="text"
                   value={animalSearch}
-                  onChange={(e) => {
-                    setAnimalSearch(e.target.value);
+                  onChange={(event) => {
+                    setAnimalSearch(event.target.value);
                     setSelectedAnimal(null);
                   }}
                   placeholder="Zoek op naam, ras of soort..."
@@ -613,7 +660,7 @@ export default function DierenartsTakenPage() {
               </label>
 
               {selectedAnimal ? (
-                <div className={styles.selectedAnimal}>
+                <div className={styles.selectedAnimalBox}>
                   <img
                     src={selectedAnimal.image_url || "/images/dog3.jpg"}
                     alt={selectedAnimal.name}
@@ -671,7 +718,7 @@ export default function DierenartsTakenPage() {
                 <input
                   type="text"
                   value={createdByName}
-                  onChange={(e) => setCreatedByName(e.target.value)}
+                  onChange={(event) => setCreatedByName(event.target.value)}
                   placeholder="Bijv. Dr. Kingen"
                 />
               </label>
@@ -680,23 +727,18 @@ export default function DierenartsTakenPage() {
                 Beschrijving
                 <textarea
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Beschrijf wat er moet gebeuren..."
+                  onChange={(event) => setDescription(event.target.value)}
+                  placeholder="Beschrijf kort wat er moet gebeuren..."
                 />
               </label>
-
-              <div className={styles.infoNotice}>
-                Nieuwe taken starten automatisch in de kolom “In progress”. Je
-                kan ze daarna verslepen naar “In review” of “Done”.
-              </div>
 
               <div className={styles.modalActions}>
                 <button
                   type="button"
                   className={styles.cancelButton}
                   onClick={() => {
-                    resetForm();
-                    setModalOpen(false);
+                    resetTaskForm();
+                    setTaskModalOpen(false);
                   }}
                 >
                   Annuleren
@@ -709,78 +751,6 @@ export default function DierenartsTakenPage() {
                   onClick={handleCreateTask}
                 >
                   {savingTask ? "Opslaan..." : "Taak opslaan"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {todoModalOpen && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modal}>
-              <button
-                type="button"
-                className={styles.closeModal}
-                onClick={() => {
-                  resetTodoForm();
-                  setTodoModalOpen(false);
-                }}
-              >
-                ×
-              </button>
-
-              <div className={styles.modalHeader}>
-                <p>Nieuwe todo</p>
-                <h2>Todo toevoegen</h2>
-              </div>
-
-              <label>
-                Titel
-                <input
-                  type="text"
-                  value={todoTitle}
-                  onChange={(e) => setTodoTitle(e.target.value)}
-                  placeholder="Bijv. Dossier Demon aanvullen"
-                />
-              </label>
-
-              <label>
-                Datum
-                <input
-                  type="date"
-                  value={todoDueDate}
-                  onChange={(e) => setTodoDueDate(e.target.value)}
-                />
-              </label>
-
-              <label>
-                Beschrijving
-                <textarea
-                  value={todoDescription}
-                  onChange={(e) => setTodoDescription(e.target.value)}
-                  placeholder="Extra info over deze todo..."
-                />
-              </label>
-
-              <div className={styles.modalActions}>
-                <button
-                  type="button"
-                  className={styles.cancelButton}
-                  onClick={() => {
-                    resetTodoForm();
-                    setTodoModalOpen(false);
-                  }}
-                >
-                  Annuleren
-                </button>
-
-                <button
-                  type="button"
-                  className={styles.saveButton}
-                  disabled={savingTodo}
-                  onClick={handleCreateTodo}
-                >
-                  {savingTodo ? "Opslaan..." : "Todo opslaan"}
                 </button>
               </div>
             </div>

@@ -9,15 +9,21 @@ type AnimalsMapProps = {
   animals: Animal[];
 };
 
-const markerIcon = new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
+const markerIcon = L.divIcon({
+  className: "",
+  html: `
+    <div style="
+      width: 18px;
+      height: 18px;
+      background: #df963f;
+      border: 3px solid white;
+      border-radius: 999px;
+      box-shadow: 0 3px 9px rgba(31, 19, 13, 0.28);
+    "></div>
+  `,
+  iconSize: [18, 18],
+  iconAnchor: [9, 9],
+  popupAnchor: [0, -10],
 });
 
 export default function AnimalsMap({ animals }: AnimalsMapProps) {

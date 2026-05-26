@@ -69,7 +69,6 @@ export default function DierenartsLoginPage() {
         </Link>
 
         <div className={styles.imageText}>
-          <p>Dierenartsenplatform</p>
           <h1>Welkom terug</h1>
           <span>
             Beheer afspraken, medische dossiers en opvolgingen van dieren in

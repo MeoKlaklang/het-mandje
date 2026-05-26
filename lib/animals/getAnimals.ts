@@ -32,6 +32,7 @@ export type Animal = {
   medical_notes: string | null;
   behavior_notes: string | null;
   available_from: string | null;
+  available_until: string | null;
   expected_duration: string | null;
   status: string | null;
   image_url: string | null;
@@ -61,6 +62,7 @@ export async function getAnimals() {
       medical_notes,
       behavior_notes,
       available_from,
+      available_until,
       expected_duration,
       status,
       image_url,

@@ -2,19 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import AsielLayout from "@/components/asiel/AsielLayout";
-
 import {
   DndContext,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
+  useDraggable,
   useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-
+import AsielLayout from "@/components/asiel/AsielLayout";
 import {
   getShelterTasks,
   ShelterTask,
@@ -22,26 +21,31 @@ import {
 } from "@/lib/asiel/getShelterTasks";
 import { createShelterTask } from "@/lib/asiel/createShelterTask";
 import { updateShelterTaskStatus } from "@/lib/asiel/updateShelterTaskStatus";
-
 import {
   getShelterAnimalsForSelect,
   ShelterAnimalOption,
 } from "@/lib/asiel/getShelterAnimalsForSelect";
-
-import { getShelterTodos, ShelterTodo } from "@/lib/asiel/getShelterTodos";
+import {
+  getShelterTodos,
+  ShelterTodo,
+} from "@/lib/asiel/getShelterTodos";
 import { createShelterTodo } from "@/lib/asiel/createShelterTodo";
 import { toggleShelterTodo } from "@/lib/asiel/toggleShelterTodo";
-
+import {
+  getShelterAgendaData,
+  ShelterAgendaAppointment,
+} from "@/lib/asiel/getShelterAgendaData";
 import styles from "./taken.module.css";
 
-const columns: {
-  id: ShelterTaskStatus;
-  title: string;
-}[] = [
+const columns: { id: ShelterTaskStatus; title: string }[] = [
   { id: "in_progress", title: "In progress" },
-  { id: "in_review", title: "In review" },
+  { id: "in_review", title: "Review" },
   { id: "done", title: "Done" },
 ];
+
+function isTaskStatus(value: string): value is ShelterTaskStatus {
+  return value === "in_progress" || value === "in_review" || value === "done";
+}
 
 function formatPriority(priority: string | null) {
   if (priority === "high") return "Belangrijk";
@@ -49,8 +53,54 @@ function formatPriority(priority: string | null) {
   return "Normaal";
 }
 
-function isTaskStatus(value: string): value is ShelterTaskStatus {
-  return value === "in_progress" || value === "in_review" || value === "done";
+function getPriorityClass(priority: string | null) {
+  if (priority === "high") return styles.high;
+  if (priority === "low") return styles.low;
+  return "";
+}
+
+function sameDay(dateA: Date, dateB: Date) {
+  return (
+    dateA.getFullYear() === dateB.getFullYear() &&
+    dateA.getMonth() === dateB.getMonth() &&
+    dateA.getDate() === dateB.getDate()
+  );
+}
+
+function startOfWeek(date: Date) {
+  const newDate = new Date(date);
+  const day = newDate.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+
+  newDate.setDate(newDate.getDate() + diff);
+  newDate.setHours(0, 0, 0, 0);
+
+  return newDate;
+}
+
+function addDays(date: Date, amount: number) {
+  const newDate = new Date(date);
+  newDate.setDate(newDate.getDate() + amount);
+  return newDate;
+}
+
+function getCalendarDays(currentMonth: Date) {
+  const firstDay = new Date(
+    currentMonth.getFullYear(),
+    currentMonth.getMonth(),
+    1
+  );
+
+  const start = startOfWeek(firstDay);
+
+  return Array.from({ length: 35 }, (_, index) => addDays(start, index));
+}
+
+function formatMonth(date: Date) {
+  return date.toLocaleDateString("nl-BE", {
+    month: "long",
+    year: "numeric",
+  });
 }
 
 function DroppableColumn({
@@ -83,12 +133,10 @@ function DraggableTaskCard({
   onMoveTask: (taskId: string, nextStatus: ShelterTaskStatus) => void;
   updatingTaskId: string | null;
 }) {
-  const { useDraggable } = require("@dnd-kit/core");
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: task.id,
       data: {
-        type: "task",
         task,
       },
     });
@@ -108,6 +156,7 @@ function DraggableTaskCard({
       <button
         type="button"
         className={styles.dragHandle}
+        aria-label="Taak verslepen"
         {...listeners}
         {...attributes}
       >
@@ -116,15 +165,8 @@ function DraggableTaskCard({
 
       <div className={styles.taskTop}>
         <span
-          className={`${styles.priorityDot} ${
-            task.priority === "high"
-              ? styles.high
-              : task.priority === "low"
-              ? styles.low
-              : ""
-          }`}
+          className={`${styles.priorityDot} ${getPriorityClass(task.priority)}`}
         ></span>
-
         <p>{formatPriority(task.priority)}</p>
       </div>
 
@@ -195,7 +237,9 @@ function TaskPreview({ task }: { task: ShelterTask }) {
   return (
     <article className={`${styles.taskCard} ${styles.taskPreview}`}>
       <div className={styles.taskTop}>
-        <span className={styles.priorityDot}></span>
+        <span
+          className={`${styles.priorityDot} ${getPriorityClass(task.priority)}`}
+        ></span>
         <p>{formatPriority(task.priority)}</p>
       </div>
 
@@ -212,18 +256,23 @@ export default function TakenPage() {
   const [tasks, setTasks] = useState<ShelterTask[]>([]);
   const [todos, setTodos] = useState<ShelterTodo[]>([]);
   const [animals, setAnimals] = useState<ShelterAnimalOption[]>([]);
+  const [appointments, setAppointments] = useState<
+    ShelterAgendaAppointment[]
+  >([]);
 
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [todoModalOpen, setTodoModalOpen] = useState(false);
 
   const [savingTask, setSavingTask] = useState(false);
-  const [savingTodo, setSavingTodo] = useState(false);
+  const [todoSaving, setTodoSaving] = useState(false);
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
   const [updatingTodoId, setUpdatingTodoId] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<ShelterTask | null>(null);
+
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [newTodo, setNewTodo] = useState("");
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -233,9 +282,6 @@ export default function TakenPage() {
   const [animalSearch, setAnimalSearch] = useState("");
   const [selectedAnimal, setSelectedAnimal] =
     useState<ShelterAnimalOption | null>(null);
-
-  const [todoDescription, setTodoDescription] = useState("");
-  const [todoCreatedBy, setTodoCreatedBy] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -248,11 +294,13 @@ export default function TakenPage() {
   async function loadPageData() {
     setLoading(true);
 
-    const [tasksResult, animalsResult, todosResult] = await Promise.all([
-      getShelterTasks(),
-      getShelterAnimalsForSelect(),
-      getShelterTodos(),
-    ]);
+    const [tasksResult, animalsResult, todosResult, agendaResult] =
+      await Promise.all([
+        getShelterTasks(),
+        getShelterAnimalsForSelect(),
+        getShelterTodos(),
+        getShelterAgendaData(),
+      ]);
 
     if (tasksResult.error) {
       setErrorMessage(tasksResult.error);
@@ -260,20 +308,38 @@ export default function TakenPage() {
       setErrorMessage(animalsResult.error);
     } else if (todosResult.error) {
       setErrorMessage(todosResult.error);
+    } else if (agendaResult.error) {
+      setErrorMessage(agendaResult.error);
     } else {
       setErrorMessage("");
     }
 
-    setTasks(tasksResult.tasks);
-    setAnimals(animalsResult.animals);
-    setTodos(todosResult.todos);
+    setTasks(tasksResult.tasks || []);
+    setAnimals(animalsResult.animals || []);
+    setTodos(todosResult.todos || []);
+    setAppointments(agendaResult.appointments || []);
 
     setLoading(false);
+  }
+
+  async function reloadTodos() {
+    const result = await getShelterTodos();
+
+    if (result.error) {
+      alert(result.error);
+      return;
+    }
+
+    setTodos(result.todos || []);
   }
 
   useEffect(() => {
     loadPageData();
   }, []);
+
+  const calendarDays = useMemo(() => {
+    return getCalendarDays(calendarMonth);
+  }, [calendarMonth]);
 
   const filteredAnimals = useMemo(() => {
     const query = animalSearch.trim().toLowerCase();
@@ -306,6 +372,18 @@ export default function TakenPage() {
       );
     });
   }, [todos]);
+
+  const previousMonth = () => {
+    setCalendarMonth(
+      (current) => new Date(current.getFullYear(), current.getMonth() - 1, 1)
+    );
+  };
+
+  const nextMonth = () => {
+    setCalendarMonth(
+      (current) => new Date(current.getFullYear(), current.getMonth() + 1, 1)
+    );
+  };
 
   const handleCreateTask = async () => {
     if (!title.trim()) {
@@ -397,30 +475,27 @@ export default function TakenPage() {
   };
 
   const handleCreateTodo = async () => {
-    if (!todoDescription.trim()) {
-      alert("Vul een beschrijving in voor je todo.");
+    if (!newTodo.trim()) {
+      alert("Schrijf eerst een todo.");
       return;
     }
 
-    setSavingTodo(true);
+    setTodoSaving(true);
 
     const result = await createShelterTodo({
-      description: todoDescription,
-      createdBy: todoCreatedBy,
+      description: newTodo,
+      createdBy: "Dierenasiel",
     });
 
-    setSavingTodo(false);
+    setTodoSaving(false);
 
     if (!result.success) {
       alert(result.error);
       return;
     }
 
-    setTodoDescription("");
-    setTodoCreatedBy("");
-    setTodoModalOpen(false);
-
-    await loadPageData();
+    setNewTodo("");
+    await reloadTodos();
   };
 
   const handleToggleTodo = async (todo: ShelterTodo) => {
@@ -440,18 +515,7 @@ export default function TakenPage() {
       return;
     }
 
-    setTodos((currentTodos) =>
-      currentTodos.map((item) =>
-        item.id === todo.id
-          ? {
-              ...item,
-              is_done: nextValue,
-              completed_at: nextValue ? new Date().toISOString() : null,
-              updated_at: new Date().toISOString(),
-            }
-          : item
-      )
-    );
+    await reloadTodos();
   };
 
   return (
@@ -533,62 +597,99 @@ export default function TakenPage() {
               </DndContext>
 
               <aside className={styles.sidePanel}>
-                <section className={styles.calendarCard}>
-                  <div className={styles.calendarHeader}>
-                    <button type="button">‹</button>
-                    <h2>Mei 2026</h2>
-                    <button type="button">›</button>
+                <article className={styles.sideCard}>
+                  <div className={styles.sideHeader}>
+                    <Link href="/asiel/agenda">Bekijk volledige agenda</Link>
                   </div>
 
-                  <div className={styles.daysHeader}>
-                    <span>Ma</span>
-                    <span>Di</span>
-                    <span>Wo</span>
-                    <span>Do</span>
-                    <span>Vr</span>
-                    <span>Za</span>
-                    <span>Zo</span>
+                  <div className={styles.miniCalendar}>
+                    <div className={styles.calendarTop}>
+                      <button type="button" onClick={previousMonth}>
+                        ‹
+                      </button>
+
+                      <h3>{formatMonth(calendarMonth)}</h3>
+
+                      <button type="button" onClick={nextMonth}>
+                        ›
+                      </button>
+                    </div>
+
+                    <div className={styles.calendarDaysHeader}>
+                      <span>Ma</span>
+                      <span>Di</span>
+                      <span>Wo</span>
+                      <span>Do</span>
+                      <span>Vr</span>
+                      <span>Za</span>
+                      <span>Zo</span>
+                    </div>
+
+                    <div className={styles.calendarGrid}>
+                      {calendarDays.map((day) => {
+                        const hasAppointment = appointments.some(
+                          (appointment) =>
+                            sameDay(new Date(appointment.start_at), day)
+                        );
+
+                        const isCurrentMonth =
+                          day.getMonth() === calendarMonth.getMonth();
+
+                        return (
+                          <button
+                            type="button"
+                            key={day.toISOString()}
+                            className={`${styles.calendarDay} ${
+                              sameDay(day, new Date()) ? styles.todayDay : ""
+                            } ${!isCurrentMonth ? styles.otherMonth : ""}`}
+                          >
+                            {day.getDate()}
+                            {hasAppointment && <span></span>}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
+                </article>
 
-                  <div className={styles.calendarGrid}>
-                    {Array.from({ length: 35 }).map((_, index) => {
-                      const day = index + 1;
-
-                      return (
-                        <span
-                          key={index}
-                          className={day === 16 ? styles.activeDay : ""}
-                        >
-                          {day <= 31 ? day : ""}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </section>
-
-                <section className={styles.todayCard}>
-                  <div className={styles.todayHeader}>
+                <article className={styles.sideCard}>
+                  <div className={styles.sideHeader}>
                     <h2>To do’s vandaag</h2>
+                  </div>
+
+                  <div className={styles.todoInput}>
+                    <input
+                      type="text"
+                      value={newTodo}
+                      onChange={(event) => setNewTodo(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          handleCreateTodo();
+                        }
+                      }}
+                      placeholder="Nieuwe todo..."
+                    />
 
                     <button
                       type="button"
-                      onClick={() => setTodoModalOpen(true)}
+                      disabled={todoSaving}
+                      onClick={handleCreateTodo}
                     >
-                      + Todo
+                      +
                     </button>
                   </div>
 
-                  {sortedTodos.length === 0 ? (
-                    <div className={styles.emptyToday}>
-                      Geen todo’s voor vandaag.
-                    </div>
-                  ) : (
-                    <div className={styles.todoList}>
-                      {sortedTodos.map((todo) => (
+                  <div className={styles.todoDashboardList}>
+                    {sortedTodos.length === 0 ? (
+                      <p className={styles.emptyTodo}>
+                        Geen todo’s voor vandaag.
+                      </p>
+                    ) : (
+                      sortedTodos.map((todo) => (
                         <label
                           key={todo.id}
-                          className={`${styles.todoItem} ${
-                            todo.is_done ? styles.todoDone : ""
+                          className={`${styles.dashboardTodoItem} ${
+                            todo.is_done ? styles.taskDone : ""
                           }`}
                         >
                           <input
@@ -600,10 +701,14 @@ export default function TakenPage() {
 
                           <span>{todo.description}</span>
                         </label>
-                      ))}
-                    </div>
-                  )}
-                </section>
+                      ))
+                    )}
+                  </div>
+
+                  <p className={styles.todoHint}>
+                    Afgevinkte todo’s verdwijnen automatisch de volgende dag.
+                  </p>
+                </article>
               </aside>
             </section>
           )}
@@ -751,63 +856,6 @@ export default function TakenPage() {
                   onClick={handleCreateTask}
                 >
                   {savingTask ? "Opslaan..." : "Taak opslaan"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {todoModalOpen && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modal}>
-              <button
-                type="button"
-                className={styles.closeModal}
-                onClick={() => setTodoModalOpen(false)}
-              >
-                ×
-              </button>
-
-              <div className={styles.modalHeader}>
-                <p>Nieuwe todo</p>
-                <h2>Todo toevoegen</h2>
-              </div>
-
-              <label>
-                Beschrijving
-                <textarea
-                  value={todoDescription}
-                  onChange={(e) => setTodoDescription(e.target.value)}
-                  placeholder="Bijv. Kattenruimte schoonmaken..."
-                />
-              </label>
-
-              <label>
-                Aangemaakt door
-                <input
-                  type="text"
-                  value={todoCreatedBy}
-                  onChange={(e) => setTodoCreatedBy(e.target.value)}
-                  placeholder="Bijv. Emma"
-                />
-              </label>
-
-              <div className={styles.modalActions}>
-                <button
-                  type="button"
-                  className={styles.cancelButton}
-                  onClick={() => setTodoModalOpen(false)}
-                >
-                  Annuleren
-                </button>
-
-                <button
-                  type="button"
-                  className={styles.saveButton}
-                  disabled={savingTodo}
-                  onClick={handleCreateTodo}
-                >
-                  {savingTodo ? "Opslaan..." : "Todo opslaan"}
                 </button>
               </div>
             </div>

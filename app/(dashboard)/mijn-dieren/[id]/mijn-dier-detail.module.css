@@ -949,6 +949,123 @@
   font-size: 12px;
 }
 
+/* KALENDER EXACT ZOALS DIER DETAIL */
+
+.calendarCard {
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 10px 26px rgba(31, 19, 13, 0.08);
+}
+
+.calendarHeader {
+  display: grid;
+  grid-template-columns: 32px 1fr 32px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.calendarHeader span {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 900;
+  color: #1f130d;
+  text-transform: capitalize;
+}
+
+.calendarHeader button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 999px;
+  background: #fff1d8;
+  color: #8b5b1f;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendarHeader button:hover {
+  background: #ffe4ad;
+}
+
+.weekDays,
+.calendarDays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+}
+
+.weekDays {
+  margin-bottom: 10px;
+}
+
+.weekDays span {
+  font-size: 10px;
+  color: #a09284;
+  font-weight: 900;
+}
+
+.calendarDays {
+  gap: 6px 0;
+}
+
+.calendarDays span {
+  position: relative;
+  width: 31px;
+  height: 31px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border-radius: 999px;
+  color: #1f130d;
+  font-weight: 700;
+}
+
+.mutedDay {
+  color: #c9bfb5 !important;
+}
+
+.rangeDay {
+  background: #fff1d8;
+  color: #8b5b1f;
+}
+
+.activeDay {
+  background: #df963f !important;
+  color: white !important;
+}
+
+.todayDay {
+  box-shadow: inset 0 0 0 2px #1f130d;
+}
+
+.activeDay.todayDay {
+  box-shadow: none;
+}
+
+.stayInfo {
+  border-top: 1px solid #eadfd4;
+  margin-top: 18px;
+  padding-top: 16px;
+  font-size: 13px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.updateButton,
+.offerButton,
+.calendarNote {
+  display: none !important;
+}
+
 /* MOBILE */
 
 @media (max-width: 700px) {
