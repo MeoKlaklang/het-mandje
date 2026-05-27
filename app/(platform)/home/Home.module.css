@@ -10,18 +10,35 @@
 }
 
 .heroImage {
-	width: 100%; /* 🔥 maakt hem breder */
-	max-width: 1250px; /* optioneel: max breedte */
+	width: 100%;
+	max-width: 1250px;
 	height: 500px;
 
-	object-fit: cover; /* vult mooi zonder vervormen */
-	object-position: center; /* 🔥 bepaalt focus */
+	object-fit: cover;
+	object-position: center 60%;
 
 	border-radius: 12px;
-	opacity: 0.75;
 
 	display: block;
 	margin: 0 auto;
+}
+
+/* WITTE OVERLAY OP HERO IMAGE */
+.hero::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+
+	width: 100%;
+	max-width: 1250px;
+	height: 500px;
+
+	background: white;
+	opacity: 0.28;
+	pointer-events: none;
+	border-radius: 12px;
 }
 
 /* tekst links */
@@ -34,6 +51,7 @@
 	border-radius: 8px;
 	max-width: 350px;
 	background: linear-gradient(rgba(192, 183, 128, 0.9), rgba(214, 207, 163, 0.9));
+	z-index: 2;
 }
 
 .heroText {
@@ -48,24 +66,71 @@
 	gap: 10px;
 }
 
+.buttons a {
+	text-decoration: none;
+	display: inline-block;
+}
+
+/* HERO BUTTONS */
 .primaryBtn {
 	background-color: #e09134;
 	color: white;
 	padding: 8px 12px;
-	border: none;
+	border: 2px solid transparent;
 	border-radius: 6px;
 	font-size: 12px;
-	border-color: white;
 	font-weight: 600;
+	cursor: pointer;
+
+	transition: all 0.25s ease;
 }
 
 .secondaryBtn {
 	background: white;
-	border: 1px solid #ccc;
+	color: #1f1f1f;
+	border: 2px solid transparent;
 	padding: 8px 12px;
 	border-radius: 6px;
 	font-size: 12px;
 	font-weight: 600;
+	cursor: pointer;
+
+	transition: all 0.25s ease;
+}
+
+.primaryBtn:hover {
+	background-color: #d98225;
+	transform: translateY(-2px) scale(1.03);
+	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+	font-weight: 800;
+}
+
+.secondaryBtn:hover {
+	background: #fff8ef;
+	border-color: #e09134;
+	transform: translateY(-2px) scale(1.03);
+	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+	font-weight: 800;
+}
+
+.primaryBtn:active,
+.secondaryBtn:active {
+	transform: translateY(0) scale(0.98);
+}
+
+/* TOUW AAN HERO CONTENT */
+.ropeImage {
+	position: absolute;
+	top: -145px;
+	left: -55px;
+
+	width: 190px;
+	height: auto;
+
+	transform: rotate(-50deg);
+
+	z-index: 3;
+	pointer-events: none;
 }
 
 /* grote titel */
@@ -75,9 +140,11 @@
 	bottom: 0px;
 	font-size: 45px;
 	font-family: "Borel", cursive;
-	color: #5c3a2e;
-	font-weight: 500px;
+	color: #3a2313;
+	font-weight: 1500px;
 	text-align: center;
+	padding-bottom: 20px;
+	z-index: 2;
 }
 
 /* CARDS */
@@ -92,17 +159,37 @@
 .card {
 	width: 300px;
 	border-radius: 10px;
-	overflow: hidden; /* 🔥 belangrijk */
+	overflow: hidden;
 	background: white;
-	margin-bottom: 50px;
-
+	margin-bottom: 30px;
+	margin-top: 30px;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* BOVENSTE GROENE DEEL */
+/* BOVENSTE AFBEELDING */
 .cardImage {
 	height: 220px;
 	background: #d6d1b5;
+	overflow: hidden;
+	position: relative;
+}
+
+.cardImage img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center;
+	display: block;
+}
+
+/* WITTE OVERLAY OP CARD IMAGE */
+.cardImage::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: white;
+	opacity: 0.28;
+	pointer-events: none;
 }
 
 /* ONDERSTE WITTE DEEL */
@@ -135,6 +222,22 @@
 	margin-top: 20px;
 }
 
+.cardLink {
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.cardLink span {
+	display: inline-block;
+	transition: all 0.25s ease;
+}
+
+.cardLink:hover span {
+	color: #d98225;
+	transform: translateY(-2px);
+	font-weight: 900;
+}
+
 /* TESTIMONIAL */
 .testimonialSection {
 	display: grid;
@@ -149,7 +252,7 @@
 .newsletterContent h2 {
 	font-family: "Borel", cursive;
 	font-size: 28px;
-	font-weight: 400;
+	font-weight: 500px;
 	color: #3b2418;
 	margin-bottom: 18px;
 }
@@ -168,12 +271,71 @@
 	font-size: 13px;
 }
 
+/* GROTE FOTO RECHTS */
 .largePlaceholder {
-	height: 590px;
+	height: 565px;
 	border-radius: 10px;
 	background: #d6cfa3;
+	position: relative;
+	overflow: visible;
 }
 
+/* Alleen de grote kattenfoto, NIET het touw */
+.largePlaceholder > img:first-child {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center;
+	display: block;
+	border-radius: 10px;
+}
+
+/* WITTE OVERLAY OP GROTE FOTO */
+.largePlaceholder::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: white;
+	opacity: 0.28;
+	pointer-events: none;
+	border-radius: 10px;
+	z-index: 1;
+}
+
+/* LABEL OP GROTE FOTO */
+.photoLabel {
+	position: absolute;
+	right: 25px;
+	bottom: 25px;
+
+	background: rgba(214, 207, 163, 0.9);
+	padding: 12px 28px;
+	border-radius: 8px;
+
+	font-family: "Borel", cursive;
+	font-size: 16px;
+	color: #3a2313;
+
+	z-index: 3;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* TOUW AAN LABEL */
+.largeRopeImage {
+	position: absolute;
+	right: -20px;
+	bottom: -50px;
+
+	width: 120px;
+	height: auto;
+
+	transform: rotate(60deg);
+
+	z-index: 4;
+	pointer-events: none;
+}
+
+/* KLEINE FOTO LINKS */
 .smallImageWrapper {
 	position: relative;
 	margin-top: 28px;
@@ -183,6 +345,26 @@
 	height: 170px;
 	border-radius: 10px;
 	background: #d6cfa3;
+	overflow: hidden;
+	position: relative;
+}
+
+.smallPlaceholder img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center 90%;
+	display: block;
+}
+
+/* WITTE OVERLAY OP KLEINE FOTO */
+.smallPlaceholder::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: white;
+	opacity: 0.28;
+	pointer-events: none;
 }
 
 .faqButton {
@@ -196,20 +378,29 @@
 	padding: 13px 18px;
 	font-weight: 700;
 	cursor: pointer;
+	z-index: 2;
+
+	transition: all 0.25s ease;
+}
+
+.faqButton:hover {
+	background: #d98225;
+	transform: translateY(-2px) scale(1.03);
+	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+.faqButton:active {
+	transform: translateY(0) scale(0.98);
 }
 
 /* NEWSLETTER */
 .newsletterSection {
-	display: flex; /* 🔥 geen grid */
-
+	display: flex;
 	align-items: center;
 	justify-content: center;
-
 	gap: 60px;
-
 	width: 100%;
 	max-width: 1200px;
-
 	margin: 120px auto 40px;
 }
 
@@ -217,22 +408,38 @@
 .newsletterImage {
 	width: 320px;
 	height: 280px;
-
 	flex-shrink: 0;
-
 	border-radius: 10px;
 	background: #d6cfa3;
+	overflow: hidden;
+	position: relative;
+}
+
+.newsletterImage img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center;
+	display: block;
+}
+
+/* WITTE OVERLAY OP NEWSLETTER FOTO */
+.newsletterImage::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: white;
+	opacity: 0.28;
+	pointer-events: none;
 }
 
 /* CONTENT */
 .newsletterContent {
 	flex: 1;
-
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
 }
-
 
 /* TEKST */
 .newsletterContent p {
@@ -244,34 +451,206 @@
 /* FORM */
 .newsletterForm {
 	display: flex;
-
 	width: 100%;
 	max-width: 700px;
-
 	margin-top: 20px;
 }
 
 /* INPUT */
 .newsletterForm input {
 	flex: 1;
-
 	padding: 16px;
-
 	border: 1px solid #ddd;
 	background: #f4f4f4;
-
 	font-family: inherit;
 }
 
 /* BUTTON */
 .newsletterForm button {
 	width: 200px;
-
 	border: none;
-
 	background: #e9952f;
 	color: white;
-
 	font-weight: 700;
 	cursor: pointer;
+
+	transition: all 0.25s ease;
+}
+
+.newsletterForm button:hover {
+	background: #d98225;
+	transform: translateY(-2px);
+	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+.newsletterForm button:active {
+	transform: translateY(0) scale(0.98);
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+	.container {
+		padding: 0 16px;
+	}
+
+	.hero {
+		border-radius: 12px;
+	}
+
+	.heroImage {
+		height: 620px;
+		border-radius: 12px;
+		object-position: center;
+	}
+
+	.hero::after {
+		height: 620px;
+	}
+
+	.heroContent {
+		left: 20px;
+		right: 20px;
+		bottom: 25px;
+		max-width: none;
+	}
+
+	.ropeImage {
+		top: -120px;
+		left: -35px;
+		width: 150px;
+	}
+
+	.heroTitle {
+		right: 20px;
+		left: 20px;
+		top: 40px;
+		bottom: auto;
+		font-size: 34px;
+		line-height: 1.4;
+		padding-bottom: 0;
+	}
+
+	.buttons {
+		flex-direction: column;
+	}
+
+	.buttons a {
+		width: 100%;
+	}
+
+	.primaryBtn,
+	.secondaryBtn {
+		width: 100%;
+	}
+
+	.cards {
+		flex-direction: column;
+		align-items: center;
+		gap: 24px;
+	}
+
+	.card {
+		width: 100%;
+		max-width: 360px;
+		margin-bottom: 0;
+	}
+
+	.testimonialSection {
+		grid-template-columns: 1fr;
+		margin-top: 70px;
+		gap: 28px;
+	}
+
+	.largePlaceholder {
+		height: 420px;
+	}
+
+	.photoLabel {
+		right: 18px;
+		bottom: 18px;
+		padding: 10px 22px;
+		font-size: 14px;
+	}
+
+	.largeRopeImage {
+		right: -40px;
+		bottom: 28px;
+		width: 95px;
+	}
+
+	.newsletterSection {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 28px;
+		margin: 80px auto 40px;
+	}
+
+	.newsletterImage {
+		width: 100%;
+		height: 260px;
+	}
+
+	.newsletterForm {
+		flex-direction: column;
+	}
+
+	.newsletterForm button {
+		width: 100%;
+		padding: 16px;
+	}
+
+	.newsletterContent {
+		align-items: stretch;
+	}
+}
+
+@media (max-width: 480px) {
+	.heroImage {
+		height: 560px;
+	}
+
+	.hero::after {
+		height: 560px;
+	}
+
+	.heroTitle {
+		font-size: 28px;
+		top: 34px;
+	}
+
+	.heroContent {
+		padding: 16px;
+	}
+
+	.ropeImage {
+		top: -105px;
+		left: -25px;
+		width: 130px;
+	}
+
+	.testimonialText h2,
+	.newsletterContent h2 {
+		font-size: 24px;
+	}
+
+	.largePlaceholder {
+		height: 340px;
+	}
+
+	.photoLabel {
+		right: 12px;
+		bottom: 14px;
+		padding: 8px 16px;
+		font-size: 12px;
+	}
+
+	.largeRopeImage {
+		right: -32px;
+		bottom: 22px;
+		width: 75px;
+	}
+
+	.smallPlaceholder {
+		height: 150px;
+	}
 }
