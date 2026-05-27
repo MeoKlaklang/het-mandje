@@ -1,229 +1,411 @@
 .container {
-  max-width: 1280px;
-  margin: 0 auto;
+	max-width: 1280px;
+	margin: 0 auto;
+	padding: 0 20px 80px;
 }
 
 .heroSection {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	align-items: center;
+	gap: 50px;
+	margin-top: 30px;
 }
 
 .heroText h1 {
-  font-size: 30px;
-  line-height: 1.25;
-  margin-bottom: 28px;
+	font-size: 30px;
+	line-height: 1.25;
+	margin-bottom: 28px;
 }
 
 .heroText p {
-  max-width: 520px;
-  line-height: 1.6;
+	max-width: 520px;
+	line-height: 1.6;
 }
 
 .heroText span {
-  color: #e9952f;
-  font-weight: 700;
+	color: #e9952f;
+	font-weight: 700;
 }
 
 .heroImage {
-  position: relative;
-  height: 420px;
-  border-radius: 12px;
-  background: #d6cfa3;
+	position: relative;
+	height: 420px;
+	border-radius: 12px;
+	background: #d6cfa3;
+	overflow: visible;
 }
 
-.heroImage span {
-  position: absolute;
-  right: 28px;
-  bottom: 28px;
-  background: #d6cfa3;
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  padding: 14px 52px;
-  border-radius: 8px;
-  font-family: "Borel", cursive;
+.heroPhoto {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center;
+	display: block;
+	border-radius: 12px;
+}
+
+/* WITTE OVERLAY OP HERO IMAGE */
+.heroImage::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: white;
+	opacity: 0.28;
+	pointer-events: none;
+	border-radius: 12px;
+	z-index: 1;
+}
+
+.heroLabel {
+	position: absolute;
+	right: 28px;
+	bottom: 28px;
+	background: rgba(214, 207, 163, 0.9);
+	border: 1px solid rgba(0, 0, 0, 0.25);
+	padding: 14px 52px;
+	border-radius: 8px;
+	font-family: "Borel", cursive;
+	z-index: 3;
+}
+
+.heroRopeImage {
+	position: absolute;
+	right: -8px;
+	bottom: -30px;
+	width: 105px;
+	height: auto;
+	transform: rotate(58deg);
+	z-index: 4;
+	pointer-events: none;
 }
 
 .importanceSection {
-  margin-top: 120px;
+	margin-top: 120px;
 }
 
 .importanceSection h2 {
-  font-size: 30px;
-  margin-bottom: 45px;
-  text-align: center;
+	font-size: 30px;
+	margin-bottom: 45px;
+	text-align: center;
 }
 
 .cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 34px;
-  width: 1000px;
-
-    margin: 0 auto;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 34px;
+	width: 100%;
+	max-width: 1000px;
+	margin: 0 auto;
 }
 
 .card {
-  position: relative;
-  background: #d6cfa3;
-  border-radius: 10px;
-  min-height: 230px;
-  padding: 50px 40px;
+	position: relative;
+	background: #d6cfa3;
+	border-radius: 10px;
+	min-height: 230px;
+	padding: 50px 40px;
 }
 
 .card h3 {
-  font-family: "Inter", sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.25;
-  margin-bottom: 20px;
+	font-family: "Inter", sans-serif;
+	font-size: 15px;
+	font-weight: 700;
+	line-height: 1.25;
+	margin-bottom: 20px;
 }
 
 .card p {
-  line-height: 1.6;
-  font-size: 13px;
+	line-height: 1.6;
+	font-size: 13px;
 }
 
 .card span {
-  position: absolute;
-  left: 50%;
-  bottom: -64px;
-  transform: translateX(-50%);
-  font-size: 70px;
-  line-height: 1;
-  font-family: borel;
+	position: absolute;
+	left: 50%;
+	bottom: -64px;
+	transform: translateX(-50%);
+	font-size: 70px;
+	line-height: 1;
+	font-family: "Borel", cursive;
 }
 
 /* TASKS SECTION */
 .tasksSection {
-  margin-top: 140px;
-  text-align: center;
+	margin-top: 140px;
+	text-align: center;
 }
 
 .tasksSection h2 {
-  font-size: 30px;
-  margin-bottom: 20px;
-  text-align: left;
+	font-size: 30px;
+	margin-bottom: 20px;
+	text-align: left;
 }
 
 /* GRID */
 .tasksGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-
-  gap: 32px;
-
-  max-width: 1300px;
-  margin: 0 auto;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 32px;
+	max-width: 1300px;
+	margin: 0 auto;
 }
 
 /* CARD */
 .taskCard {
-  background: #d6cfa3;
-
-  border-radius: 10px;
-
-  padding: 35px;
-
-  min-height: 130px;
-
-  text-align: left;
+	background: #d6cfa3;
+	border-radius: 10px;
+	padding: 35px;
+	min-height: 130px;
+	text-align: left;
 }
 
 /* TITLES */
 .taskCard h3 {
-  font-family: "Inter", sans-serif;
-
-  font-size: 15px;
-  font-weight: 700;
-
-  line-height: 1.3;
-
-  margin-bottom: 10px;
+	font-family: "Inter", sans-serif;
+	font-size: 15px;
+	font-weight: 700;
+	line-height: 1.3;
+	margin-bottom: 10px;
 }
 
 /* TEXT */
 .taskCard p {
-  line-height: 1.7;
-  margin-bottom: 16px;
-  font-size: 13px;
+	line-height: 1.7;
+	margin-bottom: 16px;
+	font-size: 13px;
 }
 
 /* BUTTON */
+.tasksButtonLink {
+	text-decoration: none;
+}
+
 .tasksButton {
-  margin-top: 50px;
+	margin-top: 50px;
+	background: #e9952f;
+	color: white;
+	border: none;
+	border-radius: 6px;
+	padding: 18px 42px;
+	font-weight: 700;
+	cursor: pointer;
+	font-size: 12px;
+	transition: all 0.25s ease;
+}
 
-  background: #e9952f;
-  color: white;
-
-  border: none;
-  border-radius: 6px;
-
-  padding: 18px 42px;
-
-  font-weight: 700;
-
-  cursor: pointer;
-  font-size: 12px;
+.tasksButton:hover {
+	background: #d98520;
+	transform: translateY(-2px);
+	box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
 }
 
 /* FAQ */
 .faqSection {
-  margin-top: 150px;
-  padding-bottom: 120px;
+	margin-top: 150px;
+	padding-bottom: 120px;
+	scroll-margin-top: 100px;
 }
 
 .faqSection h2 {
-  font-size: 52px;
-  margin-bottom: 40px;
+	font-size: 52px;
+	margin-bottom: 40px;
 }
 
 /* LIST */
 .faqList {
-  width: 100%;
+	width: 100%;
 }
 
 /* ITEM */
 .faqItem {
-  border-bottom: 1px solid rgba(0,0,0,0.35);
-  padding: 22px 0;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.35);
+	padding: 22px 0;
 }
 
 /* QUESTION */
 .faqItem summary {
-  list-style: none;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  cursor: pointer;
-
-  font-family: "Inter", sans-serif;
-  font-size: 20px;
-  font-weight: 700;
+	list-style: none;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	cursor: pointer;
+	font-family: "Inter", sans-serif;
+	font-size: 20px;
+	font-weight: 700;
 }
 
 /* REMOVE DEFAULT ARROW */
 .faqItem summary::-webkit-details-marker {
-  display: none;
+	display: none;
 }
 
 /* CUSTOM ARROW */
 .faqItem summary::after {
-  content: "⌄";
-  font-size: 22px;
-  transition: transform 0.3s ease;
+	content: "⌄";
+	font-size: 22px;
+	transition: transform 0.3s ease;
 }
 
 /* ROTATE */
 .faqItem[open] summary::after {
-  transform: rotate(180deg);
+	transform: rotate(180deg);
 }
 
 /* ANSWER */
 .faqItem p {
-  margin-top: 18px;
-  max-width: 900px;
+	margin-top: 18px;
+	max-width: 900px;
+	line-height: 1.7;
+}
 
-  line-height: 1.7;
+/* TABLET */
+@media (max-width: 1100px) {
+	.heroSection {
+		grid-template-columns: 1fr;
+		gap: 32px;
+	}
+
+	.heroText p {
+		max-width: 100%;
+	}
+
+	.cards {
+		grid-template-columns: repeat(2, 1fr);
+		max-width: 760px;
+	}
+
+	.tasksGrid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+	.container {
+		padding: 0 16px 60px;
+	}
+
+	.heroText h1 {
+		font-size: 26px;
+	}
+
+	.heroImage {
+		height: 340px;
+	}
+
+	.heroLabel {
+		right: 18px;
+		bottom: 18px;
+		padding: 10px 28px;
+		font-size: 14px;
+	}
+
+	.heroRopeImage {
+		right: -34px;
+		bottom: 28px;
+		width: 82px;
+	}
+
+	.importanceSection {
+		margin-top: 90px;
+	}
+
+	.importanceSection h2,
+	.tasksSection h2 {
+		font-size: 26px;
+	}
+
+	.cards {
+		grid-template-columns: 1fr;
+		max-width: 420px;
+		gap: 70px;
+	}
+
+	.card {
+		padding: 36px 24px;
+	}
+
+	.tasksSection {
+		margin-top: 110px;
+	}
+
+	.taskCard {
+		padding: 24px;
+	}
+
+	.faqSection {
+		margin-top: 110px;
+		padding-bottom: 70px;
+	}
+
+	.faqSection h2 {
+		font-size: 38px;
+		margin-bottom: 24px;
+	}
+
+	.faqItem summary {
+		font-size: 17px;
+		align-items: flex-start;
+		gap: 14px;
+	}
+
+	.faqItem p {
+		font-size: 14px;
+	}
+}
+
+@media (max-width: 480px) {
+	.heroText h1 {
+		font-size: 22px;
+	}
+
+	.heroText p {
+		font-size: 15px;
+	}
+
+	.heroImage {
+		height: 280px;
+	}
+
+	.heroLabel {
+		right: 12px;
+		bottom: 12px;
+		padding: 8px 18px;
+		font-size: 12px;
+	}
+
+	.heroRopeImage {
+		right: -24px;
+		bottom: 18px;
+		width: 65px;
+	}
+
+	.importanceSection h2,
+	.tasksSection h2 {
+		font-size: 22px;
+	}
+
+	.card h3,
+	.taskCard h3 {
+		font-size: 14px;
+	}
+
+	.card p,
+	.taskCard p {
+		font-size: 12px;
+	}
+
+	.faqSection h2 {
+		font-size: 32px;
+	}
+
+	.faqItem summary {
+		font-size: 15px;
+	}
+
+	.tasksButton {
+		width: 100%;
+		padding: 16px 20px;
+	}
 }
