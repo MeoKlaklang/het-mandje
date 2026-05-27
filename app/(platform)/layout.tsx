@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import PlatformFooter from "@/components/PlatformFooter";
 
 export default function PlatformLayout({
   children,
@@ -9,6 +10,7 @@ export default function PlatformLayout({
     <>
       <Navbar />
       {children}
+      <PlatformFooter />
     </>
   );
 }

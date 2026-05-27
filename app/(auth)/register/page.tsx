@@ -129,7 +129,7 @@ export default function RegisterPage() {
       <section className={styles.rightSide}>
         <div className={styles.imageCard}>
           <Image
-            src="/images/kkitten in mandje.jpg"
+            src="/images/kitten in mandje.jpg"
             alt="Kat in een mandje.png"
             fill
             className={styles.sideImage}
