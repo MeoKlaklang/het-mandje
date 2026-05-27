@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "./hoe-werkt-opvang.module.css";
 
 export default function HoeWerktOpvang() {
@@ -16,17 +17,23 @@ export default function HoeWerktOpvang() {
 
 					<p>Tijdelijke opvang klinkt misschien groot, maar eigenlijk draait het om één ding: een dier even de rust en liefde geven die het nodig heeft. Wij begeleiden je in elke stap.</p>
 
-					<button>START</button>
+					<a href="#stappen" className={styles.startButtonLink}>
+						<button>START</button>
+					</a>
 				</div>
 
-				<div className={styles.heroImage}></div>
+				<div className={styles.heroImage}>
+					<img src="/images/3 kittens in een mandje.jpg" alt="" />
+				</div>
 			</section>
 
 			{/* INFO BLOCKS */}
 			<section className={styles.infoSection}>
 				{/* LEFT */}
 				<div className={styles.infoCard}>
-					<div className={styles.smallImage}></div>
+					<div className={styles.smallImage}>
+						<img src="/images/husky in mandje.jpg" alt="" />
+					</div>
 
 					<h2>Wat is tijdelijke opvang?</h2>
 
@@ -38,7 +45,9 @@ export default function HoeWerktOpvang() {
 				</div>
 
 				{/* MIDDLE IMAGE */}
-				<div className={styles.middleImage}></div>
+				<div className={styles.middleImage}>
+					<img src="/images/meisje met bruine kat.jpg" alt="" />
+				</div>
 
 				{/* RIGHT */}
 				<div className={styles.infoCard}>
@@ -55,12 +64,14 @@ export default function HoeWerktOpvang() {
 						<li>Je kiest zelf wanneer je beschikbaar bent</li>
 					</ul>
 
-					<div className={styles.bottomImage}></div>
+					<div className={styles.bottomImage}>
+						<img src="/images/small white dog.jpg" alt="" />
+					</div>
 				</div>
 			</section>
 
 			{/* STEPS SECTION */}
-			<section className={styles.stepsSection}>
+			<section id="stappen" className={styles.stepsSection}>
 				<h2>Hoe word je opvanggezin?</h2>
 
 				<div className={styles.stepsGrid}>
@@ -115,7 +126,9 @@ export default function HoeWerktOpvang() {
 					</div>
 				</div>
 
-				<button className={styles.ctaButton}>AANMELDEN ALS PLEEGGEZIN</button>
+				<Link href="/auth/register" className={styles.ctaButtonLink}>
+					<button className={styles.ctaButton}>AANMELDEN ALS PLEEGGEZIN</button>
+				</Link>
 			</section>
 
 			{/* BENEFITS SECTION */}
@@ -204,7 +217,9 @@ export default function HoeWerktOpvang() {
 				</div>
 
 				<div className={styles.durationImage}>
-					<span>Maythe, 3 weken opvanggezin</span>
+					<img src="/images/meisje met orangje kat.jpg" alt="" />
+					<span>Myrthe Rombouts, 3 weken opvanggezin</span>
+					<img src="/images/touw.png" alt="" className={styles.durationRopeImage} />
 				</div>
 			</section>
 
@@ -220,7 +235,9 @@ export default function HoeWerktOpvang() {
 				<div className={styles.costGrid}>
 					{/* CARD 1 */}
 					<div className={styles.costCard}>
-						<div className={styles.costImage}></div>
+						<div className={styles.costImage1}>
+							<img src="/images/honden in shelter.jpg" alt="" />
+						</div>
 
 						<div className={styles.costContent}>
 							<h3>Het asiel zorgt voor alle medische kosten</h3>
@@ -231,7 +248,9 @@ export default function HoeWerktOpvang() {
 
 					{/* CARD 2 */}
 					<div className={styles.costCard}>
-						<div className={styles.costImage}></div>
+						<div className={styles.costImage}>
+							<img src="/images/bruine kat met meisje.jpg" alt="" />
+						</div>
 
 						<div className={styles.costContent}>
 							<h3>Jij voorziet alleen de basiszorg</h3>
@@ -242,7 +261,9 @@ export default function HoeWerktOpvang() {
 
 					{/* CARD 3 */}
 					<div className={styles.costCard}>
-						<div className={styles.costImage}></div>
+						<div className={styles.costImage}>
+							<img src="/images/herder in mand.jpg" alt="" />
+						</div>
 
 						<div className={styles.costContent}>
 							<h3>Geen onverwachte kosten, geen verplichtingen</h3>
@@ -252,7 +273,9 @@ export default function HoeWerktOpvang() {
 					</div>
 				</div>
 
-				<button className={styles.costButton}>AANMELDEN ALS PLEEGGEZIN</button>
+				<Link href="/auth/register" className={styles.costButtonLink}>
+					<button className={styles.costButton}>AANMELDEN ALS PLEEGGEZIN</button>
+				</Link>
 			</section>
 		</main>
 	);

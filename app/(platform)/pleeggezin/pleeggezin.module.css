@@ -75,7 +75,7 @@
 	bottom: -30px;
 	width: 105px;
 	height: auto;
-	transform: rotate(58deg);
+	transform: rotate(28deg);
 	z-index: 4;
 	pointer-events: none;
 }
@@ -138,7 +138,7 @@
 
 .tasksSection h2 {
 	font-size: 30px;
-	margin-bottom: 20px;
+	margin-bottom: 40px;
 	text-align: left;
 }
 
@@ -146,43 +146,57 @@
 .tasksGrid {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: 32px;
-	max-width: 1300px;
+	gap: 40px;
+	max-width: 1100px;
 	margin: 0 auto;
 }
 
 /* CARD */
 .taskCard {
+	position: relative;
 	background: #d6cfa3;
 	border-radius: 10px;
-	padding: 35px;
-	min-height: 130px;
+	min-height: 150px;
+	padding: 34px;
 	text-align: left;
+	overflow: visible;
 }
 
 /* TITLES */
 .taskCard h3 {
 	font-family: "Inter", sans-serif;
-	font-size: 15px;
+	font-size: 20px;
 	font-weight: 700;
-	line-height: 1.3;
-	margin-bottom: 10px;
+	margin-bottom: 18px;
 }
 
 /* TEXT */
 .taskCard p {
-	line-height: 1.7;
-	margin-bottom: 16px;
-	font-size: 13px;
+	line-height: 1.6;
+	margin-bottom: 14px;
+	font-weight: 700;
+	max-width: 90%;
+	font-size: 12px;
+}
+
+/* NUMBERS */
+.taskNumber {
+	position: absolute;
+	right: -14px;
+	bottom: -42px;
+	font-size: 40px;
+	font-family: borel, cursive;
+	color: black;
 }
 
 /* BUTTON */
 .tasksButtonLink {
 	text-decoration: none;
+	display: inline-block;
 }
 
 .tasksButton {
-	margin-top: 50px;
+	margin-top: 70px;
 	background: #e9952f;
 	color: white;
 	border: none;
