@@ -1,8 +1,8 @@
 .page {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  background: #fef5eb;
+  grid-template-columns: 54% 46%;
+  background: #fff7ee;
   font-family: "Inter", sans-serif;
 }
 
@@ -10,123 +10,126 @@
   position: relative;
   padding: 42px 70px;
   display: flex;
-  flex-direction: column;
-}
-
-.logoLink {
-  display: inline-flex;
-  width: fit-content;
-  text-decoration: none;
-}
-
-.logo {
-  object-fit: contain;
+  align-items: center;
 }
 
 .backButton {
-  width: fit-content;
-  margin-top: 78px;
+  position: absolute;
+  top: 34px;
+  left: 70px;
   border: none;
   background: transparent;
-  color: #8f8a84;
+  color: #8a7a69;
   font-size: 13px;
-  font-family: "Inter", sans-serif;
-  display: flex;
-  align-items: center;
-  gap: 9px;
+  font-weight: 700;
   cursor: pointer;
+  padding: 0;
+  font-family: "Inter", sans-serif;
 }
 
-.backButton span {
-  width: 17px;
-  height: 17px;
-  border: 1px solid #8f8a84;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  line-height: 1;
+.backButton:hover {
+  color: #df963f;
 }
 
 .formWrapper {
-  width: 100%;
-  max-width: 420px;
-  margin-top: 70px;
+  width: min(460px, 100%);
 }
 
-.formWrapper h1 {
-  font-size: 38px;
+.eyebrow {
+  margin: 0 0 10px;
+  color: #df963f;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.title {
+  margin: 0;
+  font-size: 46px;
+  line-height: 1.08;
+  font-weight: 400;
   color: #1f130d;
-  margin-bottom: 8px;
 }
 
 .intro {
-  margin: 0 0 58px;
+  max-width: 430px;
+  margin: 22px 0 36px;
+  color: #6d6258;
   font-size: 14px;
   line-height: 1.55;
-  color: #111111;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 20px;
 }
 
-.form label {
+.field {
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  font-size: 13px;
-  color: #111111;
-  font-weight: 500;
+  gap: 8px;
 }
 
-.form input {
-  height: 41px;
-  border: 1px solid #bfb8b1;
-  border-radius: 6px;
-  background: transparent;
-  padding: 0 12px;
+.field span {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1f130d;
+}
+
+.field input {
+  height: 44px;
+  width: 100%;
+  border: 1px solid #d7cbbf;
+  border-radius: 7px;
+  background: #fffaf4;
+  padding: 0 13px;
   font-family: "Inter", sans-serif;
-  font-size: 14px;
+  font-size: 13px;
+  color: #1f130d;
   outline: none;
 }
 
-.form input:focus {
+.field input:focus {
   border-color: #df963f;
+  box-shadow: 0 0 0 3px rgba(223, 150, 63, 0.12);
 }
 
 .passwordWrapper {
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
 .passwordWrapper input {
-  width: 100%;
-  padding-right: 70px;
+  padding-right: 76px;
 }
 
-.passwordWrapper button {
+.showButton {
   position: absolute;
-  right: 9px;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   border: none;
   background: transparent;
-  color: #777777;
+  color: #8a7a69;
   font-size: 12px;
-  text-decoration: underline;
+  font-weight: 800;
   cursor: pointer;
+  text-decoration: underline;
   font-family: "Inter", sans-serif;
 }
 
+.showButton:hover {
+  color: #df963f;
+}
+
 .forgotLink {
-  margin-top: -24px;
   align-self: flex-end;
-  font-size: 12px;
-  color: #9b958f;
+  margin-top: -8px;
+  color: #8a7a69;
   text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .forgotLink:hover {
@@ -134,16 +137,16 @@
 }
 
 .loginButton {
-  height: 48px;
-  margin-top: 28px;
+  height: 46px;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   background: #df963f;
   color: white;
-  font-size: 15px;
-  font-weight: 800;
   font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 900;
   cursor: pointer;
+  margin-top: 4px;
 }
 
 .loginButton:hover {
@@ -156,15 +159,15 @@
 }
 
 .registerText {
-  margin-top: 36px;
+  margin-top: 28px;
   text-align: center;
-  font-size: 13px;
-  color: #111111;
+  font-size: 14px;
+  color: #6d6258;
 }
 
 .registerText a {
-  color: #111111;
-  font-weight: 800;
+  color: #1f130d;
+  font-weight: 900;
   text-decoration: none;
 }
 
@@ -173,54 +176,66 @@
 }
 
 .rightSide {
-  background: white;
+  min-height: 100vh;
+  padding: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: stretch;
 }
 
-.imagePlaceholder {
-  width: 170px;
-  height: 170px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.imageCard {
+	position: relative;
+	width: 100%;
+	height: 100vh;
+	min-height: 100vh;
+	border-radius: 0;
+	overflow: hidden;
+	background: #eadfd4;
 }
 
-.placeholderIcon {
-  width: 155px;
-  height: 125px;
-  fill: none;
-  stroke: #111111;
-  stroke-width: 1.2;
+/* WITTE OVERLAY / DROMERIGE VIBE */
+.imageCard::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: white;
+	opacity: 0.28;
+	pointer-events: none;
+	z-index: 2;
 }
 
-.sun {
-  position: absolute;
-  top: 36px;
-  right: 36px;
-  width: 22px;
-  height: 22px;
-  background: #222222;
-  border-radius: 50%;
+.sideImage {
+	object-fit: cover;
+	object-position: center;
+	z-index: 1;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .page {
     grid-template-columns: 1fr;
+  }
+
+  .leftSide {
+    min-height: 100vh;
+    padding: 95px 36px 60px;
+    justify-content: center;
+  }
+
+  .backButton {
+    left: 36px;
   }
 
   .rightSide {
     display: none;
   }
 
-  .leftSide {
-    padding: 32px 28px;
-  }
-
   .formWrapper {
-    margin-top: 50px;
-    max-width: none;
+    max-width: 460px;
+  }
+}
+
+@media (max-width: 620px) {
+  .title {
+    font-size: 36px;
   }
 }

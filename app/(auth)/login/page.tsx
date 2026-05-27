@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./login.module.css";
 
-import InputField from "@/components/InputField";
 import { loginUser } from "@/lib/auth/login";
 
 export default function LoginPage() {
@@ -17,8 +16,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setLoading(true);
 
     const { error } = await loginUser({
@@ -39,61 +38,65 @@ export default function LoginPage() {
   return (
     <main className={styles.loginPage}>
       <section className={styles.leftSide}>
-        <Link href="/home">
-          <Image
-            src="/images/LOGO.png"
-            alt="Het mandje logo"
-            width={95}
-            height={70}
-            className={styles.logo}
-          />
-        </Link>
-
         <button
           type="button"
           onClick={() => router.back()}
-          className={styles.backLink}
+          className={styles.backButton}
         >
-          <span className={styles.backIcon}>‹</span>
-          Ga terug
+          ← Ga terug
         </button>
 
         <div className={styles.formWrapper}>
-          <h2 className={styles.title}>Welkom bij Petbridge</h2>
+
+          <h1 className={styles.title}>
+            Log in op
+            <br />
+            Het Mandje.
+          </h1>
+
+          <p className={styles.introText}>
+            Meld je aan om je aanvragen, opvangdieren, afspraken en updates
+            verder op te volgen.
+          </p>
 
           <form className={styles.form} onSubmit={handleLogin}>
-            <InputField
-              label="E-mail"
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <label className={styles.field}>
+              <span>E-mail</span>
 
-            <div className={styles.field}>
-              <label htmlFor="password">Wachtwoord</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span>Wachtwoord</span>
 
               <div className={styles.passwordWrapper}>
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
                 />
 
                 <button
                   type="button"
                   className={styles.showButton}
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPassword((current) => !current)}
                 >
                   {showPassword ? "Verberg" : "Tonen"}
                 </button>
               </div>
+            </label>
 
-              <Link href="/wachtwoord-vergeten" className={styles.forgotLink}>
-                Wachtwoord vergeten?
-              </Link>
-            </div>
+            <Link href="/wachtwoord-vergeten" className={styles.forgotLink}>
+              Wachtwoord vergeten?
+            </Link>
 
             <button
               type="submit"
@@ -112,12 +115,14 @@ export default function LoginPage() {
       </section>
 
       <section className={styles.rightSide}>
-        <div className={styles.imagePlaceholder}>
-          <span className={styles.sun}></span>
-
-          <svg viewBox="0 0 160 120" className={styles.placeholderIcon}>
-            <path d="M0 80 L42 38 L78 92 L126 54 L160 88" />
-          </svg>
+        <div className={styles.imageCard}>
+          <Image
+            src="/images/labrador in mand.jpg"
+            alt="labrador in een mandje"
+            fill
+            className={styles.sideImage}
+            priority
+          />
         </div>
       </section>
     </main>

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./dierenarts-login.module.css";
 
@@ -13,11 +14,12 @@ export default function DierenartsLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setErrorMessage("");
 
     if (!email.trim() || !password.trim()) {
@@ -34,7 +36,7 @@ export default function DierenartsLoginPage() {
 
     if (error || !data.user) {
       setLoading(false);
-      setErrorMessage(error?.message || "Inloggen is niet gelukt.");
+      setErrorMessage("E-mail of wachtwoord is niet correct.");
       return;
     }
 
@@ -53,74 +55,107 @@ export default function DierenartsLoginPage() {
     if (profile.role !== "dierenarts") {
       await supabase.auth.signOut();
       setLoading(false);
-      setErrorMessage("Dit account is geen dierenartsaccount.");
+      setErrorMessage("Dit account heeft geen toegang tot het dierenartsplatform.");
       return;
     }
 
+    setLoading(false);
     router.push("/dierenarts/dashboard");
     router.refresh();
   };
 
   return (
     <main className={styles.page}>
-      <section className={styles.imagePanel}>
-        <Link href="/" className={styles.logo}>
-          Het mandje
-        </Link>
+      <section className={styles.leftSide}>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className={styles.backButton}
+        >
+          ← Ga terug
+        </button>
 
-        <div className={styles.imageText}>
-          <h1>Welkom terug</h1>
-          <span>
-            Beheer afspraken, medische dossiers en opvolgingen van dieren in
-            samenwerking met het asiel.
-          </span>
-        </div>
-      </section>
+        <div className={styles.formWrapper}>
 
-      <section className={styles.formPanel}>
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <p>Inloggen</p>
-            <h2>Welkom terug, dierenarts</h2>
-            <span>
-              Nog geen account?{" "}
-              <Link href="/dierenarts/register">Registreer hier</Link>
-            </span>
-          </div>
+          <h1 className={styles.title}>
+            Welkom terug,
+            <br />
+            dierenarts.
+          </h1>
+
+          <p className={styles.intro}>
+            Log in om afspraken, medische dossiers, behandelingen en opvolgingen
+            van dieren eenvoudig te beheren.
+          </p>
 
           <form onSubmit={handleLogin} className={styles.form}>
-            <label>
-              E-mailadres
+            <label className={styles.field}>
+              <span>E-mail</span>
+
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(event) => setEmail(event.target.value)}
                 placeholder="naam@praktijk.be"
+                required
               />
             </label>
 
-            <label>
-              Wachtwoord
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Je wachtwoord"
-              />
+            <label className={styles.field}>
+              <span>Wachtwoord</span>
+
+              <div className={styles.passwordWrapper}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Je wachtwoord"
+                  required
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  className={styles.showButton}
+                >
+                  {showPassword ? "Verberg" : "Tonen"}
+                </button>
+              </div>
             </label>
+
+            <Link href="/wachtwoord-vergeten" className={styles.forgotLink}>
+              Wachtwoord vergeten?
+            </Link>
 
             {errorMessage && (
               <p className={styles.errorMessage}>{errorMessage}</p>
             )}
 
-            <button type="submit" disabled={loading}>
+            <button
+              type="submit"
+              className={styles.loginButton}
+              disabled={loading}
+            >
               {loading ? "Inloggen..." : "Inloggen"}
             </button>
           </form>
 
-          <Link href="/" className={styles.backLink}>
-            ← Terug naar home
-          </Link>
+          <p className={styles.registerText}>
+            Nog geen dierenartsaccount?{" "}
+            <Link href="/dierenarts/register">Registreer hier</Link>
+          </p>
+        </div>
+      </section>
+
+      <section className={styles.rightSide}>
+        <div className={styles.imageCard}>
+          <Image
+            src="/images/dierenarts.jpg"
+            alt="Dierenarts"
+            fill
+            className={styles.sideImage}
+            priority
+          />
         </div>
       </section>
     </main>
