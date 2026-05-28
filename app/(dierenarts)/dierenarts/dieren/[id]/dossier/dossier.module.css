@@ -820,6 +820,202 @@
   line-height: 1.45;
 }
 
+.cardSubtitle {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #8a7a69;
+}
+
+.medicalOverviewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.medicalSummaryCard {
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.medicalSummaryCard span {
+  display: block;
+  margin-bottom: 7px;
+  color: #8a7a69;
+  font-size: 10.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.medicalSummaryCard strong {
+  display: block;
+  color: #1f130d;
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.medicalSummaryCard p {
+  margin: 7px 0 0;
+  color: #62564b;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.medicalRecordTimeline {
+  display: grid;
+  gap: 14px;
+}
+
+.medicalRecordCard {
+  position: relative;
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.medicalRecordCard[open] {
+  border-color: #df963f;
+  box-shadow: 0 12px 28px rgba(31, 19, 13, 0.06);
+}
+
+.medicalRecordSummary {
+  list-style: none;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 14px;
+  padding: 18px;
+}
+
+.medicalRecordSummary::-webkit-details-marker {
+  display: none;
+}
+
+.medicalDot {
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: #df963f;
+  box-shadow: 0 0 0 5px #fff1d8;
+}
+
+.medicalSummaryContent {
+  min-width: 0;
+}
+
+.medicalSummaryTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.medicalSummaryTop h3 {
+  margin: 0 0 5px;
+  font-size: 17px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.medicalSummaryTop p {
+  margin: 0;
+  font-size: 11.5px;
+  color: #8a7a69;
+}
+
+.medicalBadge {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff1d8;
+  color: #8b5b1f;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.medicalQuickInfo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.medicalQuickInfo p {
+  margin: 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fffaf4;
+  border: 1px solid #f0e5da;
+}
+
+.medicalQuickInfo strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10.5px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.medicalQuickInfo span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #62564b;
+}
+
+.medicalRecordDetails {
+  border-top: 1px solid #f0e5da;
+  background: #fffaf4;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.medicalRecordDetails div {
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.medicalRecordDetails strong {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.medicalRecordDetails p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #62564b;
+}
+
+@media (max-width: 900px) {
+  .medicalOverviewGrid,
+  .medicalQuickInfo,
+  .medicalRecordDetails {
+    grid-template-columns: 1fr;
+  }
+
+  .medicalSummaryTop {
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 900px) {
   .medicationMeta {
     grid-template-columns: repeat(2, 1fr);

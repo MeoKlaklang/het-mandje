@@ -1,0 +1,221 @@
+.page {
+  min-height: 100vh;
+  background: #fef5eb;
+  padding: 48px 0 110px;
+  font-family: "Inter", sans-serif;
+}
+
+.container {
+  width: min(940px, calc(100% - 90px));
+  margin: 0 auto;
+}
+
+.backLink {
+  display: inline-block;
+  margin-bottom: 30px;
+  color: #9a948c;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.backLink:hover {
+  color: #df963f;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 28px;
+  margin-bottom: 38px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #df963f;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 500;
+  color: #1f130d;
+}
+
+.header p {
+  max-width: 570px;
+  margin: 16px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #6d6258;
+}
+
+.countCard {
+  min-width: 115px;
+  min-height: 98px;
+  border-radius: 14px;
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.countCard span {
+  font-size: 32px;
+  font-weight: 900;
+  color: #df963f;
+}
+
+.countCard p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: #6d6258;
+}
+
+.medicationList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.medicationCard {
+  position: relative;
+  background: #d8d2a8;
+  border-radius: 10px;
+  padding: 18px 22px;
+  box-shadow: 0 3px 8px rgba(31, 19, 13, 0.12);
+}
+
+.medicationDate {
+  position: absolute;
+  top: 16px;
+  right: 22px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #7c765f;
+}
+
+.medicationTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 95px;
+  margin-bottom: 12px;
+}
+
+.medicationTitleRow h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.bigMedicationCheck {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+}
+
+.bigMedicationCheck input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bigMedicationCheck span {
+  width: 26px;
+  height: 26px;
+  border: 2px solid #1f130d;
+  border-radius: 2px;
+  display: block;
+}
+
+.bigMedicationCheck input:checked + span::after {
+  content: "✓";
+  position: absolute;
+  left: 5px;
+  top: -4px;
+  font-size: 24px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.medicationBullets {
+  margin: 0;
+  padding-left: 40px;
+}
+
+.medicationBullets li {
+  margin: 3px 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #1f130d;
+}
+
+.medicationGiven {
+  opacity: 0.68;
+}
+
+.medicationGiven h2 {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+.emptyState {
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 14px;
+  padding: 34px;
+}
+
+.emptyState h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  color: #1f130d;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 14px;
+  color: #6d6258;
+}
+
+@media (max-width: 760px) {
+  .container {
+    width: calc(100% - 40px);
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header h1 {
+    font-size: 36px;
+  }
+
+  .countCard {
+    width: 100%;
+  }
+
+  .medicationTitleRow {
+    padding-right: 0;
+  }
+
+  .medicationDate {
+    position: static;
+    display: block;
+    margin-bottom: 10px;
+  }
+}

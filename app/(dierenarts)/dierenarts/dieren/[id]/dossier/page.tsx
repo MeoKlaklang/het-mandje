@@ -4,28 +4,55 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import DierenartsLayout from "@/components/dierenarts/DierenartsLayout";
+import { createClient } from "@/lib/supabase/client";
+
 import {
   getDierenartsAnimalDossier,
   DierenartsAnimalDossier,
 } from "@/lib/dierenarts/getDierenartsAnimalDossier";
+
 import {
   getDierenartsAnimalMedicalRecords,
   DierenartsAnimalMedicalRecord,
 } from "@/lib/dierenarts/getDierenartsAnimalMedicalRecords";
+
 import { createDierenartsAnimalMedicalRecord } from "@/lib/dierenarts/createDierenartsAnimalMedicalRecord";
+
 import {
   getDierenartsAnimalMedications,
   DierenartsAnimalMedication,
 } from "@/lib/dierenarts/getDierenartsAnimalMedications";
+
 import { createDierenartsAnimalMedication } from "@/lib/dierenarts/createDierenartsAnimalMedication";
+
 import {
   getDierenartsAnimalNotes,
   DierenartsAnimalNote,
 } from "@/lib/dierenarts/getDierenartsAnimalNotes";
+
 import { createDierenartsAnimalNote } from "@/lib/dierenarts/createDierenartsAnimalNote";
+
 import styles from "./dossier.module.css";
 
 type Tab = "overzicht" | "medisch" | "behandeling" | "afspraken" | "notities";
+
+type DierenartsAppointment = {
+  id: string;
+  animal_id: string | null;
+  shelter_id: string | null;
+  foster_id: string | null;
+  veterinarian_id: string | null;
+  title: string;
+  description: string | null;
+  start_at: string;
+  end_at: string | null;
+  status: string | null;
+  approval_status: string | null;
+  location: string | null;
+  response_message: string | null;
+  appointment_type: string | null;
+  created_by: string | null;
+};
 
 function yesNo(value: boolean | null) {
   if (value === true) return "Ja";
@@ -47,6 +74,18 @@ function formatDate(date: string | null | undefined) {
   });
 }
 
+function formatDateTime(date: string | null | undefined) {
+  if (!date) return "Niet ingevuld";
+
+  return new Date(date).toLocaleDateString("nl-BE", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function todayInputDate() {
   return new Date().toISOString().split("T")[0];
 }
@@ -62,17 +101,43 @@ function getFosterName(animal: DierenartsAnimalDossier) {
   return `${firstName} ${lastName}`.trim() || "Pleeggezin zonder naam";
 }
 
+function getAppointmentStatusLabel(status: string | null | undefined) {
+  if (status === "confirmed") return "Bevestigd";
+  if (status === "declined") return "Geweigerd";
+  if (status === "cancelled") return "Geannuleerd";
+  return "In afwachting";
+}
+
+function getAppointmentStatusClass(status: string | null | undefined) {
+  if (status === "confirmed") return styles.confirmedBadge;
+
+  if (status === "declined" || status === "cancelled") {
+    return styles.declinedBadge;
+  }
+
+  return styles.pendingBadge;
+}
+
+function combineDateAndTime(date: string, time: string) {
+  return new Date(`${date}T${time}:00`).toISOString();
+}
+
 export default function DierenartsAnimalDossierPage() {
   const params = useParams<{ id: string }>();
+  const supabase = createClient();
 
   const [animal, setAnimal] = useState<DierenartsAnimalDossier | null>(null);
+
   const [medicalRecords, setMedicalRecords] = useState<
     DierenartsAnimalMedicalRecord[]
   >([]);
+
   const [medications, setMedications] = useState<
     DierenartsAnimalMedication[]
   >([]);
+
   const [notes, setNotes] = useState<DierenartsAnimalNote[]>([]);
+  const [appointments, setAppointments] = useState<DierenartsAppointment[]>([]);
 
   const [activeTab, setActiveTab] = useState<Tab>("overzicht");
   const [loading, setLoading] = useState(true);
@@ -115,6 +180,51 @@ export default function DierenartsAnimalDossierPage() {
   const [noteRole, setNoteRole] = useState("dierenarts");
   const [noteVisibleToFoster, setNoteVisibleToFoster] = useState(false);
 
+  const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
+  const [savingAppointment, setSavingAppointment] = useState(false);
+
+  const [appointmentTitle, setAppointmentTitle] = useState("");
+  const [appointmentDate, setAppointmentDate] = useState(todayInputDate());
+  const [appointmentStartTime, setAppointmentStartTime] = useState("09:00");
+  const [appointmentEndTime, setAppointmentEndTime] = useState("09:30");
+  const [appointmentType, setAppointmentType] = useState("controle");
+  const [appointmentLocation, setAppointmentLocation] = useState("");
+  const [appointmentDescription, setAppointmentDescription] = useState("");
+
+  async function loadAppointments() {
+    const { data, error } = await supabase
+      .from("appointments")
+      .select(
+        `
+        id,
+        animal_id,
+        shelter_id,
+        foster_id,
+        veterinarian_id,
+        title,
+        description,
+        start_at,
+        end_at,
+        status,
+        approval_status,
+        location,
+        response_message,
+        appointment_type,
+        created_by
+      `
+      )
+      .eq("animal_id", params.id)
+      .order("start_at", { ascending: false });
+
+    if (error) {
+      console.error("Fout bij ophalen afspraken:", error);
+      setAppointments([]);
+      return;
+    }
+
+    setAppointments((data || []) as DierenartsAppointment[]);
+  }
+
   async function loadDossier() {
     setLoading(true);
     setErrorMessage("");
@@ -152,6 +262,8 @@ export default function DierenartsAnimalDossierPage() {
     }
 
     setNotes(notesResult.notes || []);
+
+    await loadAppointments();
 
     setLoading(false);
   }
@@ -193,6 +305,16 @@ export default function DierenartsAnimalDossierPage() {
     setNoteCreatedBy("");
     setNoteRole("dierenarts");
     setNoteVisibleToFoster(false);
+  };
+
+  const resetAppointmentForm = () => {
+    setAppointmentTitle("");
+    setAppointmentDate(todayInputDate());
+    setAppointmentStartTime("09:00");
+    setAppointmentEndTime("09:30");
+    setAppointmentType("controle");
+    setAppointmentLocation("");
+    setAppointmentDescription("");
   };
 
   const handleCreateMedicalRecord = async () => {
@@ -305,6 +427,81 @@ export default function DierenartsAnimalDossierPage() {
     setNotes(notesResult.notes || []);
   };
 
+  const handleCreateAppointment = async () => {
+    if (!animal) return;
+
+    if (!appointmentTitle.trim()) {
+      alert("Vul een titel in voor de afspraak.");
+      return;
+    }
+
+    if (!appointmentDate || !appointmentStartTime || !appointmentEndTime) {
+      alert("Vul een datum, startuur en einduur in.");
+      return;
+    }
+
+    const startAt = combineDateAndTime(appointmentDate, appointmentStartTime);
+    const endAt = combineDateAndTime(appointmentDate, appointmentEndTime);
+
+    if (new Date(endAt).getTime() <= new Date(startAt).getTime()) {
+      alert("Het einduur moet later zijn dan het startuur.");
+      return;
+    }
+
+    setSavingAppointment(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setSavingAppointment(false);
+      alert("Je bent niet ingelogd.");
+      return;
+    }
+
+    const animalData = animal as any;
+
+    const shelterId =
+      animalData.shelter_id || animalData.shelter?.id || null;
+
+    const fosterId =
+      animalData.fosterApplication?.foster_id ||
+      animalData.fosterApplication?.user_id ||
+      animalData.fosterApplication?.fosterProfile?.id ||
+      null;
+
+    const { error } = await supabase.from("appointments").insert({
+      animal_id: params.id,
+      shelter_id: shelterId,
+      foster_id: fosterId,
+      veterinarian_id: user.id,
+      title: appointmentTitle.trim(),
+      description: appointmentDescription.trim() || null,
+      start_at: startAt,
+      end_at: endAt,
+      status: "pending",
+      approval_status: "pending",
+      location: appointmentLocation.trim() || null,
+      appointment_type: appointmentType || "controle",
+      created_by: "dierenarts",
+      response_message: null,
+    });
+
+    setSavingAppointment(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    resetAppointmentForm();
+    setAppointmentModalOpen(false);
+    setActiveTab("afspraken");
+
+    await loadAppointments();
+  };
+
   if (loading) {
     return (
       <DierenartsLayout>
@@ -335,6 +532,36 @@ export default function DierenartsAnimalDossierPage() {
     );
   }
 
+  const sortedMedicalRecords = [...medicalRecords].sort((a, b) => {
+    const dateA = new Date(a.record_date || a.created_at || 0).getTime();
+    const dateB = new Date(b.record_date || b.created_at || 0).getTime();
+
+    return dateB - dateA;
+  });
+
+  const sortedMedications = [...medications].sort((a, b) => {
+    const dateA = new Date(a.created_at || a.start_date || 0).getTime();
+    const dateB = new Date(b.created_at || b.start_date || 0).getTime();
+
+    return dateB - dateA;
+  });
+
+  const sortedNotes = [...notes].sort((a, b) => {
+    const dateA = new Date(a.created_at || 0).getTime();
+    const dateB = new Date(b.created_at || 0).getTime();
+
+    return dateB - dateA;
+  });
+
+  const sortedAppointments = [...appointments].sort((a, b) => {
+    const dateA = new Date(a.start_at || 0).getTime();
+    const dateB = new Date(b.start_at || 0).getTime();
+
+    return dateB - dateA;
+  });
+
+  const latestMedicalRecord = sortedMedicalRecords[0];
+
   return (
     <DierenartsLayout>
       <main className={styles.page}>
@@ -345,7 +572,12 @@ export default function DierenartsAnimalDossierPage() {
             </Link>
 
             <div className={styles.topActions}>
-              <button type="button">+ Afspraak maken</button>
+              <button
+                type="button"
+                onClick={() => setAppointmentModalOpen(true)}
+              >
+                + Afspraak maken
+              </button>
             </div>
           </div>
 
@@ -378,6 +610,7 @@ export default function DierenartsAnimalDossierPage() {
                 {animal.neutered && <span>Gecastreerd</span>}
                 {animal.house_trained && <span>Zindelijk</span>}
                 {animal.needs_medication && <span>Medicatie nodig</span>}
+
                 {!animal.vaccinated &&
                   !animal.neutered &&
                   !animal.house_trained &&
@@ -614,7 +847,13 @@ export default function DierenartsAnimalDossierPage() {
             <section className={styles.tabGrid}>
               <article className={styles.cardWide}>
                 <div className={styles.cardHeader}>
-                  <h2>Medisch dossier</h2>
+                  <div>
+                    <h2>Medisch dossier</h2>
+                    <p className={styles.cardSubtitle}>
+                      Overzicht van onderzoeken, diagnoses, behandelingen en
+                      medische opvolgingen.
+                    </p>
+                  </div>
 
                   <button
                     type="button"
@@ -624,72 +863,120 @@ export default function DierenartsAnimalDossierPage() {
                   </button>
                 </div>
 
-                {medicalRecords.length === 0 ? (
+                <div className={styles.medicalOverviewGrid}>
+                  <div className={styles.medicalSummaryCard}>
+                    <span>Verslagen</span>
+                    <strong>{sortedMedicalRecords.length}</strong>
+                    <p>Medische updates in dit dossier.</p>
+                  </div>
+
+                  <div className={styles.medicalSummaryCard}>
+                    <span>Laatste update</span>
+                    <strong>
+                      {latestMedicalRecord
+                        ? formatDate(
+                            latestMedicalRecord.record_date ||
+                              latestMedicalRecord.created_at
+                          )
+                        : "Geen"}
+                    </strong>
+                    <p>Meest recente medische registratie.</p>
+                  </div>
+
+                  <div className={styles.medicalSummaryCard}>
+                    <span>Medicatie</span>
+                    <strong>{sortedMedications.length}</strong>
+                    <p>Toegevoegde medicatie voor dit dier.</p>
+                  </div>
+                </div>
+
+                {sortedMedicalRecords.length === 0 ? (
                   <div className={styles.emptyBox}>
                     Nog geen medische verslagen voor dit dier.
                   </div>
                 ) : (
-                  <div className={styles.medicalRecordList}>
-                    {medicalRecords.map((record) => (
-                      <article
+                  <div className={styles.medicalRecordTimeline}>
+                    {sortedMedicalRecords.map((record) => (
+                      <details
                         key={record.id}
-                        className={styles.medicalRecordItem}
+                        className={styles.medicalRecordCard}
                       >
-                        <div className={styles.medicalRecordTop}>
-                          <div>
-                            <h3>{record.title}</h3>
+                        <summary className={styles.medicalRecordSummary}>
+                          <span className={styles.medicalDot}></span>
 
-                            <p>
-                              {formatDate(
-                                record.record_date || record.created_at
-                              )}{" "}
-                              · {record.created_by_name || "Dierenarts"} ·{" "}
-                              {record.created_by_role || "dierenarts"}
-                            </p>
+                          <div className={styles.medicalSummaryContent}>
+                            <div className={styles.medicalSummaryTop}>
+                              <div>
+                                <h3>{record.title}</h3>
+
+                                <p>
+                                  {formatDate(
+                                    record.record_date || record.created_at
+                                  )}{" "}
+                                  · {record.created_by_name || "Dierenarts"}
+                                </p>
+                              </div>
+
+                              <span className={styles.medicalBadge}>
+                                {record.created_by_role || "dierenarts"}
+                              </span>
+                            </div>
+
+                            <div className={styles.medicalQuickInfo}>
+                              <p>
+                                <strong>Reden bezoek</strong>
+                                <span>{valueOrDash(record.visit_reason)}</span>
+                              </p>
+
+                              <p>
+                                <strong>Diagnose</strong>
+                                <span>{valueOrDash(record.diagnosis)}</span>
+                              </p>
+
+                              <p>
+                                <strong>Opvolging</strong>
+                                <span>
+                                  {valueOrDash(record.follow_up_advice)}
+                                </span>
+                              </p>
+                            </div>
                           </div>
+                        </summary>
 
-                          <span>Intern dossier</span>
-                        </div>
-
-                        <div className={styles.medicalRecordContent}>
+                        <div className={styles.medicalRecordDetails}>
                           <div>
                             <strong>Reden van bezoek</strong>
-                            <p>{record.visit_reason || "Niet ingevuld"}</p>
+                            <p>{valueOrDash(record.visit_reason)}</p>
                           </div>
 
                           <div>
                             <strong>Onderzoek / observatie</strong>
-                            <p>{record.examination || "Niet ingevuld"}</p>
+                            <p>{valueOrDash(record.examination)}</p>
                           </div>
 
                           <div>
                             <strong>Diagnose / conclusie</strong>
-                            <p>{record.diagnosis || "Niet ingevuld"}</p>
+                            <p>{valueOrDash(record.diagnosis)}</p>
                           </div>
 
                           <div>
                             <strong>Uitgevoerde handeling</strong>
-                            <p>
-                              {record.performed_action || "Niet ingevuld"}
-                            </p>
+                            <p>{valueOrDash(record.performed_action)}</p>
                           </div>
 
                           <div>
                             <strong>Vaccinatie / procedure</strong>
                             <p>
-                              {record.vaccination_or_procedure ||
-                                "Niet ingevuld"}
+                              {valueOrDash(record.vaccination_or_procedure)}
                             </p>
                           </div>
 
                           <div>
                             <strong>Advies voor opvolging</strong>
-                            <p>
-                              {record.follow_up_advice || "Niet ingevuld"}
-                            </p>
+                            <p>{valueOrDash(record.follow_up_advice)}</p>
                           </div>
                         </div>
-                      </article>
+                      </details>
                     ))}
                   </div>
                 )}
@@ -711,13 +998,13 @@ export default function DierenartsAnimalDossierPage() {
                   </button>
                 </div>
 
-                {medications.length === 0 ? (
+                {sortedMedications.length === 0 ? (
                   <div className={styles.emptyBox}>
                     Nog geen medicatie toegevoegd voor dit dier.
                   </div>
                 ) : (
                   <div className={styles.medicationList}>
-                    {medications.map((medication) => (
+                    {sortedMedications.map((medication) => (
                       <article
                         key={medication.id}
                         className={styles.medicationItem}
@@ -776,6 +1063,89 @@ export default function DierenartsAnimalDossierPage() {
             </section>
           )}
 
+          {activeTab === "afspraken" && (
+            <section className={styles.tabGrid}>
+              <article className={styles.cardWide}>
+                <div className={styles.cardHeader}>
+                  <div>
+                    <h2>Afspraken</h2>
+                    <p className={styles.cardSubtitle}>
+                      Overzicht van alle afspraken rond dit dier.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setAppointmentModalOpen(true)}
+                  >
+                    + Afspraak maken
+                  </button>
+                </div>
+
+                {sortedAppointments.length === 0 ? (
+                  <div className={styles.emptyBox}>
+                    Er zijn nog geen afspraken gepland voor dit dier.
+                  </div>
+                ) : (
+                  <div className={styles.appointmentList}>
+                    {sortedAppointments.map((appointment) => (
+                      <article
+                        key={appointment.id}
+                        className={styles.appointmentItem}
+                      >
+                        <div className={styles.appointmentTop}>
+                          <div>
+                            <span>{formatDateTime(appointment.start_at)}</span>
+
+                            <h3>
+                              {appointment.title || "Afspraak zonder titel"}
+                            </h3>
+
+                            {appointment.description && (
+                              <p className={styles.appointmentDetail}>
+                                {appointment.description}
+                              </p>
+                            )}
+
+                            {appointment.location && (
+                              <p className={styles.appointmentDetail}>
+                                Locatie: {appointment.location}
+                              </p>
+                            )}
+
+                            {appointment.appointment_type && (
+                              <p className={styles.appointmentDetail}>
+                                Type: {appointment.appointment_type}
+                              </p>
+                            )}
+                          </div>
+
+                          <strong
+                            className={getAppointmentStatusClass(
+                              appointment.approval_status ||
+                                appointment.status
+                            )}
+                          >
+                            {getAppointmentStatusLabel(
+                              appointment.approval_status ||
+                                appointment.status
+                            )}
+                          </strong>
+                        </div>
+
+                        {appointment.response_message && (
+                          <p className={styles.appointmentResponse}>
+                            {appointment.response_message}
+                          </p>
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </article>
+            </section>
+          )}
+
           {activeTab === "notities" && (
             <section className={styles.tabGrid}>
               <article className={styles.cardWide}>
@@ -787,13 +1157,13 @@ export default function DierenartsAnimalDossierPage() {
                   </button>
                 </div>
 
-                {notes.length === 0 ? (
+                {sortedNotes.length === 0 ? (
                   <div className={styles.emptyBox}>
                     Nog geen notities toegevoegd voor dit dier.
                   </div>
                 ) : (
                   <div className={styles.notesList}>
-                    {notes.map((note) => (
+                    {sortedNotes.map((note) => (
                       <article key={note.id} className={styles.noteItem}>
                         <div className={styles.noteTop}>
                           <div>
@@ -823,17 +1193,125 @@ export default function DierenartsAnimalDossierPage() {
               </article>
             </section>
           )}
-
-          {activeTab === "afspraken" && (
-            <section className={styles.messageCard}>
-              <h1>Afspraken</h1>
-              <p>
-                Deze tab bouwen we hierna. Hier kan de dierenarts afspraken
-                voorstellen aan het pleeggezin.
-              </p>
-            </section>
-          )}
         </div>
+
+        {appointmentModalOpen && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <button
+                type="button"
+                className={styles.closeModal}
+                onClick={() => setAppointmentModalOpen(false)}
+              >
+                ×
+              </button>
+
+              <div className={styles.modalHeader}>
+                <p>Nieuwe afspraak</p>
+                <h2>Afspraak maken</h2>
+              </div>
+
+              <label>
+                Titel
+                <input
+                  type="text"
+                  value={appointmentTitle}
+                  onChange={(e) => setAppointmentTitle(e.target.value)}
+                  placeholder="Bijv. Controle afspraak"
+                />
+              </label>
+
+              <div className={styles.formGrid}>
+                <label>
+                  Datum
+                  <input
+                    type="date"
+                    value={appointmentDate}
+                    onChange={(e) => setAppointmentDate(e.target.value)}
+                  />
+                </label>
+
+                <label>
+                  Type afspraak
+                  <select
+                    value={appointmentType}
+                    onChange={(e) => setAppointmentType(e.target.value)}
+                  >
+                    <option value="controle">Controle</option>
+                    <option value="vaccinatie">Vaccinatie</option>
+                    <option value="behandeling">Behandeling</option>
+                    <option value="consultatie">Consultatie</option>
+                    <option value="opvolging">Opvolging</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className={styles.formGrid}>
+                <label>
+                  Startuur
+                  <input
+                    type="time"
+                    value={appointmentStartTime}
+                    onChange={(e) => setAppointmentStartTime(e.target.value)}
+                  />
+                </label>
+
+                <label>
+                  Einduur
+                  <input
+                    type="time"
+                    value={appointmentEndTime}
+                    onChange={(e) => setAppointmentEndTime(e.target.value)}
+                  />
+                </label>
+              </div>
+
+              <label>
+                Locatie
+                <input
+                  type="text"
+                  value={appointmentLocation}
+                  onChange={(e) => setAppointmentLocation(e.target.value)}
+                  placeholder="Bijv. Dierenartspraktijk Mechelen"
+                />
+              </label>
+
+              <label>
+                Beschrijving
+                <textarea
+                  value={appointmentDescription}
+                  onChange={(e) => setAppointmentDescription(e.target.value)}
+                  placeholder="Extra info voor het pleeggezin of asiel..."
+                />
+              </label>
+
+              <div className={styles.infoNotice}>
+                De afspraak wordt gekoppeld aan dit dier en komt in het
+                afsprakenoverzicht terecht. De status staat eerst op “in
+                afwachting”.
+              </div>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={() => setAppointmentModalOpen(false)}
+                >
+                  Annuleren
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.saveButton}
+                  disabled={savingAppointment}
+                  onClick={handleCreateAppointment}
+                >
+                  {savingAppointment ? "Opslaan..." : "Afspraak opslaan"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {medicalModalOpen && (
           <div className={styles.modalOverlay}>
