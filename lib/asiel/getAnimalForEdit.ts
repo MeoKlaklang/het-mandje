@@ -1,5 +1,11 @@
 import { createClient } from "@/lib/supabase/client";
 
+export type AnimalEditImage = {
+  id: string;
+  image_url: string;
+  image_order: number | null;
+};
+
 export type AnimalForEdit = {
   id: string;
   shelter_id: string;
@@ -25,6 +31,7 @@ export type AnimalForEdit = {
   passport_number: string | null;
 
   image_url: string | null;
+  animal_images: AnimalEditImage[];
 
   short_description: string | null;
   description: string | null;
@@ -36,7 +43,12 @@ export type AnimalForEdit = {
   available_until: string | null;
   expected_duration: string | null;
   care_level: string | null;
-  status: "concept" | "beschikbaar" | "gereserveerd" | "in_opvang" | "niet_beschikbaar";
+  status:
+    | "concept"
+    | "beschikbaar"
+    | "gereserveerd"
+    | "in_opvang"
+    | "niet_beschikbaar";
 
   vaccinated: boolean | null;
   neutered: boolean | null;
@@ -46,6 +58,10 @@ export type AnimalForEdit = {
   can_be_home_alone: boolean | null;
   house_trained: boolean | null;
   needs_medication: boolean | null;
+};
+
+type AnimalForEditRow = Omit<AnimalForEdit, "animal_images"> & {
+  animal_images: AnimalEditImage[] | null;
 };
 
 export async function getAnimalForEdit(animalId: string) {
@@ -116,7 +132,12 @@ export async function getAnimalForEdit(animalId: string) {
       can_live_with_children,
       can_be_home_alone,
       house_trained,
-      needs_medication
+      needs_medication,
+      animal_images (
+        id,
+        image_url,
+        image_order
+      )
     `
     )
     .eq("id", animalId)
@@ -132,8 +153,17 @@ export async function getAnimalForEdit(animalId: string) {
     };
   }
 
+  const row = data as unknown as AnimalForEditRow;
+
+  const sortedImages = [...(row.animal_images || [])].sort(
+    (a, b) => Number(a.image_order || 0) - Number(b.image_order || 0)
+  );
+
   return {
-    animal: data as unknown as AnimalForEdit,
+    animal: {
+      ...row,
+      animal_images: sortedImages,
+    } as AnimalForEdit,
     error: null,
   };
 }

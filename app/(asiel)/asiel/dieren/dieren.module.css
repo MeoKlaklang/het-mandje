@@ -568,6 +568,8 @@
   cursor: not-allowed;
 }
 
+
+
 @media (max-width: 1020px) {
   .animalsGrid {
     grid-template-columns: 1fr;
