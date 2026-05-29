@@ -19,6 +19,8 @@ import styles from "./kalender.module.css";
 const hours = Array.from({ length: 14 }, (_, index) => index + 7);
 const weekDays = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
 
+type AppointmentTarget = "shelter" | "veterinarian";
+
 function startOfWeek(date: Date) {
   const newDate = new Date(date);
   const day = newDate.getDay();
@@ -102,7 +104,10 @@ function getCalendarDays(currentMonth: Date) {
 
 function formatApprovalStatus(status: string | null) {
   if (status === "pending_user_approval") return "Wacht op jouw goedkeuring";
-  if (status === "pending_shelter_approval") return "Wacht op goedkeuring asiel";
+  if (status === "pending_shelter_approval")
+    return "Wacht op goedkeuring asiel";
+  if (status === "pending_veterinarian_approval")
+    return "Wacht op goedkeuring dierenarts";
   if (status === "confirmed") return "Bevestigd";
   if (status === "declined") return "Geweigerd";
   if (status === "new_time_requested") return "Nieuw voorstel verzonden";
@@ -112,6 +117,7 @@ function formatApprovalStatus(status: string | null) {
 function getApprovalClass(status: string | null) {
   if (status === "pending_user_approval") return styles.pendingStatus;
   if (status === "pending_shelter_approval") return styles.pendingStatus;
+  if (status === "pending_veterinarian_approval") return styles.pendingStatus;
   if (status === "declined") return styles.declinedStatus;
   if (status === "new_time_requested") return styles.requestStatus;
   return styles.confirmedStatus;
@@ -193,12 +199,15 @@ export default function KalenderPage() {
 
   const [selectedFosterAnimal, setSelectedFosterAnimal] =
     useState<UserFosterAnimal | null>(null);
+
   const [appointmentDate, setAppointmentDate] = useState(
     formatInputDate(new Date())
   );
   const [appointmentStartTime, setAppointmentStartTime] = useState("09:00");
   const [appointmentEndTime, setAppointmentEndTime] = useState("10:00");
   const [appointmentType, setAppointmentType] = useState("algemeen");
+  const [appointmentTarget, setAppointmentTarget] =
+    useState<AppointmentTarget>("shelter");
   const [appointmentReason, setAppointmentReason] = useState("");
   const [appointmentDescription, setAppointmentDescription] = useState("");
 
@@ -281,6 +290,7 @@ export default function KalenderPage() {
     setAppointmentStartTime("09:00");
     setAppointmentEndTime("10:00");
     setAppointmentType("algemeen");
+    setAppointmentTarget("shelter");
     setAppointmentReason("");
     setAppointmentDescription("");
   };
@@ -316,6 +326,7 @@ export default function KalenderPage() {
       startTime: appointmentStartTime,
       endTime: appointmentEndTime,
       appointmentType,
+      appointmentTarget,
     });
 
     setSavingAppointment(false);
@@ -850,13 +861,34 @@ export default function KalenderPage() {
               )}
 
               {selectedAppointment.approval_status ===
+                "pending_veterinarian_approval" && (
+                <div className={styles.proposalWaitingBox}>
+                  <h3>Dierenartsafspraak aangevraagd</h3>
+
+                  <p>
+                    Je hebt deze afspraak aangevraagd bij de dierenarts.
+                    Wacht tot de dierenarts je voorstel goedkeurt of weigert.
+                  </p>
+
+                  <div className={styles.proposalDateBox}>
+                    <strong>Voorgesteld moment</strong>
+                    <span>
+                      {formatDate(selectedAppointment.start_at)} ·{" "}
+                      {formatTime(selectedAppointment.start_at)} -{" "}
+                      {formatTime(selectedAppointment.end_at)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {selectedAppointment.approval_status ===
                 "new_time_requested" && (
                 <div className={styles.proposalWaitingBox}>
                   <h3>Nieuw voorstel verzonden</h3>
 
                   <p>
-                    Je hebt een nieuwe datum voorgesteld voor deze afspraak. Het
-                    dierenasiel moet dit voorstel nog goedkeuren.
+                    Je hebt een nieuwe datum voorgesteld voor deze afspraak. De
+                    andere partij moet dit voorstel nog goedkeuren.
                   </p>
 
                   <div className={styles.proposalDateBox}>
@@ -947,16 +979,26 @@ export default function KalenderPage() {
 
                       <span>
                         Wordt gestuurd naar:{" "}
-                        {selectedFosterAnimal.shelterName || "Dierenasiel"}
+                        {appointmentTarget === "veterinarian"
+                          ? "Dierenarts van het gekoppelde asiel"
+                          : selectedFosterAnimal.shelterName || "Dierenasiel"}
                       </span>
                     </div>
                   </div>
                 )}
 
                 <label>
-                  Afspraak met
-                  <select value="asiel" disabled>
-                    <option value="asiel">Dierenasiel</option>
+                  Afspraak aanvragen bij
+                  <select
+                    value={appointmentTarget}
+                    onChange={(e) =>
+                      setAppointmentTarget(
+                        e.target.value as AppointmentTarget
+                      )
+                    }
+                  >
+                    <option value="shelter">Dierenasiel</option>
+                    <option value="veterinarian">Dierenarts</option>
                   </select>
                 </label>
 
@@ -966,7 +1008,11 @@ export default function KalenderPage() {
                     type="text"
                     value={appointmentReason}
                     onChange={(e) => setAppointmentReason(e.target.value)}
-                    placeholder="Bijv. Vraag over verzorging"
+                    placeholder={
+                      appointmentTarget === "veterinarian"
+                        ? "Bijv. Controle, vaccinatie of medisch advies"
+                        : "Bijv. Vraag over verzorging"
+                    }
                   />
                 </label>
 
@@ -990,6 +1036,9 @@ export default function KalenderPage() {
                       <option value="opvolging">Opvolging</option>
                       <option value="verzorging">Verzorging</option>
                       <option value="medicatie">Medicatie</option>
+                      <option value="controle">Controle</option>
+                      <option value="vaccinatie">Vaccinatie</option>
+                      <option value="dierenarts">Dierenarts</option>
                       <option value="terugbrengmoment">Terugbrengmoment</option>
                     </select>
                   </label>
@@ -1029,8 +1078,9 @@ export default function KalenderPage() {
                 </label>
 
                 <div className={styles.infoNotice}>
-                  Deze afspraak wordt als verzoek naar het dierenasiel gestuurd.
-                  Het asiel moet je voorstel eerst goedkeuren.
+                  {appointmentTarget === "veterinarian"
+                    ? "Deze afspraak wordt als verzoek naar de dierenarts gestuurd. De dierenarts moet je voorstel eerst goedkeuren."
+                    : "Deze afspraak wordt als verzoek naar het dierenasiel gestuurd. Het asiel moet je voorstel eerst goedkeuren."}
                 </div>
 
                 <div className={styles.modalActions}>
