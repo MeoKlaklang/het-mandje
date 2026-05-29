@@ -8,8 +8,8 @@ type CreateDierenartsAnimalAppointmentRequestData = {
   startTime: string;
   endTime: string;
   appointmentType: string;
-  location: string;
-  createdBy: string;
+  location?: string;
+  createdBy?: string;
 };
 
 function formatAppointmentDate(startAt: Date, endAt: Date) {
@@ -53,7 +53,7 @@ export async function createDierenartsAnimalAppointmentRequest(
     .from("veterinarians")
     .select("id, user_id, shelter_id, first_name, last_name, practice_name")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (veterinarianError || !veterinarian) {
     return {
@@ -62,12 +62,19 @@ export async function createDierenartsAnimalAppointmentRequest(
     };
   }
 
+  if (!veterinarian.shelter_id) {
+    return {
+      success: false,
+      error: "Deze dierenarts is niet gekoppeld aan een dierenasiel.",
+    };
+  }
+
   const { data: animal, error: animalError } = await supabase
     .from("animals")
     .select("id, name, shelter_id")
     .eq("id", data.animalId)
     .eq("shelter_id", veterinarian.shelter_id)
-    .single();
+    .maybeSingle();
 
   if (animalError || !animal) {
     return {
@@ -78,7 +85,7 @@ export async function createDierenartsAnimalAppointmentRequest(
 
   const { data: approvedApplication, error: applicationError } = await supabase
     .from("animal_applications")
-    .select("id, user_id")
+    .select("id, user_id, created_at")
     .eq("animal_id", data.animalId)
     .eq("shelter_id", veterinarian.shelter_id)
     .eq("status", "goedgekeurd")
@@ -104,10 +111,25 @@ export async function createDierenartsAnimalAppointmentRequest(
   const startAt = new Date(`${data.date}T${data.startTime}:00`);
   const endAt = new Date(`${data.date}T${data.endTime}:00`);
 
+  if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
+    return {
+      success: false,
+      error: "De datum of het uur is ongeldig.",
+    };
+  }
+
+  if (endAt <= startAt) {
+    return {
+      success: false,
+      error: "Het einduur moet later zijn dan het startuur.",
+    };
+  }
+
   const doctorName =
     data.createdBy ||
     veterinarian.practice_name ||
-    `Dr. ${veterinarian.last_name || veterinarian.first_name || ""}`.trim();
+    `Dr. ${veterinarian.last_name || veterinarian.first_name || ""}`.trim() ||
+    "Dierenarts";
 
   const { data: appointment, error: appointmentError } = await supabase
     .from("appointments")
@@ -115,6 +137,9 @@ export async function createDierenartsAnimalAppointmentRequest(
       foster_id: approvedApplication.user_id,
       shelter_id: veterinarian.shelter_id,
       animal_id: data.animalId,
+
+      // Belangrijk:
+      // jouw getDierenartsAgendaData zoekt op veterinarian_id = user.id
       veterinarian_id: user.id,
 
       title: data.title,
@@ -126,17 +151,26 @@ export async function createDierenartsAnimalAppointmentRequest(
       location: data.location || null,
       created_by: doctorName,
 
+      // Zelfde werking als bij asiel:
+      // user moet eerst accepteren of weigeren
       status: "pending",
       approval_status: "pending_user_approval",
       requested_by: "veterinarian",
+
+      response_message: null,
+      proposed_new_start_at: null,
+      proposed_new_end_at: null,
     })
     .select("id")
     .single();
 
   if (appointmentError || !appointment) {
+    console.error("Fout bij aanmaken dierenartsafspraak:", appointmentError);
+
     return {
       success: false,
-      error: appointmentError?.message || "Afspraak kon niet aangemaakt worden.",
+      error:
+        appointmentError?.message || "Afspraak kon niet aangemaakt worden.",
     };
   }
 
@@ -151,10 +185,11 @@ export async function createDierenartsAnimalAppointmentRequest(
       type: "appointment_request",
       related_animal_id: data.animalId,
       related_application_id: approvedApplication.id,
+      is_read: false,
     });
 
   if (notificationError) {
-    console.error("Fout bij maken notificatie:", notificationError);
+    console.error("Fout bij maken dierenarts-notificatie:", notificationError);
   }
 
   return {

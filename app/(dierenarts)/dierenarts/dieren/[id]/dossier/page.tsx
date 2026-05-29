@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import DierenartsLayout from "@/components/dierenarts/DierenartsLayout";
 import { createClient } from "@/lib/supabase/client";
+import { createDierenartsAnimalAppointmentRequest } from "@/lib/dierenarts/createDierenartsAnimalAppointmentRequest";
 
 import {
   getDierenartsAnimalDossier,
@@ -90,6 +91,10 @@ function todayInputDate() {
   return new Date().toISOString().split("T")[0];
 }
 
+function combineDateAndTime(date: string, time: string) {
+  return new Date(`${date}T${time}:00`).toISOString();
+}
+
 function getFosterName(animal: DierenartsAnimalDossier) {
   const profile = animal.fosterApplication?.fosterProfile;
 
@@ -101,11 +106,31 @@ function getFosterName(animal: DierenartsAnimalDossier) {
   return `${firstName} ${lastName}`.trim() || "Pleeggezin zonder naam";
 }
 
+function getLinkedFosterId(animal: DierenartsAnimalDossier) {
+  const animalData = animal as any;
+
+  return (
+    animalData.fosterApplication?.user_id ||
+    animalData.fosterApplication?.foster_id ||
+    animalData.fosterApplication?.fosterProfile?.id ||
+    null
+  );
+}
+
+function getLinkedShelterId(animal: DierenartsAnimalDossier) {
+  const animalData = animal as any;
+
+  return animalData.shelter_id || animalData.shelter?.id || null;
+}
+
 function getAppointmentStatusLabel(status: string | null | undefined) {
+  if (status === "pending_user_approval") return "Wachten op goedkeuring";
   if (status === "confirmed") return "Bevestigd";
   if (status === "declined") return "Geweigerd";
+  if (status === "new_time_requested") return "Nieuw voorstel gevraagd";
   if (status === "cancelled") return "Geannuleerd";
-  return "In afwachting";
+
+  return "Wachten op goedkeuring";
 }
 
 function getAppointmentStatusClass(status: string | null | undefined) {
@@ -116,10 +141,6 @@ function getAppointmentStatusClass(status: string | null | undefined) {
   }
 
   return styles.pendingBadge;
-}
-
-function combineDateAndTime(date: string, time: string) {
-  return new Date(`${date}T${time}:00`).toISOString();
 }
 
 export default function DierenartsAnimalDossierPage() {
@@ -190,6 +211,7 @@ export default function DierenartsAnimalDossierPage() {
   const [appointmentType, setAppointmentType] = useState("controle");
   const [appointmentLocation, setAppointmentLocation] = useState("");
   const [appointmentDescription, setAppointmentDescription] = useState("");
+  const [appointmentCreatedBy, setAppointmentCreatedBy] = useState("");
 
   async function loadAppointments() {
     const { data, error } = await supabase
@@ -315,6 +337,7 @@ export default function DierenartsAnimalDossierPage() {
     setAppointmentType("controle");
     setAppointmentLocation("");
     setAppointmentDescription("");
+    setAppointmentCreatedBy("");
   };
 
   const handleCreateMedicalRecord = async () => {
@@ -428,8 +451,6 @@ export default function DierenartsAnimalDossierPage() {
   };
 
   const handleCreateAppointment = async () => {
-    if (!animal) return;
-
     if (!appointmentTitle.trim()) {
       alert("Vul een titel in voor de afspraak.");
       return;
@@ -440,58 +461,24 @@ export default function DierenartsAnimalDossierPage() {
       return;
     }
 
-    const startAt = combineDateAndTime(appointmentDate, appointmentStartTime);
-    const endAt = combineDateAndTime(appointmentDate, appointmentEndTime);
-
-    if (new Date(endAt).getTime() <= new Date(startAt).getTime()) {
-      alert("Het einduur moet later zijn dan het startuur.");
-      return;
-    }
-
     setSavingAppointment(true);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setSavingAppointment(false);
-      alert("Je bent niet ingelogd.");
-      return;
-    }
-
-    const animalData = animal as any;
-
-    const shelterId =
-      animalData.shelter_id || animalData.shelter?.id || null;
-
-    const fosterId =
-      animalData.fosterApplication?.foster_id ||
-      animalData.fosterApplication?.user_id ||
-      animalData.fosterApplication?.fosterProfile?.id ||
-      null;
-
-    const { error } = await supabase.from("appointments").insert({
-      animal_id: params.id,
-      shelter_id: shelterId,
-      foster_id: fosterId,
-      veterinarian_id: user.id,
-      title: appointmentTitle.trim(),
-      description: appointmentDescription.trim() || null,
-      start_at: startAt,
-      end_at: endAt,
-      status: "pending",
-      approval_status: "pending",
-      location: appointmentLocation.trim() || null,
-      appointment_type: appointmentType || "controle",
-      created_by: "dierenarts",
-      response_message: null,
+    const result = await createDierenartsAnimalAppointmentRequest({
+      animalId: params.id,
+      title: appointmentTitle,
+      description: appointmentDescription,
+      date: appointmentDate,
+      startTime: appointmentStartTime,
+      endTime: appointmentEndTime,
+      appointmentType,
+      location: appointmentLocation,
+      createdBy: appointmentCreatedBy,
     });
 
     setSavingAppointment(false);
 
-    if (error) {
-      alert(error.message);
+    if (!result.success) {
+      alert(result.error || "Afspraak kon niet aangemaakt worden.");
       return;
     }
 
@@ -500,6 +487,10 @@ export default function DierenartsAnimalDossierPage() {
     setActiveTab("afspraken");
 
     await loadAppointments();
+
+    alert(
+      "Afspraak voorgesteld. De afspraak wacht nu op goedkeuring van het pleeggezin."
+    );
   };
 
   if (loading) {
@@ -1266,15 +1257,27 @@ export default function DierenartsAnimalDossierPage() {
                 </label>
               </div>
 
-              <label>
-                Locatie
-                <input
-                  type="text"
-                  value={appointmentLocation}
-                  onChange={(e) => setAppointmentLocation(e.target.value)}
-                  placeholder="Bijv. Dierenartspraktijk Mechelen"
-                />
-              </label>
+              <div className={styles.formGrid}>
+                <label>
+                  Locatie
+                  <input
+                    type="text"
+                    value={appointmentLocation}
+                    onChange={(e) => setAppointmentLocation(e.target.value)}
+                    placeholder="Bijv. Dierenartspraktijk Mechelen"
+                  />
+                </label>
+
+                <label>
+                  Aangemaakt door
+                  <input
+                    type="text"
+                    value={appointmentCreatedBy}
+                    onChange={(e) => setAppointmentCreatedBy(e.target.value)}
+                    placeholder="Bijv. Dr. Peeters of Dierenartspraktijk Luna"
+                  />
+                </label>
+              </div>
 
               <label>
                 Beschrijving
@@ -1286,9 +1289,8 @@ export default function DierenartsAnimalDossierPage() {
               </label>
 
               <div className={styles.infoNotice}>
-                De afspraak wordt gekoppeld aan dit dier en komt in het
-                afsprakenoverzicht terecht. De status staat eerst op “in
-                afwachting”.
+                Deze afspraak wordt naar het pleeggezin gestuurd. De afspraak
+                staat op “wachten op goedkeuring” tot de user bevestigt.
               </div>
 
               <div className={styles.modalActions}>
