@@ -10,6 +10,9 @@ type RegisterShelterData = {
   shelterPhone: string;
   website: string;
 
+  latitude: string;
+  longitude: string;
+
   contactFirstName: string;
   contactLastName: string;
   contactRole: string;
@@ -24,6 +27,16 @@ type RegisterShelterData = {
 
 export async function registerShelter(data: RegisterShelterData) {
   const supabase = createClient();
+
+  const latitude = Number(data.latitude);
+  const longitude = Number(data.longitude);
+
+  if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+    return {
+      success: false,
+      error: "Latitude en longitude moeten geldige nummers zijn.",
+    };
+  }
 
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: data.accountEmail,
@@ -68,39 +81,77 @@ export async function registerShelter(data: RegisterShelterData) {
     };
   }
 
-  const { error: shelterError } = await supabase.from("shelters").insert({
-    owner_id: userId,
+  const { data: shelter, error: shelterError } = await supabase
+    .from("shelters")
+    .insert({
+      owner_id: userId,
 
-    name: data.shelterName,
-    recognition_number: data.recognitionNumber || null,
-    description: data.description || null,
+      name: data.shelterName,
+      recognition_number: data.recognitionNumber || null,
+      description: data.description || null,
 
-    street: data.street,
-    house_number: data.houseNumber,
-    postal_code: data.postalCode,
-    city: data.city,
-    country: "België",
+      street: data.street,
+      house_number: data.houseNumber,
+      postal_code: data.postalCode,
+      city: data.city,
+      country: "België",
 
-    phone: data.shelterPhone || data.contactPhone || null,
-    email: data.contactEmail,
-    website: data.website || null,
+      latitude,
+      longitude,
 
-    contact_first_name: data.contactFirstName,
-    contact_last_name: data.contactLastName,
-    contact_role: data.contactRole || null,
-    contact_email: data.contactEmail,
-    contact_phone: data.contactPhone || null,
+      phone: data.shelterPhone || data.contactPhone || null,
+      email: data.contactEmail,
+      website: data.website || null,
 
-    animal_types: data.animalTypes,
-    image_url: "/images/dog3.jpg",
-  });
+      contact_first_name: data.contactFirstName,
+      contact_last_name: data.contactLastName,
+      contact_role: data.contactRole || null,
+      contact_email: data.contactEmail,
+      contact_phone: data.contactPhone || null,
 
-  if (shelterError) {
+      animal_types: data.animalTypes,
+      image_url: "/images/dog3.jpg",
+    })
+    .select("id")
+    .single();
+
+  if (shelterError || !shelter) {
     console.error("Fout bij maken shelter:", shelterError);
 
     return {
       success: false,
-      error: shelterError.message,
+      error: shelterError?.message || "Dierenasiel kon niet worden aangemaakt.",
+    };
+  }
+
+  const { error: locationError } = await supabase
+    .from("shelter_locations")
+    .insert({
+      name: data.shelterName,
+      street: data.street,
+      house_number: data.houseNumber,
+      postal_code: data.postalCode,
+      city: data.city,
+      province: null,
+      country: "België",
+
+      phone: data.shelterPhone || data.contactPhone || null,
+      email: data.contactEmail,
+      website: data.website || null,
+
+      latitude,
+      longitude,
+
+      is_platform_partner: true,
+      linked_shelter_id: shelter.id,
+    });
+
+  if (locationError) {
+    console.error("Fout bij maken shelter location:", locationError);
+
+    return {
+      success: false,
+      error: locationError.message,
     };
   }
 

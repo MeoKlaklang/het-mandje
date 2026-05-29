@@ -5,6 +5,10 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getAnimals, Animal } from "@/lib/animals/getAnimals";
+import {
+  getShelterLocations,
+  ShelterLocation,
+} from "@/lib/shelters/getShelterLocations";
 import styles from "./kaart.module.css";
 
 const AnimalsMap = dynamic(() => import("@/components/animals/AnimalsMap"), {
@@ -42,6 +46,9 @@ function DierenKaartContent() {
   const searchParams = useSearchParams();
 
   const [animals, setAnimals] = useState<Animal[]>([]);
+  const [shelterLocations, setShelterLocations] = useState<ShelterLocation[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [likedAnimals, setLikedAnimals] = useState<string[]>([]);
 
@@ -67,14 +74,18 @@ function DierenKaartContent() {
   const [sizeFilter, setSizeFilter] = useState("");
 
   useEffect(() => {
-    async function loadAnimals() {
-      const { animals } = await getAnimals();
+    async function loadMapData() {
+      const [animalResult, shelterResult] = await Promise.all([
+        getAnimals(),
+        getShelterLocations(),
+      ]);
 
-      setAnimals(animals || []);
+      setAnimals(animalResult.animals || []);
+      setShelterLocations(shelterResult.shelterLocations || []);
       setLoading(false);
     }
 
-    loadAnimals();
+    loadMapData();
   }, []);
 
   useEffect(() => {
@@ -207,6 +218,28 @@ function DierenKaartContent() {
     sizeFilter,
     mapSearch,
   ]);
+
+  const filteredShelterLocations = useMemo(() => {
+    if (!mapSearch.trim() && !locationFilter.trim()) {
+      return shelterLocations;
+    }
+
+    const search = (mapSearch || locationFilter).trim().toLowerCase();
+
+    return shelterLocations.filter((shelter) => {
+      const name = shelter.name?.toLowerCase() || "";
+      const city = shelter.city?.toLowerCase() || "";
+      const postalCode = shelter.postal_code || "";
+      const street = shelter.street?.toLowerCase() || "";
+
+      return (
+        name.includes(search) ||
+        city.includes(search) ||
+        postalCode.includes(search) ||
+        street.includes(search)
+      );
+    });
+  }, [shelterLocations, mapSearch, locationFilter]);
 
   const resetFilters = () => {
     setLocationFilter("");
@@ -443,7 +476,10 @@ function DierenKaartContent() {
           />
         </div>
 
-        <AnimalsMap animals={filteredAnimals} />
+        <AnimalsMap
+          animals={filteredAnimals}
+          shelterLocations={filteredShelterLocations}
+        />
       </section>
     </main>
   );
