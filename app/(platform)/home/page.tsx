@@ -63,7 +63,7 @@ export default function Home() {
 							JE LIEVELINGSDIER!
 						</p>
 
-						<Link href="/auth/register" className={styles.cardLink}>
+						<Link href="/register" className={styles.cardLink}>
 							<span>Word opvanggezin</span>
 						</Link>
 					</div>
@@ -129,7 +129,7 @@ export default function Home() {
 			{/* NEWSLETTER */}
 			<section className={styles.newsletterSection}>
 				<div className={styles.newsletterImage}>
-					<img src="/images/2 dogs in een mand.jpg" alt="" />
+					<img src="/images/kleine-hond-in-mand.jpg" alt="" />
 				</div>
 
 				<div className={styles.newsletterContent}>

@@ -7,7 +7,7 @@ export default function Pleeggezin() {
 			<section className={styles.heroSection}>
 				<div className={styles.heroText}>
 					<h1>
-						Een tijdelijk thuis maaktaa
+						Een tijdelijk thuis maakt
 						<br />
 						een wereld van verschil
 					</h1>
@@ -108,7 +108,7 @@ export default function Pleeggezin() {
 					</div>
 				</div>
 
-				<Link href="/auth/register" className={styles.tasksButtonLink}>
+				<Link href="/register" className={styles.tasksButtonLink}>
 					<button className={styles.tasksButton}>AANMELDEN ALS OPVANGGEZIN</button>
 				</Link>
 			</section>

@@ -35,7 +35,9 @@ export default function HoeWerktOpvang() {
 						<img src="/images/husky in mandje.jpg" alt="" />
 					</div>
 
-					<h2>Wat is tijdelijke opvang?</h2>
+					<div className={styles.infoContent}>
+						<h2>Wat is tijdelijke opvang?</h2>
+					</div>
 
 					<p>Tijdelijke opvang betekent dat je een dier voor een bepaalde periode een veilig thuis geeft.</p>
 
@@ -126,7 +128,7 @@ export default function HoeWerktOpvang() {
 					</div>
 				</div>
 
-				<Link href="/auth/register" className={styles.ctaButtonLink}>
+				<Link href="/register" className={styles.ctaButtonLink}>
 					<button className={styles.ctaButton}>AANMELDEN ALS PLEEGGEZIN</button>
 				</Link>
 			</section>
@@ -273,7 +275,7 @@ export default function HoeWerktOpvang() {
 					</div>
 				</div>
 
-				<Link href="/auth/register" className={styles.costButtonLink}>
+				<Link href="/register" className={styles.costButtonLink}>
 					<button className={styles.costButton}>AANMELDEN ALS PLEEGGEZIN</button>
 				</Link>
 			</section>

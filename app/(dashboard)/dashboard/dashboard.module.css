@@ -8,13 +8,17 @@
 
 .statusBox {
   background: #d7d1a6;
-  border-radius: 14px;
+  border-radius: 18px;
   padding: 38px 46px;
   margin-bottom: 34px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto;
   gap: 42px;
-  align-items: flex-start;
+  align-items: center;
+}
+
+.welcomeText {
+  max-width: 620px;
 }
 
 .welcomeLabel {
@@ -29,9 +33,9 @@
 .statusBox h1 {
   font-size: 30px;
   font-weight: 400;
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   color: #1f130d;
-  padding-top: 20px;
+  padding-top: 12px;
 }
 
 .statusBox p {
@@ -47,7 +51,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-top: 18px;
 }
 
 .stepItem {
@@ -56,6 +59,7 @@
   align-items: center;
   gap: 13px;
   text-align: center;
+  min-width: 92px;
 }
 
 .circle {
@@ -67,7 +71,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 23px;
+  line-height: 1;
+  color: #1f130d;
+  box-shadow: 0 8px 18px rgba(31, 19, 13, 0.06);
 }
 
 .circleDone {
@@ -81,25 +88,37 @@
   font-size: 11px;
   font-weight: 800;
   color: #3d342b;
+  line-height: 1.25;
 }
 
 .line {
-  width: 90px;
-  height: 1px;
+  width: 88px;
+  height: 2px;
   background: #fffaf4;
   margin-bottom: 28px;
+  border-radius: 999px;
 }
 
-.grid {
+.lineDone {
+  background: #c9e8ce;
+}
+
+.dashboardColumns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.dashboardColumn {
+  display: flex;
+  flex-direction: column;
   gap: 28px;
 }
 
 .card {
-  min-height: 250px;
   background: #d7d1a6;
-  border-radius: 14px;
+  border-radius: 18px;
   padding: 26px 30px 30px;
 }
 
@@ -383,9 +402,224 @@
   color: #9b8d7f;
 }
 
+.notificationList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.myAnimalsList {
+  display: grid;
+  gap: 12px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: #fffaf4;
+  border: 1px solid #eadfd4;
+  border-radius: 12px;
+  padding: 8px 18px;
+  max-height: 430px;
+  overflow-y: auto;
+}
+
+.notificationList::-webkit-scrollbar,
+.myAnimalsList::-webkit-scrollbar,
+.historyList::-webkit-scrollbar {
+  width: 7px;
+}
+
+.notificationList::-webkit-scrollbar-track,
+.myAnimalsList::-webkit-scrollbar-track,
+.historyList::-webkit-scrollbar-track {
+  background: #eee3d4;
+  border-radius: 999px;
+}
+
+.notificationList::-webkit-scrollbar-thumb,
+.myAnimalsList::-webkit-scrollbar-thumb,
+.historyList::-webkit-scrollbar-thumb {
+  background: #c79a5b;
+  border-radius: 999px;
+}
+
+.notificationList::-webkit-scrollbar-thumb:hover,
+.myAnimalsList::-webkit-scrollbar-thumb:hover,
+.historyList::-webkit-scrollbar-thumb:hover {
+  background: #a87938;
+}
+
+
+.appointmentList,
+.myAnimalsList,
+.updateList,
+.actionList {
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.appointmentList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.appointmentItem {
+  background: #fffaf4;
+  border: 1px solid #eadfd4;
+  border-radius: 12px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 14px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.appointmentItem:hover {
+  border-color: #df963f;
+}
+
+.appointmentDate {
+  min-height: 72px;
+  border-radius: 10px;
+  background: #fff1d8;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 10px;
+}
+
+.appointmentDate strong {
+  font-size: 11px;
+  line-height: 1.25;
+  color: #8b5b1f;
+  text-transform: capitalize;
+}
+
+.appointmentDate span {
+  margin-top: 6px;
+  font-size: 16px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.appointmentContent h3 {
+  margin: 0 0 4px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.appointmentContent p {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: #62564b;
+}
+
+.updateList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: #fffaf4;
+  border: 1px solid #eadfd4;
+  border-radius: 12px;
+  padding: 8px 18px;
+  max-height: 430px;
+}
+
+.updateItem {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0e5da;
+}
+
+.updateItem:last-child {
+  border-bottom: none;
+}
+
+.updateItem > span {
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: #4f8f5f;
+}
+
+.updateItem h3 {
+  margin: 0 0 5px;
+  font-family: "Inter", sans-serif;
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #1f130d;
+}
+
+.updateItem p {
+  margin: 0 0 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #62564b;
+}
+
+.updateItem small {
+  font-size: 11px;
+  color: #9b8d7f;
+}
+
+.appointmentList::-webkit-scrollbar,
+.myAnimalsList::-webkit-scrollbar,
+.updateList::-webkit-scrollbar,
+.actionList::-webkit-scrollbar {
+  width: 7px;
+}
+
+.appointmentList::-webkit-scrollbar-track,
+.myAnimalsList::-webkit-scrollbar-track,
+.updateList::-webkit-scrollbar-track,
+.actionList::-webkit-scrollbar-track {
+  background: #eee3d4;
+  border-radius: 999px;
+}
+
+.appointmentList::-webkit-scrollbar-thumb,
+.myAnimalsList::-webkit-scrollbar-thumb,
+.updateList::-webkit-scrollbar-thumb,
+.actionList::-webkit-scrollbar-thumb {
+  background: #c79a5b;
+  border-radius: 999px;
+}
+
+.appointmentList::-webkit-scrollbar-thumb:hover,
+.myAnimalsList::-webkit-scrollbar-thumb:hover,
+.updateList::-webkit-scrollbar-thumb:hover,
+.actionList::-webkit-scrollbar-thumb:hover {
+  background: #a87938;
+}
+
+@media (max-width: 560px) {
+  .appointmentItem {
+    grid-template-columns: 1fr;
+  }
+
+  .appointmentDate {
+    min-height: auto;
+  }
+}
 @media (max-width: 1100px) {
   .statusBox {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .steps {
@@ -399,7 +633,7 @@
     padding: 28px 24px 60px;
   }
 
-  .grid {
+  .dashboardColumns {
     grid-template-columns: 1fr;
   }
 
@@ -409,7 +643,7 @@
   }
 
   .line {
-    width: 1px;
+    width: 2px;
     height: 32px;
     margin: 0;
   }

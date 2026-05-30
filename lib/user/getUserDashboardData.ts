@@ -5,6 +5,8 @@ export type DashboardProfile = {
   first_name: string | null;
   last_name: string | null;
   birth: string | null;
+  phone: string | null;
+  avatar_url: string | null;
   street: string | null;
   house_number: string | null;
   postal_code: string | null;
@@ -22,6 +24,31 @@ export type DashboardNotification = {
   created_at: string;
   related_animal_id: string | null;
   related_application_id: string | null;
+};
+
+export type DashboardAppointment = {
+  id: string;
+  title: string;
+  description: string | null;
+  start_at: string;
+  end_at: string;
+  status: string | null;
+  approval_status: string | null;
+  requested_by: string | null;
+  created_by: string | null;
+  appointment_type: string | null;
+  location: string | null;
+  animal: {
+    id: string;
+    name: string;
+    image_url: string | null;
+    species: string | null;
+    breed: string | null;
+  } | null;
+  shelter: {
+    id: string;
+    name: string | null;
+  } | null;
 };
 
 export type DashboardAnimalApplication = {
@@ -47,20 +74,36 @@ export type RequiredAction = {
   href: string;
 };
 
-export type HistoryItem = {
+export type DashboardUpdate = {
   id: string;
   title: string;
   description: string;
   date: string | null;
+  type: string | null;
 };
 
 export type UserDashboardData = {
   profile: DashboardProfile | null;
-  notifications: DashboardNotification[];
+  appointments: DashboardAppointment[];
   applications: DashboardAnimalApplication[];
   requiredActions: RequiredAction[];
-  history: HistoryItem[];
+  updates: DashboardUpdate[];
 };
+
+function hasText(value: string | null | undefined) {
+  return Boolean(value && value.trim().length > 0);
+}
+
+function isAppointmentNotification(type: string | null) {
+  if (!type) return false;
+
+  return (
+    type.includes("appointment") ||
+    type.includes("afspraak") ||
+    type === "appointment_request" ||
+    type === "veterinarian_appointment_request"
+  );
+}
 
 export async function getUserDashboardData() {
   const supabase = createClient();
@@ -84,6 +127,8 @@ export async function getUserDashboardData() {
       first_name,
       last_name,
       birth,
+      phone,
+      avatar_url,
       street,
       house_number,
       postal_code,
@@ -102,6 +147,42 @@ export async function getUserDashboardData() {
     };
   }
 
+  const { data: appointments, error: appointmentsError } = await supabase
+    .from("appointments")
+    .select(
+      `
+      id,
+      title,
+      description,
+      start_at,
+      end_at,
+      status,
+      approval_status,
+      requested_by,
+      created_by,
+      appointment_type,
+      location,
+      animals (
+        id,
+        name,
+        image_url,
+        species,
+        breed
+      ),
+      shelters (
+        id,
+        name
+      )
+    `
+    )
+    .eq("foster_id", user.id)
+    .order("start_at", { ascending: false })
+    .limit(30);
+
+  if (appointmentsError) {
+    console.error("Fout bij ophalen afspraken:", appointmentsError);
+  }
+
   const { data: notifications, error: notificationsError } = await supabase
     .from("notifications")
     .select(
@@ -118,10 +199,10 @@ export async function getUserDashboardData() {
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(30);
 
   if (notificationsError) {
-    console.error("Fout bij ophalen notificaties:", notificationsError);
+    console.error("Fout bij ophalen updates:", notificationsError);
   }
 
   const { data: applications, error: applicationsError } = await supabase
@@ -145,39 +226,37 @@ export async function getUserDashboardData() {
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
-    .limit(4);
+    .limit(20);
 
   if (applicationsError) {
     console.error("Fout bij ophalen mijn dieren:", applicationsError);
   }
 
-  const actions: RequiredAction[] = [];
+  const appointmentList = (appointments || []).map((appointment) => {
+    const animalData = Array.isArray(appointment.animals)
+      ? appointment.animals[0]
+      : appointment.animals;
 
-  if (!profile?.street || !profile?.house_number || !profile?.postal_code || !profile?.city) {
-    actions.push({
-      id: "address",
-      title: "Voeg je adres toe",
-      description:
-        "Een volledig adres helpt dierenasielen om beter in te schatten of een opvangmatch haalbaar is.",
-      href: "/profiel",
-    });
-  }
+    const shelterData = Array.isArray(appointment.shelters)
+      ? appointment.shelters[0]
+      : appointment.shelters;
 
-  actions.push({
-    id: "photo",
-    title: "Voeg een profielfoto toe",
-    description:
-      "Zo weten dierenasielen wie er achter een aanvraag zit. Dit verhoogt vertrouwen.",
-    href: "/profiel",
-  });
-
-  actions.push({
-    id: "phone",
-    title: "Verifieer je telefoonnummer",
-    description:
-      "Voor veiligheid en duidelijke communicatie vragen we later om telefoonverificatie.",
-    href: "/profiel",
-  });
+    return {
+      id: appointment.id,
+      title: appointment.title,
+      description: appointment.description,
+      start_at: appointment.start_at,
+      end_at: appointment.end_at,
+      status: appointment.status,
+      approval_status: appointment.approval_status,
+      requested_by: appointment.requested_by,
+      created_by: appointment.created_by,
+      appointment_type: appointment.appointment_type,
+      location: appointment.location,
+      animal: animalData || null,
+      shelter: shelterData || null,
+    };
+  }) as DashboardAppointment[];
 
   const applicationList = (applications || []).map((application) => {
     const animalData = Array.isArray(application.animals)
@@ -196,40 +275,77 @@ export async function getUserDashboardData() {
 
   const notificationList = (notifications || []) as DashboardNotification[];
 
-  const history: HistoryItem[] = [
-    ...applicationList.map((application) => ({
-      id: `application-${application.id}`,
-      title: application.animals
-        ? `Aanvraag ingediend voor ${application.animals.name}`
-        : "Aanvraag ingediend",
-      description:
-        application.status === "goedgekeurd"
-          ? "Je aanvraag werd goedgekeurd."
-          : application.status === "afgewezen"
-          ? "Je aanvraag werd niet goedgekeurd."
-          : "Je aanvraag wordt bekeken door het dierenasiel.",
-      date: application.created_at,
-    })),
-    ...notificationList.map((notification) => ({
-      id: `notification-${notification.id}`,
+  const updates: DashboardUpdate[] = notificationList
+    .filter((notification) => !isAppointmentNotification(notification.type))
+    .map((notification) => ({
+      id: notification.id,
       title: notification.title,
       description: notification.message,
       date: notification.created_at,
-    })),
-  ]
-    .sort((a, b) => {
-      const dateA = a.date ? new Date(a.date).getTime() : 0;
-      const dateB = b.date ? new Date(b.date).getTime() : 0;
-      return dateB - dateA;
-    })
-    .slice(0, 5);
+      type: notification.type,
+    }));
+
+  const hasAddress =
+    hasText(profile?.street) &&
+    hasText(profile?.house_number) &&
+    hasText(profile?.postal_code) &&
+    hasText(profile?.city);
+
+  const hasProfileImage = hasText(profile?.avatar_url);
+  const hasPhone = hasText(profile?.phone);
+
+  const actions: RequiredAction[] = [];
+
+  if (!hasAddress) {
+    actions.push({
+      id: "address",
+      title: "Voeg je adres toe",
+      description:
+        "Een volledig adres helpt dierenasielen om beter in te schatten of een opvangmatch haalbaar is.",
+      href: "/profiel",
+    });
+  }
+
+  if (!hasProfileImage) {
+    actions.push({
+      id: "photo",
+      title: "Voeg een profielfoto toe",
+      description:
+        "Zo weten dierenasielen wie er achter een aanvraag zit. Dit verhoogt vertrouwen.",
+      href: "/profiel",
+    });
+  }
+
+  if (!hasPhone) {
+    actions.push({
+      id: "phone",
+      title: "Voeg je telefoonnummer toe",
+      description:
+        "Voor veiligheid en duidelijke communicatie vragen we een telefoonnummer.",
+      href: "/profiel",
+    });
+  }
+
+  appointmentList
+    .filter((appointment) => appointment.approval_status === "pending_user_approval")
+    .slice(0, 3)
+    .forEach((appointment) => {
+      actions.push({
+        id: `appointment-${appointment.id}`,
+        title: "Afspraak wacht op jouw reactie",
+        description: `${appointment.title} ${
+          appointment.animal?.name ? `voor ${appointment.animal.name}` : ""
+        } moet nog goedgekeurd of geweigerd worden.`,
+        href: "/kalender",
+      });
+    });
 
   const dashboardData: UserDashboardData = {
     profile: profile || null,
-    notifications: notificationList,
+    appointments: appointmentList,
     applications: applicationList,
     requiredActions: actions,
-    history,
+    updates,
   };
 
   return {
