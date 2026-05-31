@@ -1,583 +1,625 @@
 .page {
-	min-height: calc(100vh - 74px);
-	background: #fef5eb;
-	padding: 34px 44px 80px;
-	font-family: "Inter", sans-serif;
-	color: #1f130d;
+  min-height: calc(100vh - 74px);
+  background: #fef5eb;
+  padding: 34px 80px 80px;
+  font-family: "Inter", sans-serif;
+  color: #1f130d;
 }
 
 .wrapper {
-	max-width: 1180px;
-	margin: 0 auto;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 .header {
-	display: flex;
-	justify-content: space-between;
-	gap: 28px;
-	align-items: flex-start;
-	margin-bottom: 26px;
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+  align-items: flex-start;
+  margin-bottom: 28px;
 }
 
 .header h1 {
-	margin: 0;
-	font-size: 32px;
-
-	color: #1f130d;
+  margin: 0;
+  font-size: 36px;
+  color: #1f130d;
+  font-weight: 400;
 }
 
 .header p {
-	margin: 8px 0 0;
-	font-size: 13px;
-	color: #8a7a69;
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #8a7a69;
 }
 
 .createButton {
-	height: 38px;
-	min-width: 170px;
-	border: none;
-	border-radius: 6px;
-	background: #df963f;
-	color: white;
-	font-family: "Inter", sans-serif;
-	font-size: 12px;
-	font-weight: 900;
-	cursor: pointer;
+  height: 44px;
+  min-width: 190px;
+  border: none;
+  border-radius: 7px;
+  background: #df963f;
+  color: white;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  margin-top: 8px;
 }
 
 .createButton:hover {
-	background: #cf842d;
+  background: #cf842d;
 }
 
 /* LAYOUT */
 
 .calendarLayout {
-	display: grid;
-	grid-template-columns: 1fr 310px;
-	gap: 34px;
-	align-items: start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 40px;
+  align-items: start;
 }
 
 .weekPanel {
-	background: #fffaf4;
-	border: 1px solid #eadfd4;
-	border-radius: 14px;
-	overflow: hidden;
+  background: #fffaf4;
+  border: 1px solid #eadfd4;
+  border-radius: 16px;
+  overflow: hidden;
+  min-height: 760px;
 }
 
 .weekTop {
-	height: 64px;
-	border-bottom: 1px solid #eadfd4;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 22px;
+  height: 66px;
+  border-bottom: 1px solid #eadfd4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
 }
 
 .weekTop h2 {
-	margin: 0;
-	font-size: 16px;
-	font-weight: 900;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
 }
 
 .weekTop button {
-	border: none;
-	background: transparent;
-	font-size: 28px;
-	color: #8a7a69;
-	cursor: pointer;
+  border: none;
+  background: transparent;
+  font-size: 30px;
+  color: #8a7a69;
+  cursor: pointer;
 }
 
 .weekGrid {
-	display: grid;
-	grid-template-columns: 70px repeat(7, 1fr);
-	grid-template-rows: 56px 840px;
-	overflow-x: auto;
+  display: grid;
+  grid-template-columns: 74px repeat(7, minmax(118px, 1fr));
+  grid-template-rows: 64px 840px;
+  overflow-x: auto;
 }
 
 .emptyCorner {
-	border-right: 1px solid #eadfd4;
-	border-bottom: 1px solid #eadfd4;
+  border-right: 1px solid #eadfd4;
+  border-bottom: 1px solid #eadfd4;
 }
 
 .dayHeader {
-	border-right: 1px solid #eadfd4;
-	border-bottom: 1px solid #eadfd4;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	gap: 3px;
+  border-right: 1px solid #eadfd4;
+  border-bottom: 1px solid #eadfd4;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
 }
 
 .dayHeader span {
-	font-size: 11px;
-	font-weight: 900;
-	color: #9b8d7f;
+  font-size: 11px;
+  font-weight: 900;
+  color: #9b8d7f;
 }
 
 .dayHeader strong {
-	font-size: 17px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 }
 
 .todayHeader {
-	background: #fff1d8;
+  background: #fff7ea;
+  box-shadow: inset 0 -3px 0 #df963f;
+}
+
+.todayHeader span {
+  color: #8b5b1f;
+}
+
+.todayHeader strong {
+  background: #df963f;
+  color: white;
 }
 
 .timeColumn {
-	grid-column: 1;
-	grid-row: 2;
-	border-right: 1px solid #eadfd4;
+  grid-column: 1;
+  grid-row: 2;
+  border-right: 1px solid #eadfd4;
 }
 
 .timeSlot {
-	height: 60px;
-	padding: 6px 10px;
-	font-size: 11px;
-	color: #9b8d7f;
-	border-bottom: 1px solid #f0e5da;
+  height: 60px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: #9b8d7f;
+  border-bottom: 1px solid #f0e5da;
 }
 
 .dayColumn {
-	position: relative;
-	min-width: 116px;
-	grid-row: 2;
-	border-right: 1px solid #eadfd4;
+  position: relative;
+  min-width: 118px;
+  grid-row: 2;
+  border-right: 1px solid #eadfd4;
 }
 
 .hourLine {
-	height: 60px;
-	border-bottom: 1px solid #f0e5da;
+  height: 60px;
+  border-bottom: 1px solid #f0e5da;
 }
 
-/* APPOINTMENT BLOCK */
+/* APPOINTMENTS */
 
 .appointmentBlock {
-	position: absolute;
-	left: 7px;
-	right: 7px;
-	border: 1px solid #eadfd4;
-	border-left: 5px solid #df963f;
-	background: #fffaf4;
-	color: #1f130d;
-	border-radius: 10px;
-	padding: 7px 8px 7px 9px;
-	font-size: 11px;
-	overflow: hidden;
-	box-shadow: 0 8px 18px rgba(31, 19, 13, 0.08);
-	text-align: left;
-	cursor: pointer;
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  border: 1px solid #eadfd4;
+  background: #fffaf4;
+  color: #1f130d;
+  border-radius: 12px;
+  padding: 8px 9px;
+  font-size: 11px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(31, 19, 13, 0.08);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: 0.18s ease;
 }
 
 .appointmentBlock:hover {
-	transform: translateY(-1px);
-	box-shadow: 0 12px 24px rgba(31, 19, 13, 0.12);
-	border-color: #df963f;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(31, 19, 13, 0.12);
+  border-color: #df963f;
 }
 
 .appointmentTime {
-	font-size: 9.5px;
-	font-weight: 900;
-	color: #8a7a69;
-	line-height: 1.1;
+  font-size: 9.5px;
+  font-weight: 900;
+  color: #8a7a69;
+  line-height: 1.1;
 }
 
 .appointmentBlock strong {
-	display: block;
-	font-size: 11px;
-	font-weight: 900;
-	line-height: 1.15;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+  display: block;
+  font-size: 11.5px;
+  font-weight: 900;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .appointmentBlock p {
-	margin: 0;
-	font-size: 10px;
-	font-weight: 700;
-	color: #62564b;
-	line-height: 1.15;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: #62564b;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .statusDot {
-	position: absolute;
-	right: 7px;
-	bottom: 7px;
-	width: 7px;
-	height: 7px;
-	border-radius: 999px;
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
 }
 
 .pendingStatus {
-	background: #fff1d8;
-	color: #8b5b1f;
+  background: #fff1d8;
+  color: #8b5b1f;
 }
 
 .confirmedStatus {
-	background: #e6f5e8;
-	color: #1f4d2b;
+  background: #e6f5e8;
+  color: #1f4d2b;
 }
 
 .declinedStatus {
-	background: #fbe4e4;
-	color: #8a2d2d;
+  background: #fbe4e4;
+  color: #8a2d2d;
 }
 
 .requestStatus {
-	background: #e8eef7;
-	color: #34465e;
+  background: #e8eef7;
+  color: #34465e;
 }
 
 .statusDot.pendingStatus {
-	background: #df963f;
+  background: #df963f;
 }
 
 .statusDot.confirmedStatus {
-	background: #3f8f55;
+  background: #3f8f55;
 }
 
 .statusDot.declinedStatus {
-	background: #c64d4d;
+  background: #c64d4d;
 }
 
 .statusDot.requestStatus {
-	background: #4f6f9f;
+  background: #4f6f9f;
 }
 
 /* RIGHT SIDE */
 
 .sidePanel {
-	display: flex;
-	flex-direction: column;
-	gap: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
 }
 
 .miniCalendar,
-.todayCard,
-.remindersCard,
+.todoCard,
 .messageCard {
-	background: #fffaf4;
-	border: 1px solid #eadfd4;
-	border-radius: 14px;
-	box-shadow: 0 10px 30px rgba(31, 19, 13, 0.05);
+  background: #fffaf4;
+  border: 1px solid #eadfd4;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(31, 19, 13, 0.05);
 }
 
 .miniCalendar {
-	padding: 22px;
+  padding: 22px;
 }
 
 .calendarTop {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
 }
 
 .calendarTop h2 {
-	margin: 0;
-	font-size: 14px;
-	font-weight: 900;
-	text-transform: capitalize;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: capitalize;
 }
 
 .calendarTop button {
-	border: none;
-	background: transparent;
-	font-size: 22px;
-	color: #9b8d7f;
-	cursor: pointer;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  color: #9b8d7f;
+  cursor: pointer;
 }
 
 .calendarDaysHeader,
 .calendarGrid {
-	display: grid;
-	grid-template-columns: repeat(7, 1fr);
-	text-align: center;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
 }
 
 .calendarDaysHeader {
-	margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 
 .calendarDaysHeader span {
-	font-size: 10px;
-	font-weight: 900;
-	color: #9b8d7f;
+  font-size: 10px;
+  font-weight: 900;
+  color: #9b8d7f;
 }
 
 .calendarGrid {
-	gap: 8px 0;
+  gap: 8px 0;
 }
 
 .calendarDay {
-	position: relative;
-	width: 30px;
-	height: 30px;
-	margin: 0 auto;
-	border: none;
-	border-radius: 999px;
-	background: transparent;
-	color: #1f130d;
-	font-size: 12px;
-	cursor: pointer;
+  position: relative;
+  width: 31px;
+  height: 31px;
+  margin: 0 auto;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #1f130d;
+  font-size: 12px;
+  cursor: pointer;
 }
 
 .calendarDay:hover {
-	background: #fff1d8;
+  background: #fff1d8;
 }
 
 .calendarDay span {
-	position: absolute;
-	bottom: 3px;
-	left: 50%;
-	width: 4px;
-	height: 4px;
-	transform: translateX(-50%);
-	border-radius: 999px;
-	background: #df963f;
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #df963f;
 }
 
 .todayDay {
-	background: #df963f !important;
-	color: white;
-	font-weight: 900;
+  background: #df963f !important;
+  color: white;
+  font-weight: 900;
 }
 
 .todayDay span {
-	background: white;
+  background: white;
 }
 
 .otherMonth {
-	color: #c5b9ae;
+  color: #c5b9ae;
 }
 
-/* TODAY */
+/* TODO */
 
-.todayCard,
-.remindersCard {
-	padding: 22px;
+.todoCard {
+  padding: 22px;
 }
 
-.todayHeader {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 14px;
-	margin-bottom: 18px;
+.todoHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 18px;
 }
 
-.todayHeader h2 {
-	margin: 0;
-	font-size: 17px;
-	font-weight: 900;
+.todoHeader h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
 }
 
-.todayHeader button {
-	min-width: 86px;
-	height: 30px;
-	border: none;
-	border-radius: 999px;
-	background: #df963f;
-	color: white;
-	font-size: 10.5px;
-	font-weight: 900;
-	cursor: pointer;
+.todoHeader p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #8a7a69;
 }
 
-.todayHeader button:hover {
-	background: #cf842d;
+.todoHeader button {
+  min-width: 92px;
+  height: 32px;
+  border: none;
+  border-radius: 999px;
+  background: #df963f;
+  color: white;
+  font-size: 10.5px;
+  font-weight: 900;
+  cursor: pointer;
 }
 
-.todayList {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
+.todoHeader button:hover {
+  background: #cf842d;
 }
 
-.todayItem {
-	width: 100%;
-	border: none;
-	text-align: left;
-	cursor: pointer;
-	display: grid;
-	grid-template-columns: 52px 1fr;
-	gap: 12px;
-	padding: 14px;
-	border-radius: 10px;
-	background: #d7d1a6;
+.todoList {
+  max-height: 330px;
+  overflow-y: auto;
+  padding-right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.todayItem span {
-	font-size: 12px;
-	font-weight: 900;
-	color: #4d4339;
+.todoItem {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 11px;
+  padding: 13px;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #eadfd4;
 }
 
-.todayItem h3 {
-	margin: 0 0 4px;
-	font-size: 13px;
-	font-weight: 900;
+.todoItemDone {
+  opacity: 0.68;
 }
 
-.todayItem p {
-	margin: 0;
-	font-size: 12px;
-	color: #62564b;
+.todoItemDone h3,
+.todoItemDone p {
+  text-decoration: line-through;
+}
+
+.todoCheck {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 2px solid #df963f;
+  background: white;
+  color: white;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.todoCheckDone {
+  background: #3f8f55;
+  border-color: #3f8f55;
+}
+
+.todoTitleRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.todoItem h3 {
+  margin: 0 0 5px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.todoItem p {
+  margin: 0 0 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #62564b;
+}
+
+.todoItem small {
+  font-size: 11px;
+  color: #9b8d7f;
+}
+
+.todoPriority {
+  flex-shrink: 0;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #fff1d8;
+  color: #8b5b1f;
+  font-size: 9px;
+  font-weight: 900;
 }
 
 .emptyToday {
-	border: 1px dashed #d8cabd;
-	border-radius: 10px;
-	padding: 26px;
-	text-align: center;
-	font-size: 12px;
-	color: #9b8d7f;
+  border: 1px dashed #d8cabd;
+  border-radius: 10px;
+  padding: 26px;
+  text-align: center;
+  font-size: 12px;
+  color: #9b8d7f;
 }
 
-/* REMINDERS */
-
-.reminderList {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
+.todoList::-webkit-scrollbar {
+  width: 7px;
 }
 
-.reminderItem,
-.importantReminder {
-	border-radius: 10px;
-	padding: 14px;
-	background: white;
-	border: 1px solid #eadfd4;
+.todoList::-webkit-scrollbar-track {
+  background: #eee3d4;
+  border-radius: 999px;
 }
 
-.importantReminder {
-	background: #fff1d8;
-	border-color: #df963f;
+.todoList::-webkit-scrollbar-thumb {
+  background: #c79a5b;
+  border-radius: 999px;
 }
 
-.reminderItem h3,
-.importantReminder h3 {
-	margin: 0 0 6px;
-	font-size: 13px;
-	font-weight: 900;
-}
-
-.reminderItem p,
-.importantReminder p {
-	margin: 0;
-	font-size: 12px;
-	line-height: 1.45;
-	color: #62564b;
-}
-
-.importantReminder span {
-	display: inline-flex;
-	margin-bottom: 7px;
-	color: #8b5b1f;
-	font-size: 11px;
-	font-weight: 900;
+.todoList::-webkit-scrollbar-thumb:hover {
+  background: #a87938;
 }
 
 /* MESSAGE */
 
 .messageCard {
-	max-width: 520px;
-	padding: 28px;
+  max-width: 520px;
+  padding: 28px;
 }
 
 .messageCard h2 {
-	margin: 0 0 8px;
-	font-size: 22px;
+  margin: 0 0 8px;
+  font-size: 22px;
 }
 
 .messageCard p {
-	margin: 0;
-	font-size: 13px;
-	color: #8a7a69;
+  margin: 0;
+  font-size: 13px;
+  color: #8a7a69;
 }
 
 /* MODAL */
 
 .modalOverlay {
-	position: fixed;
-	inset: 0;
-	z-index: 9999;
-	background: rgba(31, 19, 13, 0.35);
-	display: flex;
-	align-items: flex-start;
-	justify-content: center;
-	padding: 70px 20px;
-	overflow-y: auto;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(31, 19, 13, 0.35);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 70px 20px;
+  overflow-y: auto;
 }
 
 .modal,
 .detailModal {
-	position: relative;
-	width: min(580px, 100%);
-	background: #fffaf4;
-	border: 1px solid #dfd4c7;
-	border-radius: 18px;
-	padding: 30px;
-	box-shadow: 0 18px 55px rgba(31, 19, 13, 0.2);
+  position: relative;
+  width: min(580px, 100%);
+  background: #fffaf4;
+  border: 1px solid #dfd4c7;
+  border-radius: 18px;
+  padding: 30px;
+  box-shadow: 0 18px 55px rgba(31, 19, 13, 0.2);
 }
 
 .detailModal {
-	width: min(640px, 100%);
+  width: min(640px, 100%);
 }
 
 .closeModal {
-	position: absolute;
-	top: 16px;
-	right: 18px;
-	border: none;
-	background: transparent;
-	font-size: 30px;
-	cursor: pointer;
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  border: none;
+  background: transparent;
+  font-size: 30px;
+  cursor: pointer;
 }
 
 .modalHeader {
-	margin-bottom: 24px;
+  margin-bottom: 24px;
 }
 
 .modalHeader p {
-	margin: 0 0 5px;
-	color: #df963f;
-	font-size: 12px;
-	font-weight: 900;
-	text-transform: uppercase;
+  margin: 0 0 5px;
+  color: #df963f;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .modalHeader h2 {
-	margin: 0;
-	font-size: 28px;
+  margin: 0;
+  font-size: 28px;
 }
 
 .form,
 .modal label,
 .responseBox label,
 .proposalBox label {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .form {
-	gap: 18px;
+  gap: 18px;
 }
 
 .modal label,
 .responseBox label,
 .proposalBox label {
-	margin-bottom: 18px;
-	font-size: 13px;
-	font-weight: 900;
+  margin-bottom: 18px;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .modal input,
@@ -585,23 +627,23 @@
 .modal select,
 .responseBox textarea,
 .proposalBox input {
-	width: 100%;
-	border: 1px solid #d7cbbf;
-	border-radius: 7px;
-	background: white;
-	padding: 0 13px;
-	height: 42px;
-	font-family: "Inter", sans-serif;
-	font-size: 13px;
-	outline: none;
+  width: 100%;
+  border: 1px solid #d7cbbf;
+  border-radius: 7px;
+  background: white;
+  padding: 0 13px;
+  height: 42px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  outline: none;
 }
 
 .modal textarea,
 .responseBox textarea {
-	min-height: 100px;
-	height: auto;
-	padding-top: 12px;
-	resize: vertical;
+  min-height: 100px;
+  height: auto;
+  padding-top: 12px;
+  resize: vertical;
 }
 
 .modal input:focus,
@@ -609,20 +651,20 @@
 .modal select:focus,
 .responseBox textarea:focus,
 .proposalBox input:focus {
-	border-color: #df963f;
+  border-color: #df963f;
 }
 
 .formGrid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
 }
 
 .modalActions,
 .responseActions {
-	display: flex;
-	justify-content: flex-end;
-	gap: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 .cancelButton,
@@ -630,343 +672,301 @@
 .confirmButton,
 .declineButton,
 .proposalButton {
-	min-width: 130px;
-	height: 43px;
-	border-radius: 7px;
-	font-family: "Inter", sans-serif;
-	font-size: 13px;
-	font-weight: 900;
-	cursor: pointer;
+  min-width: 130px;
+  height: 43px;
+  border-radius: 7px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
 }
 
 .cancelButton {
-	border: 1px solid #dfd4c7;
-	background: white;
-	color: #1f130d;
+  border: 1px solid #dfd4c7;
+  background: white;
+  color: #1f130d;
 }
 
 .saveButton,
 .confirmButton,
 .proposalButton {
-	border: none;
-	background: #df963f;
-	color: white;
+  border: none;
+  background: #df963f;
+  color: white;
 }
 
 .saveButton:hover,
 .confirmButton:hover,
 .proposalButton:hover {
-	background: #cf842d;
+  background: #cf842d;
 }
 
 .declineButton {
-	border: 1px solid #f1c5c5;
-	background: #fbe4e4;
-	color: #8a2d2d;
+  border: 1px solid #f1c5c5;
+  background: #fbe4e4;
+  color: #8a2d2d;
 }
 
 .saveButton:disabled,
 .confirmButton:disabled,
 .declineButton:disabled,
 .proposalButton:disabled {
-	opacity: 0.7;
-	cursor: not-allowed;
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .infoNotice {
-	padding: 13px 14px;
-	border-radius: 10px;
-	background: #fff1d8;
-	color: #8b5b1f;
-	font-size: 12px;
-	line-height: 1.45;
+  padding: 13px 14px;
+  border-radius: 10px;
+  background: #fff1d8;
+  color: #8b5b1f;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 /* DETAIL MODAL */
 
 .detailStatusRow {
-	margin-bottom: 18px;
+  margin-bottom: 18px;
 }
 
 .detailStatusBadge {
-	width: fit-content;
-	padding: 7px 11px;
-	border-radius: 999px;
-	font-size: 11px;
-	font-weight: 900;
-	display: inline-flex;
+  width: fit-content;
+  padding: 7px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  display: inline-flex;
 }
 
 .detailAnimal {
-	display: grid;
-	grid-template-columns: 64px 1fr;
-	gap: 14px;
-	align-items: center;
-	background: white;
-	border: 1px solid #eadfd4;
-	border-radius: 12px;
-	padding: 12px;
-	margin-bottom: 18px;
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 14px;
+  align-items: center;
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 18px;
 }
 
 .detailAnimal img {
-	width: 64px;
-	height: 64px;
-	border-radius: 10px;
-	object-fit: cover;
-	background: #e8ded4;
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #e8ded4;
 }
 
 .detailAnimal h3 {
-	margin: 0 0 4px;
-	font-size: 16px;
-	font-weight: 900;
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 900;
 }
 
 .detailAnimal p {
-	margin: 0;
-	font-size: 12px;
-	color: #62564b;
+  margin: 0;
+  font-size: 12px;
+  color: #62564b;
 }
 
 .detailGrid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 12px;
-	margin-bottom: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .detailGrid p {
-	margin: 0;
-	background: white;
-	border: 1px solid #eadfd4;
-	border-radius: 10px;
-	padding: 13px;
+  margin: 0;
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 10px;
+  padding: 13px;
 }
 
 .detailGrid strong,
 .detailText strong,
 .detailResponse strong {
-	display: block;
-	margin-bottom: 5px;
-	font-size: 11px;
-	font-weight: 900;
-	color: #1f130d;
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #1f130d;
 }
 
 .detailGrid span,
 .detailText p,
 .detailResponse p {
-	margin: 0;
-	font-size: 13px;
-	line-height: 1.45;
-	color: #62564b;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #62564b;
 }
 
 .detailText,
 .detailResponse {
-	background: white;
-	border: 1px solid #eadfd4;
-	border-radius: 10px;
-	padding: 14px;
-	margin-top: 12px;
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 12px;
 }
 
 .detailResponse {
-	background: #fff1d8;
-	color: #8b5b1f;
+  background: #fff1d8;
+  color: #8b5b1f;
 }
 
 .responseBox {
-	margin-top: 18px;
-	border-top: 1px solid #eadfd4;
-	padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px solid #eadfd4;
+  padding-top: 18px;
 }
 
 .responseBox h3 {
-	margin: 0 0 14px;
-	font-size: 17px;
-	font-weight: 900;
+  margin: 0 0 14px;
+  font-size: 17px;
+  font-weight: 900;
 }
 
 .proposalBox {
-	margin-top: 18px;
-	padding: 16px;
-	background: white;
-	border: 1px solid #eadfd4;
-	border-radius: 12px;
+  margin-top: 18px;
+  padding: 16px;
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 12px;
 }
 
 .proposalBox h4 {
-	margin: 0 0 14px;
-	font-size: 14px;
-	font-weight: 900;
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .proposalWaitingBox {
-	margin-top: 18px;
-	padding: 16px;
-	border-radius: 12px;
-	background: #e8eef7;
-	border: 1px solid #cfd9eb;
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #e8eef7;
+  border: 1px solid #cfd9eb;
 }
 
 .proposalWaitingBox h3 {
-	margin: 0 0 8px;
-	font-size: 16px;
-	font-weight: 900;
-	color: #34465e;
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 900;
+  color: #34465e;
 }
 
 .proposalWaitingBox p {
-	margin: 0 0 14px;
-	font-size: 13px;
-	line-height: 1.45;
-	color: #34465e;
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #34465e;
 }
 
 .proposalDateBox {
-	background: white;
-	border: 1px solid #cfd9eb;
-	border-radius: 10px;
-	padding: 13px;
+  background: white;
+  border: 1px solid #cfd9eb;
+  border-radius: 10px;
+  padding: 13px;
 }
 
 .proposalDateBox strong {
-	display: block;
-	margin-bottom: 5px;
-	font-size: 11px;
-	font-weight: 900;
-	color: #1f130d;
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #1f130d;
 }
 
 .proposalDateBox span {
-	display: block;
-	font-size: 13px;
-	color: #62564b;
+  display: block;
+  font-size: 13px;
+  color: #62564b;
 }
 
 .selectedAnimalBox {
-	display: grid;
-	grid-template-columns: 58px 1fr;
-	gap: 13px;
-	align-items: center;
-	background: white;
-	border: 1px solid #eadfd4;
-	border-radius: 12px;
-	padding: 12px;
-	margin-bottom: 18px;
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 13px;
+  align-items: center;
+  background: white;
+  border: 1px solid #eadfd4;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 18px;
 }
 
 .selectedAnimalBox img {
-	width: 58px;
-	height: 58px;
-	border-radius: 10px;
-	object-fit: cover;
-	background: #e8ded4;
+  width: 58px;
+  height: 58px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #e8ded4;
 }
 
 .selectedAnimalBox h3 {
-	margin: 0 0 4px;
-	font-size: 14px;
-	font-weight: 900;
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .selectedAnimalBox p {
-	margin: 0 0 5px;
-	font-size: 12px;
-	color: #62564b;
+  margin: 0 0 5px;
+  font-size: 12px;
+  color: #62564b;
 }
 
 .selectedAnimalBox span {
-	display: block;
-	font-size: 11px;
-	font-weight: 900;
-	color: #df963f;
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  color: #df963f;
 }
 
-.proposalWaitingBox {
-	margin-top: 18px;
-	padding: 16px;
-	border-radius: 12px;
-	background: #e8eef7;
-	border: 1px solid #cfd9eb;
-}
-
-.proposalWaitingBox h3 {
-	margin: 0 0 8px;
-	font-size: 16px;
-	font-weight: 900;
-	color: #34465e;
-}
-
-.proposalWaitingBox p {
-	margin: 0 0 14px;
-	font-size: 13px;
-	line-height: 1.45;
-	color: #34465e;
-}
-
-.proposalDateBox {
-	background: white;
-	border: 1px solid #cfd9eb;
-	border-radius: 10px;
-	padding: 13px;
-}
-
-.proposalDateBox strong {
-	display: block;
-	margin-bottom: 5px;
-	font-size: 11px;
-	font-weight: 900;
-	color: #1f130d;
-}
-
-.proposalDateBox span {
-	display: block;
-	font-size: 13px;
-	color: #62564b;
-}
 /* RESPONSIVE */
 
-@media (max-width: 1150px) {
-	.calendarLayout {
-		grid-template-columns: 1fr;
-	}
+@media (max-width: 1250px) {
+  .calendarLayout {
+    grid-template-columns: 1fr;
+  }
 
-	.sidePanel {
-		max-width: 420px;
-	}
+  .sidePanel {
+    max-width: 430px;
+  }
 }
 
 @media (max-width: 760px) {
-	.page {
-		padding: 28px 22px 70px;
-	}
+  .page {
+    padding: 28px 22px 70px;
+  }
 
-	.header {
-		flex-direction: column;
-	}
+  .header {
+    flex-direction: column;
+  }
 
-	.createButton {
-		width: 100%;
-	}
+  .createButton {
+    width: 100%;
+  }
 
-	.formGrid,
-	.detailGrid {
-		grid-template-columns: 1fr;
-	}
+  .formGrid,
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
 
-	.modalActions,
-	.responseActions {
-		flex-direction: column;
-	}
+  .modalActions,
+  .responseActions {
+    flex-direction: column;
+  }
 
-	.cancelButton,
-	.saveButton,
-	.confirmButton,
-	.declineButton,
-	.proposalButton {
-		width: 100%;
-	}
+  .cancelButton,
+  .saveButton,
+  .confirmButton,
+  .declineButton,
+  .proposalButton {
+    width: 100%;
+  }
 }

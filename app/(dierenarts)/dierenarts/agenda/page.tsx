@@ -112,10 +112,10 @@ function getFosterName(appointment: DierenartsAgendaAppointment) {
 
 function formatApprovalStatus(status: string | null) {
   if (status === "pending_user_approval") return "Wacht op goedkeuring user";
-  if (status === "pending_veterinarian_approval")
+  if (status === "pending_veterinarian_approval") {
     return "Wacht op goedkeuring dierenarts";
-  if (status === "pending_shelter_approval")
-    return "Wacht op goedkeuring";
+  }
+  if (status === "pending_shelter_approval") return "Wacht op goedkeuring";
   if (status === "confirmed") return "Bevestigd";
   if (status === "declined") return "Geweigerd";
   if (status === "new_time_requested") return "Nieuw voorstel";
@@ -315,7 +315,6 @@ export default function DierenartsAgendaPage() {
     if (!selectedAppointment) return;
 
     const confirmed = confirm("Wil je deze afspraak verwijderen?");
-
     if (!confirmed) return;
 
     setAppointmentActionLoading(true);
@@ -413,6 +412,207 @@ export default function DierenartsAgendaPage() {
     );
   };
 
+  const renderAgendaContent = () => {
+    if (loading) {
+      return (
+        <section className={styles.messageCard}>
+          <h2>Agenda wordt geladen...</h2>
+          <p>We halen de afspraken van je dierenartsagenda op.</p>
+        </section>
+      );
+    }
+
+    if (errorMessage) {
+      return (
+        <section className={styles.messageCard}>
+          <h2>Er ging iets mis</h2>
+          <p>{errorMessage}</p>
+        </section>
+      );
+    }
+
+    return (
+      <section className={styles.agendaLayout}>
+        <div className={styles.weekPanel}>
+          <div className={styles.weekTop}>
+            <button type="button" onClick={previousWeek}>
+              ‹
+            </button>
+
+            <h2>
+              Week van{" "}
+              {weekStart.toLocaleDateString("nl-BE", {
+                day: "2-digit",
+                month: "long",
+              })}
+            </h2>
+
+            <button type="button" onClick={nextWeek}>
+              ›
+            </button>
+          </div>
+
+          <div className={styles.weekGrid}>
+            <div className={styles.emptyCorner}></div>
+
+            {days.map((day, index) => (
+              <div
+                key={day.toISOString()}
+                className={`${styles.dayHeader} ${
+                  sameDay(day, new Date()) ? styles.todayHeader : ""
+                }`}
+              >
+                <span>{weekDays[index]}</span>
+                <strong>{day.getDate()}</strong>
+              </div>
+            ))}
+
+            <div className={styles.timeColumn}>
+              {hours.map((hour) => (
+                <div key={hour} className={styles.timeSlot}>
+                  {String(hour).padStart(2, "0")}:00
+                </div>
+              ))}
+            </div>
+
+            {days.map((day) => {
+              const dayAppointments = appointments.filter((appointment) =>
+                sameDay(new Date(appointment.start_at), day)
+              );
+
+              return (
+                <div key={day.toISOString()} className={styles.dayColumn}>
+                  {hours.map((hour) => (
+                    <div key={hour} className={styles.hourLine}></div>
+                  ))}
+
+                  {dayAppointments.map((appointment) => (
+                    <button
+                      key={appointment.id}
+                      type="button"
+                      className={styles.appointmentBlock}
+                      style={{
+                        top: `${getAppointmentTop(appointment.start_at)}px`,
+                        height: `${getAppointmentHeight(
+                          appointment.start_at,
+                          appointment.end_at
+                        )}px`,
+                      }}
+                      onClick={() => setSelectedAppointment(appointment)}
+                    >
+                      <span className={styles.appointmentTime}>
+                        {formatTime(appointment.start_at)} -{" "}
+                        {formatTime(appointment.end_at)}
+                      </span>
+
+                      <strong>{appointment.title}</strong>
+
+                      <p>
+                        {appointment.animal?.name ||
+                          appointment.appointment_type ||
+                          "Algemeen"}
+                      </p>
+
+                      <span
+                        className={`${styles.statusDot} ${getApprovalClass(
+                          appointment.approval_status
+                        )}`}
+                      ></span>
+                    </button>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <aside className={styles.sidePanel}>
+          <section className={styles.miniCalendar}>
+            <div className={styles.calendarTop}>
+              <button type="button" onClick={previousMonth}>
+                ‹
+              </button>
+
+              <h2>{formatMonth(calendarMonth)}</h2>
+
+              <button type="button" onClick={nextMonth}>
+                ›
+              </button>
+            </div>
+
+            <div className={styles.calendarDaysHeader}>
+              <span>Ma</span>
+              <span>Di</span>
+              <span>Wo</span>
+              <span>Do</span>
+              <span>Vr</span>
+              <span>Za</span>
+              <span>Zo</span>
+            </div>
+
+            <div className={styles.calendarGrid}>
+              {calendarDays.map((day) => {
+                const hasAppointment = appointments.some((appointment) =>
+                  sameDay(new Date(appointment.start_at), day)
+                );
+
+                const isCurrentMonth =
+                  day.getMonth() === calendarMonth.getMonth();
+
+                return (
+                  <button
+                    type="button"
+                    key={day.toISOString()}
+                    className={`${styles.calendarDay} ${
+                      sameDay(day, new Date()) ? styles.todayDay : ""
+                    } ${!isCurrentMonth ? styles.otherMonth : ""}`}
+                    onClick={() => {
+                      setCurrentDate(day);
+                      setDate(formatInputDate(day));
+                    }}
+                  >
+                    {day.getDate()}
+                    {hasAppointment && <span></span>}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className={styles.todayCard}>
+            <h2>Afspraken vandaag</h2>
+
+            {todayAppointments.length === 0 ? (
+              <div className={styles.emptyToday}>Geen afspraken vandaag.</div>
+            ) : (
+              <div className={styles.todayList}>
+                {todayAppointments.map((appointment) => (
+                  <button
+                    key={appointment.id}
+                    type="button"
+                    className={styles.todayItem}
+                    onClick={() => setSelectedAppointment(appointment)}
+                  >
+                    <span>{formatTime(appointment.start_at)}</span>
+
+                    <div>
+                      <h3>{appointment.title}</h3>
+                      <p>
+                        {appointment.animal?.name ||
+                          appointment.appointment_type ||
+                          "Algemeen"}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        </aside>
+      </section>
+    );
+  };
+
   return (
     <DierenartsLayout>
       <main className={styles.page}>
@@ -435,200 +635,7 @@ export default function DierenartsAgendaPage() {
             </button>
           </section>
 
-          {loading ? (
-            <section className={styles.messageCard}>
-              <h2>Agenda wordt geladen...</h2>
-              <p>We halen de afspraken van je dierenartsagenda op.</p>
-            </section>
-          ) : errorMessage ? (
-            <section className={styles.messageCard}>
-              <h2>Er ging iets mis</h2>
-              <p>{errorMessage}</p>
-            </section>
-          ) : (
-            <section className={styles.agendaLayout}>
-              <div className={styles.weekPanel}>
-                <div className={styles.weekTop}>
-                  <button type="button" onClick={previousWeek}>
-                    ‹
-                  </button>
-
-                  <h2>
-                    Week van{" "}
-                    {weekStart.toLocaleDateString("nl-BE", {
-                      day: "2-digit",
-                      month: "long",
-                    })}
-                  </h2>
-
-                  <button type="button" onClick={nextWeek}>
-                    ›
-                  </button>
-                </div>
-
-                <div className={styles.weekGrid}>
-                  <div className={styles.emptyCorner}></div>
-
-                  {days.map((day, index) => (
-                    <div
-                      key={day.toISOString()}
-                      className={`${styles.dayHeader} ${
-                        sameDay(day, new Date()) ? styles.todayHeader : ""
-                      }`}
-                    >
-                      <span>{weekDays[index]}</span>
-                      <strong>{day.getDate()}</strong>
-                    </div>
-                  ))}
-
-                  <div className={styles.timeColumn}>
-                    {hours.map((hour) => (
-                      <div key={hour} className={styles.timeSlot}>
-                        {String(hour).padStart(2, "0")}:00
-                      </div>
-                    ))}
-                  </div>
-
-                  {days.map((day) => {
-                    const dayAppointments = appointments.filter((appointment) =>
-                      sameDay(new Date(appointment.start_at), day)
-                    );
-
-                    return (
-                      <div key={day.toISOString()} className={styles.dayColumn}>
-                        {hours.map((hour) => (
-                          <div key={hour} className={styles.hourLine}></div>
-                        ))}
-
-                        {dayAppointments.map((appointment) => (
-                          <button
-                            key={appointment.id}
-                            type="button"
-                            className={styles.appointmentBlock}
-                            style={{
-                              top: `${getAppointmentTop(
-                                appointment.start_at
-                              )}px`,
-                              height: `${getAppointmentHeight(
-                                appointment.start_at,
-                                appointment.end_at
-                              )}px`,
-                            }}
-                            onClick={() => setSelectedAppointment(appointment)}
-                          >
-                            <span className={styles.appointmentTime}>
-                              {formatTime(appointment.start_at)} -{" "}
-                              {formatTime(appointment.end_at)}
-                            </span>
-
-                            <strong>{appointment.title}</strong>
-
-                            <p>
-                              {appointment.animal?.name ||
-                                appointment.appointment_type ||
-                                "Algemeen"}
-                            </p>
-
-                            <span
-                              className={`${styles.statusDot} ${getApprovalClass(
-                                appointment.approval_status
-                              )}`}
-                            ></span>
-                          </button>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <aside className={styles.sidePanel}>
-                <section className={styles.miniCalendar}>
-                  <div className={styles.calendarTop}>
-                    <button type="button" onClick={previousMonth}>
-                      ‹
-                    </button>
-
-                    <h2>{formatMonth(calendarMonth)}</h2>
-
-                    <button type="button" onClick={nextMonth}>
-                      ›
-                    </button>
-                  </div>
-
-                  <div className={styles.calendarDaysHeader}>
-                    <span>Ma</span>
-                    <span>Di</span>
-                    <span>Wo</span>
-                    <span>Do</span>
-                    <span>Vr</span>
-                    <span>Za</span>
-                    <span>Zo</span>
-                  </div>
-
-                  <div className={styles.calendarGrid}>
-                    {calendarDays.map((day) => {
-                      const hasAppointment = appointments.some((appointment) =>
-                        sameDay(new Date(appointment.start_at), day)
-                      );
-
-                      const isCurrentMonth =
-                        day.getMonth() === calendarMonth.getMonth();
-
-                      return (
-                        <button
-                          type="button"
-                          key={day.toISOString()}
-                          className={`${styles.calendarDay} ${
-                            sameDay(day, new Date()) ? styles.todayDay : ""
-                          } ${!isCurrentMonth ? styles.otherMonth : ""}`}
-                          onClick={() => {
-                            setCurrentDate(day);
-                            setDate(formatInputDate(day));
-                          }}
-                        >
-                          {day.getDate()}
-                          {hasAppointment && <span></span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-
-                <section className={styles.todayCard}>
-                  <h2>Afspraken vandaag</h2>
-
-                  {todayAppointments.length === 0 ? (
-                    <div className={styles.emptyToday}>
-                      Geen afspraken vandaag.
-                    </div>
-                  ) : (
-                    <div className={styles.todayList}>
-                      {todayAppointments.map((appointment) => (
-                        <button
-                          key={appointment.id}
-                          type="button"
-                          className={styles.todayItem}
-                          onClick={() => setSelectedAppointment(appointment)}
-                        >
-                          <span>{formatTime(appointment.start_at)}</span>
-
-                          <div>
-                            <h3>{appointment.title}</h3>
-                            <p>
-                              {appointment.animal?.name ||
-                                appointment.appointment_type ||
-                                "Algemeen"}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </section>
-              </aside>
-            </section>
-          )}
+          {renderAgendaContent()}
         </div>
 
         {modalOpen && (
@@ -828,7 +835,7 @@ export default function DierenartsAgendaPage() {
 
         {selectedAppointment && (
           <div className={styles.modalOverlay}>
-            <div className={styles.modal}>
+            <div className={styles.detailModal}>
               <button
                 type="button"
                 className={styles.closeModal}

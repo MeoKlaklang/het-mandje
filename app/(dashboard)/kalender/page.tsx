@@ -8,6 +8,7 @@ import {
   Reminder,
 } from "@/lib/calendar/getCalendarData";
 import { createReminder } from "@/lib/calendar/createReminder";
+import { updateReminderTodoStatus } from "@/lib/calendar/updateReminderTodoStatus";
 import { respondToAppointment } from "@/lib/calendar/respondToAppointment";
 import {
   getUserFosterAnimals,
@@ -178,6 +179,57 @@ function formatProposalDate(startAt: string | null, endAt: string | null) {
   return `${date} van ${startTime} tot ${endTime}`;
 }
 
+function isTodoCompleted(reminder: Reminder) {
+  return reminder.status === "done";
+}
+
+function shouldShowTodo(reminder: Reminder) {
+  if (!isTodoCompleted(reminder)) return true;
+
+  if (!reminder.completed_at) return true;
+
+  const completedAt = new Date(reminder.completed_at).getTime();
+  const now = new Date().getTime();
+  const hoursPassed = (now - completedAt) / 1000 / 60 / 60;
+
+  return hoursPassed < 24;
+}
+
+function sortTodos(a: Reminder, b: Reminder) {
+  const aDone = isTodoCompleted(a);
+  const bDone = isTodoCompleted(b);
+
+  if (!aDone && bDone) return -1;
+  if (aDone && !bDone) return 1;
+
+  return new Date(a.due_at).getTime() - new Date(b.due_at).getTime();
+}
+
+function formatTodoDate(date: string | null) {
+  if (!date) return "Geen datum";
+
+  return new Date(date).toLocaleDateString("nl-BE", {
+    day: "2-digit",
+    month: "short",
+  });
+}
+
+function getAppointmentAnimal(appointment: Appointment) {
+  const animal = Array.isArray(appointment.animals)
+    ? appointment.animals[0]
+    : appointment.animals;
+
+  return animal || null;
+}
+
+function getAppointmentShelter(appointment: Appointment) {
+  const shelter = Array.isArray(appointment.shelters)
+    ? appointment.shelters[0]
+    : appointment.shelters;
+
+  return shelter || null;
+}
+
 export default function KalenderPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -256,13 +308,9 @@ export default function KalenderPage() {
     return appointments.filter(shouldShowAppointmentForUser);
   }, [appointments]);
 
-  const todayAppointments = visibleAppointments.filter((appointment) =>
-    sameDay(new Date(getDisplayStartAt(appointment)), new Date())
-  );
-
-  const todayReminders = reminders.filter((reminder) =>
-    sameDay(new Date(reminder.due_at), new Date())
-  );
+  const visibleTodos = useMemo(() => {
+    return reminders.filter(shouldShowTodo).sort(sortTodos);
+  }, [reminders]);
 
   const previousWeek = () => {
     setCurrentDate((date) => addDays(date, -7));
@@ -364,7 +412,7 @@ export default function KalenderPage() {
     setSavingReminder(false);
 
     if (!result.success) {
-      alert("Er ging iets mis bij het maken van je herinnering.");
+      alert("Er ging iets mis bij het maken van je todo.");
       return;
     }
 
@@ -373,6 +421,22 @@ export default function KalenderPage() {
     setReminderDate("");
     setReminderPriority("normal");
     setReminderModalOpen(false);
+
+    await loadCalendar();
+  };
+
+  const handleToggleTodo = async (reminder: Reminder) => {
+    const completed = !isTodoCompleted(reminder);
+
+    const result = await updateReminderTodoStatus({
+      reminderId: reminder.id,
+      completed,
+    });
+
+    if (!result.success) {
+      alert(result.error || "Todo kon niet aangepast worden.");
+      return;
+    }
 
     await loadCalendar();
   };
@@ -420,7 +484,7 @@ export default function KalenderPage() {
               <h1>Kalender</h1>
               <p>
                 Bekijk je afspraken, voorgestelde momenten en persoonlijke
-                herinneringen.
+                todo’s.
               </p>
             </div>
 
@@ -436,7 +500,7 @@ export default function KalenderPage() {
           {loading ? (
             <section className={styles.messageCard}>
               <h2>Kalender wordt geladen...</h2>
-              <p>We halen je afspraken en herinneringen op.</p>
+              <p>We halen je afspraken en todo’s op.</p>
             </section>
           ) : (
             <section className={styles.calendarLayout}>
@@ -494,42 +558,49 @@ export default function KalenderPage() {
                           <div key={hour} className={styles.hourLine}></div>
                         ))}
 
-                        {dayAppointments.map((appointment) => (
-                          <button
-                            key={appointment.id}
-                            type="button"
-                            className={styles.appointmentBlock}
-                            style={{
-                              top: `${getAppointmentTop(
-                                getDisplayStartAt(appointment)
-                              )}px`,
-                              height: `${getAppointmentHeight(
-                                getDisplayStartAt(appointment),
-                                getDisplayEndAt(appointment)
-                              )}px`,
-                            }}
-                            onClick={() => setSelectedAppointment(appointment)}
-                          >
-                            <span className={styles.appointmentTime}>
-                              {formatTime(getDisplayStartAt(appointment))} -{" "}
-                              {formatTime(getDisplayEndAt(appointment))}
-                            </span>
+                        {dayAppointments.map((appointment) => {
+                          const animal = getAppointmentAnimal(appointment);
+                          const shelter = getAppointmentShelter(appointment);
 
-                            <strong>{appointment.title}</strong>
+                          return (
+                            <button
+                              key={appointment.id}
+                              type="button"
+                              className={styles.appointmentBlock}
+                              style={{
+                                top: `${getAppointmentTop(
+                                  getDisplayStartAt(appointment)
+                                )}px`,
+                                height: `${getAppointmentHeight(
+                                  getDisplayStartAt(appointment),
+                                  getDisplayEndAt(appointment)
+                                )}px`,
+                              }}
+                              onClick={() =>
+                                setSelectedAppointment(appointment)
+                              }
+                            >
+                              <span className={styles.appointmentTime}>
+                                {formatTime(getDisplayStartAt(appointment))} -{" "}
+                                {formatTime(getDisplayEndAt(appointment))}
+                              </span>
 
-                            <p>
-                              {appointment.animal?.name ||
-                                appointment.shelter?.name ||
-                                "Persoonlijke afspraak"}
-                            </p>
+                              <strong>{appointment.title}</strong>
 
-                            <span
-                              className={`${styles.statusDot} ${getApprovalClass(
-                                appointment.approval_status
-                              )}`}
-                            ></span>
-                          </button>
-                        ))}
+                              <p>
+                                {animal?.name ||
+                                  shelter?.name ||
+                                  "Persoonlijke afspraak"}
+                              </p>
+
+                              <span
+                                className={`${styles.statusDot} ${getApprovalClass(
+                                  appointment.approval_status
+                                )}`}
+                              ></span>
+                            </button>
+                          );
+                        })}
                       </div>
                     );
                   })}
@@ -586,7 +657,6 @@ export default function KalenderPage() {
                           }}
                         >
                           {day.getDate()}
-
                           {hasAppointment && <span></span>}
                         </button>
                       );
@@ -594,78 +664,66 @@ export default function KalenderPage() {
                   </div>
                 </section>
 
-                <section className={styles.todayCard}>
-                  <div className={styles.todayHeader}>
-                    <h2>Afspraken vandaag</h2>
-                  </div>
-
-                  {todayAppointments.length === 0 ? (
-                    <div className={styles.emptyToday}>
-                      Geen afspraken vandaag.
+                <section className={styles.todoCard}>
+                  <div className={styles.todoHeader}>
+                    <div>
+                      <h2>To do</h2>
+                      <p>Persoonlijke taken en herinneringen.</p>
                     </div>
-                  ) : (
-                    <div className={styles.todayList}>
-                      {todayAppointments.map((appointment) => (
-                        <button
-                          key={appointment.id}
-                          type="button"
-                          className={styles.todayItem}
-                          onClick={() => setSelectedAppointment(appointment)}
-                        >
-                          <span>{formatTime(getDisplayStartAt(appointment))}</span>
-
-                          <div>
-                            <h3>{appointment.title}</h3>
-                            <p>
-                              {appointment.animal?.name ||
-                                appointment.shelter?.name ||
-                                "Persoonlijke afspraak"}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </section>
-
-                <section className={styles.remindersCard}>
-                  <div className={styles.todayHeader}>
-                    <h2>Herinneringen</h2>
 
                     <button
                       type="button"
                       onClick={() => setReminderModalOpen(true)}
                     >
-                      + Reminder
+                      + Toevoegen
                     </button>
                   </div>
 
-                  {todayReminders.length === 0 ? (
+                  {visibleTodos.length === 0 ? (
                     <div className={styles.emptyToday}>
-                      Geen herinneringen vandaag.
+                      Geen todo’s gepland.
                     </div>
                   ) : (
-                    <div className={styles.reminderList}>
-                      {todayReminders.map((reminder) => (
-                        <article
-                          key={reminder.id}
-                          className={
-                            reminder.priority === "important"
-                              ? styles.importantReminder
-                              : styles.reminderItem
-                          }
-                        >
-                          <h3>{reminder.title}</h3>
+                    <div className={styles.todoList}>
+                      {visibleTodos.map((todo) => {
+                        const completed = isTodoCompleted(todo);
 
-                          {reminder.priority === "important" && (
-                            <span>Belangrijk</span>
-                          )}
+                        return (
+                          <article
+                            key={todo.id}
+                            className={`${styles.todoItem} ${
+                              completed ? styles.todoItemDone : ""
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              className={`${styles.todoCheck} ${
+                                completed ? styles.todoCheckDone : ""
+                              }`}
+                              onClick={() => handleToggleTodo(todo)}
+                              aria-label="Todo afvinken"
+                            >
+                              {completed ? "✓" : ""}
+                            </button>
 
-                          {reminder.description && (
-                            <p>{reminder.description}</p>
-                          )}
-                        </article>
-                      ))}
+                            <div>
+                              <div className={styles.todoTitleRow}>
+                                <h3>{todo.title}</h3>
+
+                                {todo.priority === "important" && (
+                                  <span className={styles.todoPriority}>
+                                    Belangrijk
+                                  </span>
+                                )}
+                              </div>
+
+                              {todo.description && <p>{todo.description}</p>}
+
+                              <small>{formatTodoDate(todo.due_at)}</small>
+                            </div>
+                          </article>
+                        );
+                      })}
                     </div>
                   )}
                 </section>
@@ -700,31 +758,32 @@ export default function KalenderPage() {
                 </span>
               </div>
 
-              {selectedAppointment.animal && (
-                <div className={styles.detailAnimal}>
-                  <img
-                    src={
-                      selectedAppointment.animal.image_url ||
-                      "/images/dog3.jpg"
-                    }
-                    alt={selectedAppointment.animal.name}
-                  />
+              {(() => {
+                const animal = getAppointmentAnimal(selectedAppointment);
 
-                  <div>
-                    <h3>{selectedAppointment.animal.name}</h3>
-                    <p>
-                      {selectedAppointment.animal.breed ||
-                        selectedAppointment.animal.species ||
-                        "Dier"}
-                    </p>
+                if (!animal) return null;
+
+                return (
+                  <div className={styles.detailAnimal}>
+                    <img
+                      src={animal.image_url || "/images/dog3.jpg"}
+                      alt={animal.name}
+                    />
+
+                    <div>
+                      <h3>{animal.name}</h3>
+                      <p>{animal.breed || animal.species || "Dier"}</p>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               <div className={styles.detailGrid}>
                 <p>
                   <strong>Datum</strong>
-                  <span>{formatDate(getDisplayStartAt(selectedAppointment))}</span>
+                  <span>
+                    {formatDate(getDisplayStartAt(selectedAppointment))}
+                  </span>
                 </p>
 
                 <p>
@@ -739,7 +798,7 @@ export default function KalenderPage() {
                   <strong>Aangemaakt door</strong>
                   <span>
                     {selectedAppointment.created_by ||
-                      selectedAppointment.shelter?.name ||
+                      getAppointmentShelter(selectedAppointment)?.name ||
                       "Onbekend"}
                   </span>
                 </p>
@@ -866,8 +925,8 @@ export default function KalenderPage() {
                   <h3>Dierenartsafspraak aangevraagd</h3>
 
                   <p>
-                    Je hebt deze afspraak aangevraagd bij de dierenarts.
-                    Wacht tot de dierenarts je voorstel goedkeurt of weigert.
+                    Je hebt deze afspraak aangevraagd bij de dierenarts. Wacht
+                    tot de dierenarts je voorstel goedkeurt of weigert.
                   </p>
 
                   <div className={styles.proposalDateBox}>
@@ -992,9 +1051,7 @@ export default function KalenderPage() {
                   <select
                     value={appointmentTarget}
                     onChange={(e) =>
-                      setAppointmentTarget(
-                        e.target.value as AppointmentTarget
-                      )
+                      setAppointmentTarget(e.target.value as AppointmentTarget)
                     }
                   >
                     <option value="shelter">Dierenasiel</option>
@@ -1050,9 +1107,7 @@ export default function KalenderPage() {
                     <input
                       type="time"
                       value={appointmentStartTime}
-                      onChange={(e) =>
-                        setAppointmentStartTime(e.target.value)
-                      }
+                      onChange={(e) => setAppointmentStartTime(e.target.value)}
                     />
                   </label>
 
@@ -1070,9 +1125,7 @@ export default function KalenderPage() {
                   Beschrijving
                   <textarea
                     value={appointmentDescription}
-                    onChange={(e) =>
-                      setAppointmentDescription(e.target.value)
-                    }
+                    onChange={(e) => setAppointmentDescription(e.target.value)}
                     placeholder="Extra informatie over je afspraak..."
                   />
                 </label>
@@ -1120,8 +1173,8 @@ export default function KalenderPage() {
               </button>
 
               <div className={styles.modalHeader}>
-                <p>Nieuwe herinnering</p>
-                <h2>Herinnering toevoegen</h2>
+                <p>Nieuwe todo</p>
+                <h2>Todo toevoegen</h2>
               </div>
 
               <form onSubmit={handleCreateReminder} className={styles.form}>
@@ -1163,10 +1216,8 @@ export default function KalenderPage() {
                   Beschrijving
                   <textarea
                     value={reminderDescription}
-                    onChange={(e) =>
-                      setReminderDescription(e.target.value)
-                    }
-                    placeholder="Extra info over deze herinnering..."
+                    onChange={(e) => setReminderDescription(e.target.value)}
+                    placeholder="Extra info over deze todo..."
                   />
                 </label>
 
@@ -1184,9 +1235,7 @@ export default function KalenderPage() {
                     className={styles.saveButton}
                     disabled={savingReminder}
                   >
-                    {savingReminder
-                      ? "Opslaan..."
-                      : "Herinnering opslaan"}
+                    {savingReminder ? "Opslaan..." : "Todo opslaan"}
                   </button>
                 </div>
               </form>
