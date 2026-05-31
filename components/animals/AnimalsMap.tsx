@@ -187,10 +187,21 @@ export default function AnimalsMap({
               {index + 1}. {animal.name}
             </strong>
             <br />
-            {animal.shelters?.name}
-            <br />
-            {animal.shelters?.city}
-            <br />
+
+            {animal.shelters?.name && (
+              <>
+                {animal.shelters.name}
+                <br />
+              </>
+            )}
+
+            {animal.shelters?.city && (
+              <>
+                {animal.shelters.city}
+                <br />
+              </>
+            )}
+
             <Link href={`/dieren/${animal.id}`}>Bekijk dier</Link>
           </Popup>
         </Marker>
