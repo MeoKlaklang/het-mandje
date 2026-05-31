@@ -34,6 +34,23 @@ const animalMarkerIcon = createMarkerIcon("#df963f");
 const shelterMarkerIcon = createMarkerIcon("#df963f");
 const partnerShelterMarkerIcon = createMarkerIcon("#4f8f5f");
 
+function normalizeWebsiteUrl(website: string | null) {
+  if (!website) return null;
+
+  const trimmedWebsite = website.trim();
+
+  if (!trimmedWebsite) return null;
+
+  if (
+    trimmedWebsite.startsWith("http://") ||
+    trimmedWebsite.startsWith("https://")
+  ) {
+    return trimmedWebsite;
+  }
+
+  return `https://${trimmedWebsite}`;
+}
+
 export default function AnimalsMap({
   animals,
   shelterLocations = [],
@@ -70,8 +87,10 @@ export default function AnimalsMap({
         const isPartner = Boolean(shelter.is_platform_partner);
 
         const animalsForShelter = animals.filter(
-          (animal) => animal.shelter_id === shelter.linked_shelter_id
+          (animal) => animal.shelters?.id === shelter.linked_shelter_id
         );
+
+        const websiteUrl = normalizeWebsiteUrl(shelter.website);
 
         return (
           <Marker
@@ -112,6 +131,7 @@ export default function AnimalsMap({
                     Partner van Het Mandje
                   </strong>
                   <br />
+
                   {animalsForShelter.length > 0 ? (
                     <>
                       {animalsForShelter.length} dier
@@ -136,11 +156,11 @@ export default function AnimalsMap({
                 </>
               )}
 
-              {shelter.website && (
+              {websiteUrl && (
                 <>
                   <br />
                   <a
-                    href={shelter.website}
+                    href={websiteUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
