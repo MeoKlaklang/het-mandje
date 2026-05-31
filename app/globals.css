@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Borel&family=Inter:wght@400;500;600;700;800&display=swap');
 @import "leaflet/dist/leaflet.css";
 
-
 :root {
   --background: #FEF5EB;
   --foreground: #171717;
@@ -15,6 +14,9 @@ html,
 body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -24,6 +26,13 @@ body {
   font-size: 14px;
   line-height: 1.6;
   font-weight: 400;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
 }
 
 h1,

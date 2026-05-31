@@ -1,5 +1,8 @@
 .container {
 	background-color: #fef5eb;
+	width: 100%;
+	max-width: 100%;
+	overflow-x: hidden;
 }
 
 /* HERO */
@@ -7,15 +10,17 @@
 	position: relative;
 	border-radius: 12px;
 	overflow: hidden;
+	width: 100%;
+	max-width: 100%;
 }
 
 .heroImage {
-	width: 100%; /* 🔥 maakt hem breder */
-	max-width: 1250px; /* optioneel: max breedte */
+	width: 100%;
+	max-width: 1250px;
 	height: 500px;
 
-	object-fit: cover; /* vult mooi zonder vervormen */
-	object-position: center; /* 🔥 bepaalt focus */
+	object-fit: cover;
+	object-position: center;
 
 	border-radius: 12px;
 	opacity: 0.75;
@@ -55,8 +60,8 @@
 	border: none;
 	border-radius: 6px;
 	font-size: 12px;
-	border-color: white;
 	font-weight: 600;
+	cursor: pointer;
 }
 
 .secondaryBtn {
@@ -66,6 +71,7 @@
 	border-radius: 6px;
 	font-size: 12px;
 	font-weight: 600;
+	cursor: pointer;
 }
 
 /* grote titel */
@@ -76,7 +82,7 @@
 	font-size: 45px;
 	font-family: "Borel", cursive;
 	color: #5c3a2e;
-	font-weight: 500px;
+	font-weight: 500;
 	text-align: center;
 }
 
@@ -92,10 +98,9 @@
 .card {
 	width: 300px;
 	border-radius: 10px;
-	overflow: hidden; /* 🔥 belangrijk */
+	overflow: hidden;
 	background: white;
 	margin-bottom: 50px;
-
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
@@ -123,7 +128,6 @@
 	font-weight: 600;
 	line-height: 1.5;
 	color: #5f5f5f;
-
 	text-transform: uppercase;
 }
 
@@ -200,11 +204,9 @@
 
 /* NEWSLETTER */
 .newsletterSection {
-	display: flex; /* 🔥 geen grid */
-
+	display: flex;
 	align-items: center;
 	justify-content: center;
-
 	gap: 60px;
 
 	width: 100%;
@@ -217,9 +219,7 @@
 .newsletterImage {
 	width: 320px;
 	height: 280px;
-
 	flex-shrink: 0;
-
 	border-radius: 10px;
 	background: #d6cfa3;
 }
@@ -227,12 +227,10 @@
 /* CONTENT */
 .newsletterContent {
 	flex: 1;
-
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
 }
-
 
 /* TEKST */
 .newsletterContent p {
@@ -244,34 +242,230 @@
 /* FORM */
 .newsletterForm {
 	display: flex;
-
 	width: 100%;
 	max-width: 700px;
-
 	margin-top: 20px;
 }
 
 /* INPUT */
 .newsletterForm input {
 	flex: 1;
-
 	padding: 16px;
-
 	border: 1px solid #ddd;
 	background: #f4f4f4;
-
 	font-family: inherit;
 }
 
 /* BUTTON */
 .newsletterForm button {
 	width: 200px;
-
 	border: none;
-
 	background: #e9952f;
 	color: white;
-
 	font-weight: 700;
 	cursor: pointer;
+}
+
+/* TABLET */
+@media (max-width: 1050px) {
+	.heroContent {
+		left: 60px;
+	}
+
+	.heroTitle {
+		right: 60px;
+		font-size: 40px;
+	}
+
+	.testimonialSection,
+	.newsletterSection {
+		padding-left: 32px;
+		padding-right: 32px;
+	}
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+	.container {
+		width: 100%;
+		max-width: 100%;
+		overflow-x: hidden;
+	}
+
+	.hero {
+		width: 100%;
+		max-width: 100%;
+		border-radius: 0;
+		overflow: hidden;
+	}
+
+	.heroImage {
+		width: 100%;
+		max-width: 100%;
+		height: 540px;
+		border-radius: 0;
+		object-fit: cover;
+		object-position: center;
+		margin: 0;
+	}
+
+	.heroTitle {
+		position: absolute;
+		top: 38px;
+		left: 20px;
+		right: 20px;
+		bottom: auto;
+
+		width: auto;
+		max-width: none;
+
+		font-size: 34px;
+		line-height: 1.25;
+		text-align: center;
+		color: #5c3a2e;
+	}
+
+	.heroContent {
+		position: absolute;
+		left: 20px;
+		right: 20px;
+		bottom: 28px;
+
+		width: auto;
+		max-width: none;
+
+		padding: 18px;
+		border-radius: 14px;
+	}
+
+	.heroText {
+		font-size: 12px;
+		line-height: 1.5;
+		font-weight: 800;
+	}
+
+	.buttons {
+		flex-direction: column;
+		gap: 10px;
+		margin-top: 14px;
+	}
+
+	.primaryBtn,
+	.secondaryBtn {
+		width: 100%;
+		padding: 12px;
+		font-size: 13px;
+	}
+
+	.cards {
+		flex-direction: column;
+		align-items: center;
+		gap: 22px;
+		padding: 0 20px;
+		margin-top: 36px;
+	}
+
+	.card {
+		width: 100%;
+		max-width: 340px;
+		margin-bottom: 0;
+	}
+
+	.testimonialSection {
+		grid-template-columns: 1fr;
+		gap: 28px;
+		padding: 0 20px;
+		margin-top: 70px;
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.testimonialText h2,
+	.newsletterContent h2 {
+		font-size: 26px;
+		line-height: 1.35;
+	}
+
+	.largePlaceholder {
+		height: 360px;
+	}
+
+	.smallPlaceholder {
+		height: 150px;
+	}
+
+	.newsletterSection {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 28px;
+		padding: 0 20px;
+		margin: 70px auto 40px;
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.newsletterImage {
+		width: 100%;
+		max-width: 340px;
+		height: 240px;
+		margin: 0 auto;
+	}
+
+	.newsletterContent {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.newsletterContent p {
+		max-width: 100%;
+	}
+
+	.newsletterForm {
+		flex-direction: column;
+		gap: 10px;
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.newsletterForm input {
+		width: 100%;
+	}
+
+	.newsletterForm button {
+		width: 100%;
+		padding: 14px;
+	}
+}
+
+/* SMALL MOBILE */
+@media (max-width: 480px) {
+	.heroImage {
+		height: 560px;
+	}
+
+	.heroTitle {
+		top: 34px;
+		left: 16px;
+		right: 16px;
+		font-size: 31px;
+		line-height: 1.25;
+	}
+
+	.heroContent {
+		left: 16px;
+		right: 16px;
+		bottom: 24px;
+		padding: 16px;
+	}
+
+	.cards,
+	.testimonialSection,
+	.newsletterSection {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
+	.card {
+		max-width: 100%;
+	}
 }

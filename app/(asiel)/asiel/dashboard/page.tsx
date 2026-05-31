@@ -381,7 +381,7 @@ export default function AsielDashboardPage() {
 								<h2>{dashboardData.pendingApplications}</h2>
 								<span>Nieuwe aanvragen in afwachting</span>
 
-								<Link href="/asiel/aanvragen">
+								<Link href="/asiel/dieren">
 									Bekijk <span>→</span>
 								</Link>
 							</article>

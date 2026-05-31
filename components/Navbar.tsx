@@ -28,6 +28,7 @@ export default function Navbar() {
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -48,6 +49,7 @@ export default function Navbar() {
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setUserDropdownOpen(false);
+        setMobileMenuOpen(false);
       }
     }
 
@@ -60,10 +62,15 @@ export default function Navbar() {
     };
   }, []);
 
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
   const handleLogout = async () => {
     await logoutUser();
     setProfile(null);
     setUserDropdownOpen(false);
+    setMobileMenuOpen(false);
     router.push("/home");
     router.refresh();
   };
@@ -76,7 +83,7 @@ export default function Navbar() {
       <div className={styles.logo}>
         <Link href="/home">
           <Image
-            src="/images/logo.png"
+            src="/images/final-logo.png"
             alt="Het Mandje logo"
             width={200}
             height={150}
@@ -99,10 +106,9 @@ export default function Navbar() {
             </div>
           </div>
         )}
-
       </div>
 
-      <div>
+      <div className={styles.rightSide}>
         {!isLoggedIn ? (
           <Link href="/login" className={styles.button}>
             Word opvanggezin
@@ -203,7 +209,85 @@ export default function Navbar() {
             )}
           </div>
         )}
+
+        <button
+          type="button"
+          className={`${styles.hamburger} ${
+            mobileMenuOpen ? styles.hamburgerOpen : ""
+          }`}
+          onClick={() => setMobileMenuOpen((current) => !current)}
+          aria-label="Menu openen"
+          aria-expanded={mobileMenuOpen}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
+
+      {mobileMenuOpen && (
+        <div className={styles.mobileMenu}>
+          <Link href="/hoe-werkt-opvang" onClick={closeMobileMenu}>
+            Hoe werkt opvang?
+          </Link>
+
+          <Link href="/dieren" onClick={closeMobileMenu}>
+            Dieren zoeken
+          </Link>
+
+          <Link href="/pleeggezin" onClick={closeMobileMenu}>
+            Voor pleeggezinnen
+          </Link>
+
+          {!isLoggedIn && (
+            <>
+              <div className={styles.mobileDivider}></div>
+
+              <span className={styles.mobileLabel}>Voor partners</span>
+
+              <Link href="/asielen/login" onClick={closeMobileMenu}>
+                Voor asielen
+              </Link>
+
+              <Link href="/dierenarts/login" onClick={closeMobileMenu}>
+                Voor dierenartsen
+              </Link>
+            </>
+          )}
+
+          {isLoggedIn && (
+            <>
+              <div className={styles.mobileDivider}></div>
+
+              <span className={styles.mobileLabel}>Mijn account</span>
+
+              <Link href="/dashboard" onClick={closeMobileMenu}>
+                Dashboard
+              </Link>
+
+              <Link href="/mijn-dieren" onClick={closeMobileMenu}>
+                Mijn dieren
+              </Link>
+
+              <Link href="/kalender" onClick={closeMobileMenu}>
+                Kalender
+              </Link>
+
+              <Link href="/profiel" onClick={closeMobileMenu}>
+                Profiel
+              </Link>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={styles.mobileLogout}
+              >
+                Uitloggen
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </nav>
   );
 }

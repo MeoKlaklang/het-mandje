@@ -54,9 +54,10 @@
 
 .nav a:hover,
 .nav button:hover,
-.nav .active {
+.nav .active,
+.active {
   font-weight: 900;
-  color: #df963f;
+  color: #df963f !important;
 }
 
 .content {
@@ -71,11 +72,18 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
+  position: relative;
+  gap: 24px;
+}
+
+.searchWrapper {
+  position: relative;
+  width: min(420px, 45vw);
 }
 
 .searchBar {
   position: relative;
-  width: min(420px, 45vw);
+  width: 100%;
 }
 
 .searchBar input {
@@ -135,36 +143,6 @@
 
 .pageContent {
   min-height: calc(100vh - 74px);
-}
-
-@media (max-width: 1050px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-
-  .sidebar {
-    min-height: auto;
-    border-right: none;
-    border-bottom: 1px solid #dfd4c7;
-  }
-
-  .nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
-  .nav p {
-    width: 100%;
-  }
-}
-
-.searchWrapper {
-  position: relative;
-  width: min(420px, 45vw);
-}
-
-.searchWrapper .searchBar {
-  width: 100%;
 }
 
 .searchDropdown {
@@ -240,16 +218,191 @@
   color: #8a7a69;
 }
 
+/* HAMBURGER - standaard verborgen op desktop */
+.hamburger {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.hamburger span {
+  width: 24px;
+  height: 2px;
+  background: #1f130d;
+  border-radius: 999px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.hamburgerOpen span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hamburgerOpen span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburgerOpen span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.mobileMenu {
+  display: none;
+}
+
+/* MOBILE */
 @media (max-width: 760px) {
+  .layout {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .content {
+    width: 100%;
+    max-width: 100%;
+  }
+
   .topbar {
     height: auto;
-    padding: 18px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
+    min-height: 82px;
+    padding: 18px 20px;
+    display: grid;
+    grid-template-columns: 1fr 44px;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .searchWrapper {
+    width: 100%;
+    min-width: 0;
   }
 
   .searchBar {
     width: 100%;
+  }
+
+  .searchBar input {
+    height: 44px;
+    font-size: 12px;
+    border-radius: 9px;
+  }
+
+  .searchBar input::placeholder {
+    color: #b4aca3;
+  }
+
+  .searchBar span {
+    top: 12px;
+  }
+
+  .topActions {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+    justify-self: end;
+  }
+
+  .mobileMenu {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 20px;
+    right: 20px;
+    z-index: 9999;
+    background: #fffaf4;
+    border: 1px solid #eadfd4;
+    border-radius: 18px;
+    padding: 14px;
+    box-shadow: 0 18px 45px rgba(31, 19, 13, 0.14);
+  }
+
+  .mobileHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px 12px;
+  }
+
+  .mobileHeader strong {
+    font-size: 14px;
+    font-weight: 900;
+    color: #1f130d;
+  }
+
+  .mobileHeader small {
+    font-size: 12px;
+    font-weight: 700;
+    color: #8a7a69;
+  }
+
+  .mobileMenu a,
+  .mobileMenu button {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 12px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    border: none;
+    background: transparent;
+    color: #1f130d;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 800;
+    font-family: "Inter", sans-serif;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .mobileMenu a:hover,
+  .mobileMenu button:hover {
+    background: #fff1d8;
+    color: #df963f;
+  }
+
+  .mobileDivider {
+    height: 1px;
+    background: #eadfd4;
+    margin: 8px 0;
+  }
+
+  .searchDropdown {
+    top: calc(100% + 8px);
+    z-index: 10000;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    padding: 16px;
+    grid-template-columns: 1fr 42px;
+  }
+
+  .hamburger {
+    width: 42px;
+    height: 42px;
+  }
+
+  .mobileMenu {
+    left: 16px;
+    right: 16px;
+  }
+
+  .searchBar input::placeholder {
+    font-size: 11px;
   }
 }

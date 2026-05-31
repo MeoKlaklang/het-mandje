@@ -32,6 +32,7 @@ export default function AsielLayout({
   const [searchResults, setSearchResults] = useState<AsielSearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     async function loadShelter() {
@@ -84,13 +85,22 @@ export default function AsielLayout({
     return () => clearTimeout(timeout);
   }, [searchTerm]);
 
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
   const handleLogout = async () => {
     await logoutUser();
+    setMobileMenuOpen(false);
     router.push("/asielen/login");
     router.refresh();
   };
 
   const isActive = (href: string) => pathname === href;
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
 
   const handleGoToResult = (result: AsielSearchResult) => {
     setSearchTerm(
@@ -108,7 +118,7 @@ export default function AsielLayout({
       <aside className={styles.sidebar}>
         <Link href="/asiel/dashboard" className={styles.logoLink}>
           <Image
-            src="/images/logo.png"
+            src="/images/final-logo.png"
             alt="Het Mandje logo"
             width={90}
             height={65}
@@ -209,9 +219,7 @@ export default function AsielLayout({
                       <div>
                         <h3>
                           {result.animalName}
-                          {result.fosterName
-                            ? ` - ${result.fosterName}`
-                            : ""}
+                          {result.fosterName ? ` - ${result.fosterName}` : ""}
                         </h3>
 
                         <p>
@@ -219,9 +227,7 @@ export default function AsielLayout({
                           {result.city ? ` · ${result.city}` : ""}
                         </p>
 
-                        <span>
-                          {result.status || "status onbekend"}
-                        </span>
+                        <span>{result.status || "status onbekend"}</span>
                       </div>
                     </button>
                   ))
@@ -231,15 +237,92 @@ export default function AsielLayout({
           </div>
 
           <div className={styles.topActions}>
-            <button type="button" className={styles.notificationButton}>
-              
-            </button>
+            <button type="button" className={styles.notificationButton}></button>
 
             <div className={styles.profile}>
               <div className={styles.avatar}>👤</div>
               <span>{shelter?.name || "Dierenasiel"}</span>
             </div>
           </div>
+
+          <button
+            type="button"
+            className={`${styles.hamburger} ${
+              mobileMenuOpen ? styles.hamburgerOpen : ""
+            }`}
+            onClick={() => setMobileMenuOpen((current) => !current)}
+            aria-label="Menu openen"
+            aria-expanded={mobileMenuOpen}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          {mobileMenuOpen && (
+            <div className={styles.mobileMenu}>
+              <div className={styles.mobileHeader}>
+                <strong>{shelter?.name || "Dierenasiel"}</strong>
+                <small>Asiel platform</small>
+              </div>
+
+              <div className={styles.mobileDivider}></div>
+
+              <Link
+                href="/asiel/dashboard"
+                onClick={closeMobileMenu}
+                className={isActive("/asiel/dashboard") ? styles.active : ""}
+              >
+                Dashboard
+              </Link>
+
+              <Link
+                href="/asiel/agenda"
+                onClick={closeMobileMenu}
+                className={isActive("/asiel/agenda") ? styles.active : ""}
+              >
+                Agenda
+              </Link>
+
+              <Link
+                href="/asiel/taken"
+                onClick={closeMobileMenu}
+                className={isActive("/asiel/taken") ? styles.active : ""}
+              >
+                Task
+              </Link>
+
+              <Link
+                href="/asiel/dieren/nieuw"
+                onClick={closeMobileMenu}
+                className={isActive("/asiel/dieren/nieuw") ? styles.active : ""}
+              >
+                + Nieuw dier
+              </Link>
+
+              <div className={styles.mobileDivider}></div>
+
+              <Link
+                href="/asiel/settings"
+                onClick={closeMobileMenu}
+                className={isActive("/asiel/settings") ? styles.active : ""}
+              >
+                Settings
+              </Link>
+
+              <Link
+                href="/asiel/help"
+                onClick={closeMobileMenu}
+                className={isActive("/asiel/help") ? styles.active : ""}
+              >
+                Help
+              </Link>
+
+              <button type="button" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
+          )}
         </header>
 
         <div className={styles.pageContent}>{children}</div>

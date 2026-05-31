@@ -74,7 +74,7 @@ export default function DashboardNavbar() {
       <div className={styles.topRow}>
         <Link href="/home">
           <Image
-            src="/images/logo.png"
+            src="/images/final-logo.png"
             alt="Het Mandje logo"
             width={110}
             height={80}

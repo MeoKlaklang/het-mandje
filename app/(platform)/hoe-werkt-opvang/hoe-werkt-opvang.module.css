@@ -580,6 +580,10 @@
 }
 
 @media (max-width: 768px) {
+	.heroSection {
+		padding-top: 45px;
+	}
+
 	.container {
 		padding: 0 16px;
 	}
