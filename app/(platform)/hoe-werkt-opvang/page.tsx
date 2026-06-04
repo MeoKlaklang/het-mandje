@@ -23,7 +23,11 @@ export default function HoeWerktOpvang() {
 				</div>
 
 				<div className={styles.heroImage}>
-					<img src="/images/3 kittens in een mandje.jpg" alt="" />
+					<img src="/images/3 kittens in een mandje.jpg" alt="Kittens in een mandje" />
+
+					<span className={styles.heroImageLabel}>Leo, Mo, Suki zoeken een pleeggezin</span>
+
+					<img src="/images/touw.png" alt="" className={styles.heroRopeImage} />
 				</div>
 			</section>
 

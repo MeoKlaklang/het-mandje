@@ -6,7 +6,7 @@ export default function Home() {
 		<main className={styles.container}>
 			{/* HERO */}
 			<section className={styles.hero}>
-				<img src="/images/dog3.jpg" alt="2 katten, knuffelen" className={styles.heroImage} />
+				<img src="/images/kat_basket.png" alt="2 katten, knuffelen" className={styles.heroImage} />
 
 				<div className={styles.heroContent}>
 					<img src="/images/touw.png" alt="" className={styles.ropeImage} />
@@ -120,7 +120,7 @@ export default function Home() {
 				<div className={styles.largePlaceholder}>
 					<img src="/images/2 katten knuffelen.jpg" alt="" />
 
-					<div className={styles.photoLabel}>Balou en Lola, 1 maand</div>
+					<div className={styles.photoLabel}>Balou en Lola, 4 jaar</div>
 
 					<img src="/images/touw.png" alt="" className={styles.largeRopeImage} />
 				</div>

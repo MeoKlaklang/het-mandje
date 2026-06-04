@@ -2,67 +2,88 @@
 
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import L from "leaflet";
-import Link from "next/link";
+import "leaflet/dist/leaflet.css";
 import { Animal } from "@/lib/animals/getAnimals";
-import { ShelterLocation } from "@/lib/shelters/getShelterLocations";
+
+type ShelterMarker = {
+  id: string;
+  name: string;
+  street?: string | null;
+  house_number?: string | null;
+  postal_code?: string | null;
+  city?: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  source?: string | null;
+  type?: string | null;
+  origin?: string | null;
+  is_demo?: boolean | null;
+  created_via_platform?: boolean | null;
+};
 
 type AnimalsMapProps = {
   animals: Animal[];
-  shelterLocations?: ShelterLocation[];
+  shelterLocations: ShelterMarker[];
+  selectedShelterId?: string | null;
+  animalCountByShelterId?: Record<string, number>;
+  onSelectShelter?: (shelterId: string) => void;
 };
 
-function createMarkerIcon(color: string) {
+function isPlatformShelter(shelter: ShelterMarker) {
+  const source = (
+    shelter.source ||
+    shelter.type ||
+    shelter.origin ||
+    ""
+  ).toLowerCase();
+
+  return (
+    shelter.created_via_platform === true ||
+    shelter.is_demo === false ||
+    source.includes("platform") ||
+    source.includes("website") ||
+    source.includes("eigen")
+  );
+}
+
+function createShelterIcon({
+  isPlatform,
+  isSelected,
+}: {
+  isPlatform: boolean;
+  isSelected: boolean;
+}) {
+  const color = isPlatform ? "#3f8f4d" : "#df963f";
+  const size = isSelected ? 25 : 17;
+  const border = isSelected ? 4 : 2;
+
   return L.divIcon({
     className: "",
     html: `
       <div style="
-        width: 18px;
-        height: 18px;
+        width: ${size}px;
+        height: ${size}px;
         background: ${color};
-        border: 3px solid white;
+        border: ${border}px solid white;
         border-radius: 999px;
-        box-shadow: 0 3px 9px rgba(31, 19, 13, 0.28);
+        box-shadow: ${
+          isSelected
+            ? "0 0 0 6px rgba(223,150,63,0.22), 0 6px 18px rgba(0,0,0,0.35)"
+            : "0 2px 7px rgba(0,0,0,0.25)"
+        };
       "></div>
     `,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
-    popupAnchor: [0, -10],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   });
 }
 
-const animalMarkerIcon = createMarkerIcon("#df963f");
-const shelterMarkerIcon = createMarkerIcon("#df963f");
-const partnerShelterMarkerIcon = createMarkerIcon("#4f8f5f");
-
-function normalizeWebsiteUrl(website: string | null) {
-  if (!website) return null;
-
-  const trimmedWebsite = website.trim();
-
-  if (!trimmedWebsite) return null;
-
-  if (
-    trimmedWebsite.startsWith("http://") ||
-    trimmedWebsite.startsWith("https://")
-  ) {
-    return trimmedWebsite;
-  }
-
-  return `https://${trimmedWebsite}`;
-}
-
 export default function AnimalsMap({
-  animals,
-  shelterLocations = [],
+  shelterLocations,
+  selectedShelterId,
+  animalCountByShelterId = {},
+  onSelectShelter,
 }: AnimalsMapProps) {
-  const animalsWithLocation = animals.filter(
-    (animal) =>
-      animal.shelters?.latitude !== null &&
-      animal.shelters?.longitude !== null &&
-      animal.shelters?.latitude !== undefined &&
-      animal.shelters?.longitude !== undefined
-  );
-
   const sheltersWithLocation = shelterLocations.filter(
     (shelter) =>
       shelter.latitude !== null &&
@@ -71,9 +92,17 @@ export default function AnimalsMap({
       shelter.longitude !== undefined
   );
 
+  const center: [number, number] =
+    sheltersWithLocation.length > 0
+      ? [
+          Number(sheltersWithLocation[0].latitude),
+          Number(sheltersWithLocation[0].longitude),
+        ]
+      : [51.0259, 4.4776];
+
   return (
     <MapContainer
-      center={[51.0259, 4.4776]}
+      center={center}
       zoom={10}
       scrollWheelZoom={true}
       style={{ width: "100%", height: "100%" }}
@@ -84,128 +113,42 @@ export default function AnimalsMap({
       />
 
       {sheltersWithLocation.map((shelter) => {
-        const isPartner = Boolean(shelter.is_platform_partner);
-
-        const animalsForShelter = animals.filter(
-          (animal) => animal.shelters?.id === shelter.linked_shelter_id
-        );
-
-        const websiteUrl = normalizeWebsiteUrl(shelter.website);
+        const isSelected = shelter.id === selectedShelterId;
+        const isPlatform = isPlatformShelter(shelter);
+        const animalCount = animalCountByShelterId[shelter.id] || 0;
 
         return (
           <Marker
-            key={`shelter-${shelter.id}`}
+            key={shelter.id}
             position={[Number(shelter.latitude), Number(shelter.longitude)]}
-            icon={isPartner ? partnerShelterMarkerIcon : shelterMarkerIcon}
+            icon={createShelterIcon({ isPlatform, isSelected })}
+            eventHandlers={{
+              click: () => {
+                onSelectShelter?.(shelter.id);
+              },
+            }}
           >
             <Popup>
               <strong>{shelter.name}</strong>
               <br />
 
-              {shelter.street && (
-                <>
-                  {shelter.street} {shelter.house_number || ""}
-                  <br />
-                </>
-              )}
-
-              {shelter.postal_code || shelter.city ? (
-                <>
-                  {shelter.postal_code} {shelter.city}
-                  <br />
-                </>
-              ) : null}
-
-              {shelter.phone && (
-                <>
-                  Tel: {shelter.phone}
-                  <br />
-                </>
-              )}
-
+              {[shelter.postal_code, shelter.city].filter(Boolean).join(" ")}
               <br />
 
-              {isPartner ? (
-                <>
-                  <strong style={{ color: "#4f8f5f" }}>
-                    Partner van Het Mandje
-                  </strong>
-                  <br />
+              {animalCount > 0
+                ? `${animalCount} dier${animalCount === 1 ? "" : "en"} beschikbaar`
+                : "Geen dieren beschikbaar"}
+              <br />
 
-                  {animalsForShelter.length > 0 ? (
-                    <>
-                      {animalsForShelter.length} dier
-                      {animalsForShelter.length === 1 ? "" : "en"} beschikbaar
-                      <br />
-                    </>
-                  ) : (
-                    <>
-                      Nog geen dieren beschikbaar
-                      <br />
-                    </>
-                  )}
-                </>
-              ) : (
-                <>
-                  <strong style={{ color: "#df963f" }}>
-                    Erkend dierenasiel
-                  </strong>
-                  <br />
-                  Nog geen partner van Het Mandje
-                  <br />
-                </>
-              )}
-
-              {websiteUrl && (
-                <>
-                  <br />
-                  <a
-                    href={websiteUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Website bekijken
-                  </a>
-                </>
-              )}
+              <span>
+                {isPlatform
+                  ? "Aangemaakt via Het Mandje"
+                  : "Erkend demo-asiel"}
+              </span>
             </Popup>
           </Marker>
         );
       })}
-
-      {animalsWithLocation.map((animal, index) => (
-        <Marker
-          key={`animal-${animal.id}`}
-          position={[
-            Number(animal.shelters?.latitude),
-            Number(animal.shelters?.longitude),
-          ]}
-          icon={animalMarkerIcon}
-        >
-          <Popup>
-            <strong>
-              {index + 1}. {animal.name}
-            </strong>
-            <br />
-
-            {animal.shelters?.name && (
-              <>
-                {animal.shelters.name}
-                <br />
-              </>
-            )}
-
-            {animal.shelters?.city && (
-              <>
-                {animal.shelters.city}
-                <br />
-              </>
-            )}
-
-            <Link href={`/dieren/${animal.id}`}>Bekijk dier</Link>
-          </Popup>
-        </Marker>
-      ))}
     </MapContainer>
   );
 }

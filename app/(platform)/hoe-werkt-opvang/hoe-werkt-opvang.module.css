@@ -51,33 +51,65 @@
 }
 
 .heroImage {
-	position: relative;
-	height: 420px;
-
-	border-radius: 12px;
-
-	background: #d6cfa3;
-	overflow: hidden;
+  position: relative;
+  height: 420px;
+  border-radius: 12px;
+  background: #d6cfa3;
+  overflow: visible;
 }
 
-.heroImage img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	object-position: center;
-	display: block;
-	border-radius: 12px;
-	object-position: center 20%;
+.heroImage > img:first-child {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  display: block;
+  border-radius: 12px;
 }
 
 .heroImage::after {
-	content: "";
-	position: absolute;
-	inset: 0;
-	background: white;
-	opacity: 0.28;
-	pointer-events: none;
-	border-radius: 12px;
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0.28;
+  pointer-events: none;
+  border-radius: 12px;
+  z-index: 1;
+}
+
+.heroImageLabel {
+  position: absolute;
+  right: 34px;
+  bottom: 34px;
+  z-index: 3;
+
+  min-width: 300px;
+  padding: 18px 28px;
+
+  background: #d6cfa3;
+  border-radius: 8px;
+
+  color: #111111;
+  font-family: "Borel", cursive;
+  font-size: 15px;
+  line-height: 1.2;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(31, 19, 13, 0.08);
+}
+
+.heroRopeImage {
+  position: absolute;
+  right: -18px;
+  bottom: -63px;
+
+  width: 145px;
+  height: auto;
+
+  transform: rotate(28deg);
+
+  z-index: 4;
+  pointer-events: none;
 }
 
 /* INFO SECTION */
